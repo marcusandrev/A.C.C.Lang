@@ -1,6 +1,6 @@
-from atoms import ATOMS
+from .atoms import ATOMS
 
-delims = {
+DELIMS = {
     'amaccana_gogogo_delim': {';', *ATOMS['similar_delim']},
     'close_brace_delim': {';', ',', ')', '}', *ATOMS['alphabet'], *ATOMS['similar_delim']},
     'close_bracket_delim': {';', ',', *ATOMS['general_operators'], ')', '[', ']', '}', *ATOMS['similar_delim']},
@@ -11,7 +11,7 @@ delims = {
     'id_delim': {';', ',', *ATOMS['general_operators'], '(', ')', '[', ']', '}', *ATOMS['similar_delim']},
     'kerilang_ganern_delim': {'{', *ATOMS['similar_delim']},
     'logical_not_delim': {'“', '-', '!', '(', *ATOMS['alphanumeric'], *ATOMS['similar_delim']},
-    'minus_delim': {'(', *ATOMS['alphanumeric'], whitespace},
+    'minus_delim': {'(', *ATOMS['alphanumeric'], ' '},
     'most_symbol_delim': {'-', '(', *ATOMS['alphanumeric'], *ATOMS['similar_delim']},
     'open_brace_delim': {'“', '-', '!', '(', *ATOMS['alphanumeric'], *ATOMS['similar_delim']},
     'open_bracket_delim': {'-', '(', ']', *ATOMS['alphanumeric'], *ATOMS['similar_delim']},

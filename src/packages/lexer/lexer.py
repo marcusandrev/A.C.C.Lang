@@ -1,5 +1,27 @@
+# Reading of the lexemes                ✓
+# Helper functions
+# - reserve words   (expect_reserved)   ✓
+# - identifiers     (expect_id)         ✓
+# - string          (expect_string)     ✓
+# - comment         (expect_comment)    ✓
+# - int             (expect_int)        ✓ ───── merge: (expect_int_float) X
+# - float           (expect_float) ─────────────┘
+# - error handling                      X
+# - implement delimiters                X
 
-source_code = "anda count = 1;"
+import sys, os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..','..','..')))
+
+from constants import ATOMS,DELIMS
+
+source_code = r"""
+
+/^Testing Lexer^/
+chika name = "Shrek";
+anda age = 32;
+serve("Name: " + name + ", Age: " + age);
+
+"""
 
 def main():
     if not source_code[0:]: # Quit the program if source code is empty
@@ -9,13 +31,16 @@ def main():
     # source = " ".join(argv[1:])
     lex = Lexer(source_code)
     lex.start()
-    for token in lex.tokens: print(token)
+    print(f"{'-'*10}LEXEME{'-'*10 + ' '*5 + '-'*10}TOKEN{'-'*10}")
+    for lexeme, token in lex.token_stream:
+        print(f'{lexeme:^26}{' '*5}{token:^25}')
 
 class Lexer:
     def __init__(self, source: str):
         self.source = source
         self.index = 0
-        self.tokens: list[str] = []
+        self.token_stream: list[dict] = []
+        self.id_map: dict = {}
     
     ## TRACKING CHARACTERS
     def curr_char(self):
@@ -35,7 +60,7 @@ class Lexer:
     def start(self):
         while not self.is_EOF():
             if self.curr_char() in [" ", "\t", "\n"]: #, "\r"]:
-                self.tokens.append("WHITESPACE")
+                # self.token_stream.append("WHITESPACE")
                 self.advance()
 
             # amaccana, anda, andamhie, IDENTIFIER
@@ -43,7 +68,6 @@ class Lexer:
                 if self.expect_reserved("amaccana"): continue
                 elif self.expect_reserved("anda"): continue
                 elif self.expect_reserved("andamhie"): continue
-                elif self.expect_reserved("awch"): continue
                 else: self.expect_id()
             
             # betsung, IDENTIFIER
@@ -126,6 +150,10 @@ class Lexer:
                 print("working identifier")
                 self.expect_id()
 
+            # NUMBER
+            elif self.curr_char().isdigit():
+                self.expect_int()
+
             # PLUS SIGN
             elif self.curr_char() == '+':
                 if self.expect_reserved('+', symbol=True): continue 
@@ -147,7 +175,8 @@ class Lexer:
            
             # SLASH
             elif self.curr_char() == '/':
-                if self.expect_reserved('/', symbol=True): continue 
+                if self.expect_comment(): continue
+                elif self.expect_reserved('/', symbol=True): continue 
                 elif self.expect_reserved('/=', symbol=True): continue
                 elif self.expect_reserved('//', symbol=True): continue
                 elif self.expect_reserved('//=', symbol=True): continue
@@ -223,15 +252,14 @@ class Lexer:
             elif self.curr_char() == '}':
                 self.expect_reserved('}', symbol=True) 
 
-            # NUMBER
-            elif self.curr_char().isdigit():
-                self.expect_int()
+            elif self.curr_char() == '"':
+                self.expect_string()
 
             else:
                 print(f"unknown character: {self.curr_char()}")
                 self.advance()
 
-    def expect_reserved(self, expected: str, symbol = False) -> bool:
+    def expect_reserved(self, expected: str, delims: list = [], symbol = False) -> bool:
         """
         generic lexer for reserved words/symbols.
         handles possible identifiers that contain reserved words in its name
@@ -246,10 +274,10 @@ class Lexer:
 
         # currently, cursor is at delimiter
         # check if word is IDENTIFIER if it is not a res symbol
-        if self.curr_char().isalpha() and not symbol:
-            self.reverse(len(res))
-            return False
-        self.tokens.append(res)
+        # if self.curr_char() not in delims:
+        #     self.reverse(len(res))
+        #     return False
+        self.token_stream.append((res,res))
         return True
 
     def expect_id(self) -> bool:
@@ -264,8 +292,48 @@ class Lexer:
         # if name in reserved:
         #     self.reverse(len(name))
         #     return False
-        self.tokens.append(name)
+        token = self.id_map.get(name, f'ID_{len(self.id_map) + 1}')
+        self.id_map.update({name: token})
+        self.token_stream.append((name, token))
         return True
+    
+    def expect_comment(self):
+        comment = ''
+        if self.curr_char() + self.next_char() == '/^':
+            while self.curr_char() != '\0':
+                comment += self.curr_char()
+                if self.curr_char() == '^' and self.next_char() == '/':
+                    comment += '/'
+                    self.advance(2)   
+                    break
+                self.advance()
+
+            self.token_stream.append((comment,'COMMENT'))
+            return True
+        
+        return False
+
+    def expect_string(self):
+        self.advance()
+        string = '"'
+        escape = False
+        while self.curr_char() != '"' and self.curr_char() != '\0':
+            string += self.curr_char()
+            self.advance()
+
+            if self.curr_char() == '\\' and self.next_char() == '"':
+                string += self.curr_char() + self.next_char()
+                self.advance(2)
+            
+            if self.curr_char() == '"':
+                string += self.curr_char()
+                self.advance()
+                break
+
+        self.token_stream.append((string,'CHIKA_LITERAL'))
+        return True
+        
+        return False
 
     def expect_int(self):
         """
@@ -275,8 +343,8 @@ class Lexer:
         while self.curr_char().isdigit():
             num += self.curr_char()
             self.advance()
-        self.tokens.append(num)
+        self.token_stream.append((num,'ANDA_LITERAL'))
 
 if __name__ == "__main__":
-    # print("Starting")
+    print("Starting")
     main()
