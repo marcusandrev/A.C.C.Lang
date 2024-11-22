@@ -4,10 +4,8 @@
 # - identifiers     (expect_id)         ✓
 # - string          (expect_string)     ✓
 # - comment         (expect_comment)    ✓
-# - int             (expect_int)        ✓ ───── merge: (expect_int_float) X
-# - float           (expect_float) ─────────────┘
+# - int/float       (expect_int_float)  ✓
 # - error handling                      X
-# - implement delimiters                X
 
 import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..','..','..')))
@@ -15,12 +13,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..','..
 from constants import ATOMS,DELIMS
 
 source_code = r"""
-
 /^Testing Lexer^/
 chika name = "Shrek";
-anda age = 32;
+anda age = 247.365;
 serve("Name: " + name + ", Age: " + age);
-
 """
 
 def main():
@@ -62,87 +58,102 @@ class Lexer:
             if self.curr_char() in [" ", "\t", "\n"]: #, "\r"]:
                 # self.token_stream.append("WHITESPACE")
                 self.advance()
+                continue
+            
+            # if self.curr_char() == ' ':
+            #     self.token_stream.append((" ","WHITESPACE"))
+            #     self.advance()
+            #     continue
+            
+            # elif self.curr_char() == '\n':
+            #     self.token_stream.append((r"\n", "NEWLINE"))
+            #     self.advance()
+            #     continue
 
             # amaccana, anda, andamhie, IDENTIFIER
             elif "a" == self.curr_char():
-                if self.expect_reserved("amaccana"): continue
-                elif self.expect_reserved("anda"): continue
-                elif self.expect_reserved("andamhie"): continue
+                if self.expect_reserved("amaccana", DELIMS['amaccana_gogogo_delim']): continue
+                elif self.expect_reserved("anda", ATOMS['similar_delim']): continue
+                elif self.expect_reserved("andamhie", ATOMS['similar_delim']): continue
                 else: self.expect_id()
             
             # betsung, IDENTIFIER
             elif "b" == self.curr_char():
-                if self.expect_reserved("betsung"): continue
+                if self.expect_reserved("betsung", ATOMS['similar_delim']): continue
                 else: self.expect_id()
             
             # chika, chorva, IDENTIFIER
             elif "c" == self.curr_char():
-                if self.expect_reserved("chika"): continue
-                elif self.expect_reserved("chorva"): continue
+                if self.expect_reserved("chika", ATOMS['similar_delim']): continue
                 else: self.expect_id()
+                # elif self.expect_reserved("chorva"): continue
             
             # ditech, IDENTIFIER
             elif "d" == self.curr_char():
-                if self.expect_reserved("ditech"): continue
+                if self.expect_reserved("ditech", DELIMS['ditech_delim']): continue
                 else: self.expect_id()
             
             # eklabool, eme, IDENTIFIER
             elif "e" == self.curr_char():
-                if self.expect_reserved("eklabool"): continue
-                elif self.expect_reserved("eme"): continue
+                if self.expect_reserved("eklabool", ATOMS['similar_delim']): continue
+                elif self.expect_reserved("eme", ATOMS['value_delim']): continue
                 else: self.expect_id()
             
             # forda, from, IDENTIFIER
             elif "f" == self.curr_char():
-                if self.expect_reserved("forda"): continue
-                elif self.expect_reserved("from"): continue
+                if self.expect_reserved("forda", DELIMS['control_flow_delim']): continue
+                elif self.expect_reserved("from", ATOMS['similar_delim']): continue
                 else: self.expect_id()
             
             # ganern, givenchy, gogogo, IDENTIFIER
             elif "g" == self.curr_char():
-                if self.expect_reserved("ganern"): continue
-                elif self.expect_reserved("givenchy"): continue
-                elif self.expect_reserved("gogogo"): continue
+                if self.expect_reserved("ganern", DELIMS['kerilang_ganern_delim']): continue
+                elif self.expect_reserved("givenchy", DELIMS['control_flow_delim']): continue
+                elif self.expect_reserved("gogogo", DELIMS['amaccana_gogogo_delim']): continue
                 else: self.expect_id()
 
             # keri, korik, kween, IDENTIFIER
             elif "k" == self.curr_char():
-                if self.expect_reserved("keri"): continue
-                elif self.expect_reserved("korik"): continue
-                elif self.expect_reserved("kween"): continue
+                if self.expect_reserved("keri", DELIMS['control_flow_delim']): continue
+                elif self.expect_reserved("korik", DELIMS['value_delim']): continue
+                elif self.expect_reserved("kween", DELIMS['control_flow_delim']): continue
+                else: self.expect_id()
+
+            if "l" == self.curr_char():
+                if self.expect_reserved("lang", DELIMS['kerilang_ganern_delim']): continue
                 else: self.expect_id()
 
             # naur, IDENTIFIER
             elif "n" == self.curr_char():
-                if self.expect_reserved("naur"): continue
+                if self.expect_reserved("naur", ATOMS['similar_delim']): continue
                 else: self.expect_id()
 
             # pak, push, IDENTIFIER
             elif "p" == self.curr_char():
-                if self.expect_reserved("pak"): continue
-                elif self.expect_reserved("push"): continue
+                if self.expect_reserved("pak", DELIMS['control_flow_delim']): continue
+                elif self.expect_reserved("push", DELIMS['control_flow_delim']): continue
                 else: self.expect_id()
 
             # serve, shimenet, step, IDENTIFIER
             elif "s" == self.curr_char():
-                if self.expect_reserved("serve"): continue
-                elif self.expect_reserved("shimenet"): continue
-                elif self.expect_reserved("step"): continue
+                if self.expect_reserved("serve", DELIMS['control_flow_delim']): continue
+                elif self.expect_reserved("shimenet", DELIMS['similar_delim']): continue
+                elif self.expect_reserved("step", DELIMS['similar_delim']): continue
                 else: self.expect_id()
 
             # to, IDENTIFIER
             elif "t" == self.curr_char():
-                if self.expect_reserved("to"): continue
+                if self.expect_reserved("to", ATOMS['similar_delim']): continue
                 else: self.expect_id()
             
             # versa, IDENTIFIER
             elif "v" == self.curr_char():
-                if self.expect_reserved("versa"): continue
+                if self.expect_reserved("versa", DELIMS['control_flow_delim']): continue
                 else: self.expect_id()
             
             # wiz, IDENTIFIER
             elif "w" == self.curr_char():
-                if self.expect_reserved("wiz"): continue
+                if self.expect_reserved("wiz", DELIMS['wiz_delim']): continue
                 else: self.expect_id()
 
             # IDENTIFIER
@@ -152,105 +163,103 @@ class Lexer:
 
             # NUMBER
             elif self.curr_char().isdigit():
-                self.expect_int()
+                self.expect_int_float()
 
             # PLUS SIGN
             elif self.curr_char() == '+':
-                if self.expect_reserved('+', symbol=True): continue 
-                elif self.expect_reserved('++', symbol=True): continue
-                elif self.expect_reserved('+=', symbol=True): continue
+                if self.expect_reserved('+', DELIMS['plus_and_or_delim'], symbol=True): continue 
+                elif self.expect_reserved('++', DELIMS['unary_delim'], symbol=True): continue
+                elif self.expect_reserved('+=', DELIMS['most_symbol_delim'], symbol=True): continue
 
             # MINUS SIGN
             elif self.curr_char() == '-':
-                if self.expect_reserved('-', symbol=True): continue 
-                elif self.expect_reserved('--', symbol=True): continue
-                elif self.expect_reserved('-=', symbol=True): continue
+                if self.expect_reserved('-', DELIMS['minus_delim'], symbol=True): continue 
+                elif self.expect_reserved('--', DELIMS['unary_delim'], symbol=True): continue
+                elif self.expect_reserved('-=', DELIMS['most_symbol_delim'], symbol=True): continue
 
             # ASTERISK
             elif self.curr_char() == '*':
-                if self.expect_reserved('*', symbol=True): continue 
-                elif self.expect_reserved('*=', symbol=True): continue
-                elif self.expect_reserved('**', symbol=True): continue
-                elif self.expect_reserved('**=', symbol=True): continue
+                if self.expect_reserved('*', DELIMS['most_symbol_delim'], symbol=True): continue 
+                elif self.expect_reserved('*=', DELIMS['most_symbol_delim'], symbol=True): continue
+                elif self.expect_reserved('**', DELIMS['most_symbol_delim'], symbol=True): continue
+                elif self.expect_reserved('**=', DELIMS['most_symbol_delim'], symbol=True): continue
            
             # SLASH
             elif self.curr_char() == '/':
                 if self.expect_comment(): continue
-                elif self.expect_reserved('/', symbol=True): continue 
-                elif self.expect_reserved('/=', symbol=True): continue
-                elif self.expect_reserved('//', symbol=True): continue
-                elif self.expect_reserved('//=', symbol=True): continue
+                elif self.expect_reserved('/', DELIMS['most_symbol_delim'], symbol=True): continue 
+                elif self.expect_reserved('/=', DELIMS['most_symbol_delim'], symbol=True): continue
+                elif self.expect_reserved('//', DELIMS['most_symbol_delim'], symbol=True): continue
+                elif self.expect_reserved('//=', DELIMS['most_symbol_delim'], symbol=True): continue
 
             # MODULO
             elif self.curr_char() == '%':
-                if self.expect_reserved('%', symbol=True): continue 
-                elif self.expect_reserved('%=', symbol=True): continue
+                if self.expect_reserved('%', DELIMS['most_symbol_delim'], symbol=True): continue 
+                elif self.expect_reserved('%=', DELIMS['most_symbol_delim'], symbol=True): continue
 
-            # ASSIGNMENT
+            # EQUAL
             elif self.curr_char() == '=':
-                if self.expect_reserved('=', symbol=True): continue 
-                elif self.expect_reserved('==', symbol=True): continue
+                if self.expect_reserved('=', DELIMS['equal_comma_delim'], symbol=True): continue 
+                elif self.expect_reserved('==', DELIMS['logical_not_delim'], symbol=True): continue
               
             # LOGICAL NOT
             elif self.curr_char() == '!':
-                if self.expect_reserved('!', symbol=True): continue 
-                elif self.expect_reserved('!=', symbol=True): continue
-
-            # LOGICAL AND
-            elif self.curr_char() == '&':
-                if self.expect_reserved('&', symbol=True): continue 
-                elif self.expect_reserved('&&', symbol=True): continue
-
-            # LOGICAL OR
-            elif self.curr_char() == '|':
-                if self.expect_reserved('|', symbol=True): continue 
-                elif self.expect_reserved('||', symbol=True): continue
+                if self.expect_reserved('!', DELIMS['logical_not_delim'], symbol=True): continue 
+                elif self.expect_reserved('!=', DELIMS['logical_not_delim'], symbol=True): continue
             
             # LESS THAN
             elif self.curr_char() == '<':
-                if self.expect_reserved('<', symbol=True): continue 
-                elif self.expect_reserved('<=', symbol=True): continue
+                if self.expect_reserved('<', DELIMS['most_symbol_delim'], symbol=True): continue 
+                elif self.expect_reserved('<=', DELIMS['most_symbol_delim'], symbol=True): continue
 
             # GREATER THAN
             elif self.curr_char() == '>':
-                if self.expect_reserved('>', symbol=True): continue 
-                elif self.expect_reserved('>=', symbol=True): continue
+                if self.expect_reserved('>', DELIMS['most_symbol_delim'], symbol=True): continue 
+                elif self.expect_reserved('>=', DELIMS['most_symbol_delim'], symbol=True): continue
+
+            # LOGICAL AND
+            elif self.curr_char() == '&':
+                if self.expect_reserved('&&', DELIMS['plus_and_or_delim'], symbol=True): continue
+
+            # LOGICAL OR
+            elif self.curr_char() == '|':
+                if self.expect_reserved('||', DELIMS['plus_and_or_delim'], symbol=True): continue
 
             # COMMA
             elif self.curr_char() == ',':
-                self.expect_reserved(',', symbol=True) 
+                self.expect_reserved(',', DELIMS['equal_comma_delim'], symbol=True) 
 
             # PERIOD
-            elif self.curr_char() == '.':
-                self.expect_reserved('.', symbol=True) 
+            # elif self.curr_char() == '.':
+            #     self.expect_reserved('.', symbol=True) 
 
             # SEMICOLON
             elif self.curr_char() == ';':
-                self.expect_reserved(';', symbol=True) 
+                self.expect_reserved(';', DELIMS['terminator_delim'], symbol=True) 
 
             # OPENING PARENTHESIS
             elif self.curr_char() == '(':
-                self.expect_reserved('(', symbol=True) 
+                self.expect_reserved('(', DELIMS['open_parenthesis_delim'], symbol=True) 
 
             # CLOSING PARENTHESIS
             elif self.curr_char() == ')':
-                self.expect_reserved(')', symbol=True) 
+                self.expect_reserved(')', DELIMS['close_parenthesis_delim'], symbol=True) 
 
             # OPENING BRACKET
             elif self.curr_char() == '[':
-                self.expect_reserved('[', symbol=True) 
+                self.expect_reserved('[', DELIMS['open_bracket_delim'], symbol=True) 
 
             # CLOSING BRACKET
             elif self.curr_char() == ']':
-                self.expect_reserved(']', symbol=True) 
+                self.expect_reserved(']', DELIMS['close_bracket_delim'], symbol=True) 
 
             # OPENING CURLY BRACE
             elif self.curr_char() == '{':
-                self.expect_reserved('{', symbol=True) 
+                self.expect_reserved('{', DELIMS['open_brace_delim'], symbol=True) 
 
             # CLOSING CURLY BRACE
             elif self.curr_char() == '}':
-                self.expect_reserved('}', symbol=True) 
+                self.expect_reserved('}', DELIMS['close_brace_delim'], symbol=True) 
 
             elif self.curr_char() == '"':
                 self.expect_string()
@@ -274,9 +283,9 @@ class Lexer:
 
         # currently, cursor is at delimiter
         # check if word is IDENTIFIER if it is not a res symbol
-        # if self.curr_char() not in delims:
-        #     self.reverse(len(res))
-        #     return False
+        if self.curr_char() not in delims and not symbol:
+            self.reverse(len(res))
+            return False
         self.token_stream.append((res,res))
         return True
 
@@ -286,14 +295,16 @@ class Lexer:
         handles reserved words impostors
         """
         name = ""
-        while self.curr_char().isalpha():
+        while self.curr_char().isalnum() or self.curr_char() == '_':
             name += self.curr_char()
             self.advance()
         # if name in reserved:
         #     self.reverse(len(name))
         #     return False
+
         token = self.id_map.get(name, f'ID_{len(self.id_map) + 1}')
-        self.id_map.update({name: token})
+        self.id_map[name] = token
+
         self.token_stream.append((name, token))
         return True
     
@@ -332,10 +343,8 @@ class Lexer:
 
         self.token_stream.append((string,'CHIKA_LITERAL'))
         return True
-        
-        return False
 
-    def expect_int(self):
+    def expect_int_float(self):
         """
         lexer for integers
         """
@@ -343,7 +352,19 @@ class Lexer:
         while self.curr_char().isdigit():
             num += self.curr_char()
             self.advance()
-        self.token_stream.append((num,'ANDA_LITERAL'))
+        
+        if self.curr_char() != '.':
+            self.token_stream.append((num,'ANDA_LITERAL'))
+            return
+
+        num += '.'
+        self.advance()
+        while self.curr_char().isdigit():
+            num += self.curr_char()
+            self.advance()
+        self.token_stream.append((num,'ANDAMHIE_LITERAL'))
+
+        
 
 if __name__ == "__main__":
     print("Starting")
