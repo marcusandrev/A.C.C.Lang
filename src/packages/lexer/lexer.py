@@ -7,25 +7,15 @@
 # - int/float       (expect_int_float)  ✓
 # - error handling                      X
 
-import sys, os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..','..','..')))
-
 from constants import ATOMS,DELIMS
 
-source_code = r"""
-/^Testing Lexer^/
-chika name = "Shrek";
-anda age = 247.365;
-serve("Name: " + name + ", Age: " + age);
-"""
-
-def main():
-    if not source_code[0:]: # Quit the program if source code is empty
+def print_lex(source: str):
+    if not source[0:]: # Quit the program if source code is empty
         print("quitting")
         exit(1)
 
     # source = " ".join(argv[1:])
-    lex = Lexer(source_code)
+    lex = Lexer(source)
     lex.start()
     print(f"{'-'*10}LEXEME{'-'*10 + ' '*5 + '-'*10}TOKEN{'-'*10}")
     for lexeme, token in lex.token_stream:
@@ -119,7 +109,7 @@ class Lexer:
                 elif self.expect_reserved("kween", DELIMS['control_flow_delim']): continue
                 else: self.expect_id()
 
-            if "l" == self.curr_char():
+            elif "l" == self.curr_char():
                 if self.expect_reserved("lang", DELIMS['kerilang_ganern_delim']): continue
                 else: self.expect_id()
 
@@ -137,8 +127,8 @@ class Lexer:
             # serve, shimenet, step, IDENTIFIER
             elif "s" == self.curr_char():
                 if self.expect_reserved("serve", DELIMS['control_flow_delim']): continue
-                elif self.expect_reserved("shimenet", DELIMS['similar_delim']): continue
-                elif self.expect_reserved("step", DELIMS['similar_delim']): continue
+                elif self.expect_reserved("shimenet", ATOMS['similar_delim']): continue
+                elif self.expect_reserved("step", ATOMS['similar_delim']): continue
                 else: self.expect_id()
 
             # to, IDENTIFIER
@@ -368,4 +358,3 @@ class Lexer:
 
 if __name__ == "__main__":
     print("Starting")
-    main()
