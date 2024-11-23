@@ -10,6 +10,38 @@
     <title>ACCLang Compiler</title>
   </head>
   <body>
-    <h1>Acclang</h1>
+    <div class="app-container">
+      <div class="navbar-container">
+        <div class="navbar-left">
+          <button class="run-button">
+            <img
+              src="{{ url_for('static', filename='assets/button-run.png') }}"
+              alt="Run"
+            />
+          </button>
+          <button class="save-button">
+            <img
+              src="{{ url_for('static', filename='assets/button-save.png') }}"
+              alt="Save"
+            />
+          </button>
+          <button class="open-button">
+            <img
+              src="{{ url_for('static', filename='assets/button-open.png') }}"
+              alt="Open"
+            />
+          </button>
+        </div>
+
+        <div class="navbar-right">
+          <div class="logo-container">
+            <img
+              src="{{ url_for('static', filename='assets/logo-dark.png') }}"
+              alt="ACCLang Logo"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
