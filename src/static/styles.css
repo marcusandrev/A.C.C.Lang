@@ -74,14 +74,14 @@ body {
 .editor-container {
   background-color: lightgrey;
   border-radius: 10px;
-  padding-top: 20px;
+  padding-top: 10px;
   padding-bottom: 20px;
   display: flex;
   flex-direction: column;
 }
 
 .editor-tab {
-  margin-right: 10px;
+  margin-right: 15px;
   background-color: #ffff;
   margin-left: 25px;
   border-radius: 5px 5px 0 0;
@@ -99,7 +99,6 @@ body {
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  margin-bottom: 10px;
 }
 
 .line-numbers {
@@ -113,7 +112,7 @@ body {
   font-family: monospace;
   font-size: 14px;
   height: calc(100% - 20px);
-  max-height: 450px;
+  /* max-height: 450px; */
 }
 
 .editor {
@@ -127,14 +126,32 @@ body {
   background-color: #ffff;
   border-radius: 0 10px 10px 0;
   height: calc(100% - 20px);
-  max-height: 450px;
+  /* max-height: 450px; */
 }
 
 .compiler-log-container {
-  width: 100%;
   background-color: lightgrey;
   border-radius: 10px;
   overflow: auto;
+  padding: 20px;
+}
+
+.compiler-log {
+  background-color: #ffff;
+  height: 100px;
+  width: 100%;
+  border-radius: 0 10px 10px 10px;
+}
+
+.compiler-log-tab {
+  margin-right: 15px;
+  background-color: #ffff;
+  border-radius: 5px 5px 0 0;
+  width: 120px;
+}
+
+.tab-text-compiler-log {
+  margin-left: 5px;
 }
 
 .main-right-container {
