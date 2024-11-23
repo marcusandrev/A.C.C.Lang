@@ -42,6 +42,49 @@
           </div>
         </div>
       </div>
+
+      <div class="main-container">
+        <div class="main-left-container">
+          <div class="editor-container">
+            <div class="editor-tab">
+              <text class="tab-text"> untitled.acc </text>
+            </div>
+            <div class="editor-wrapper">
+              <div class="line-numbers"></div>
+              <textarea
+                class="editor"
+                placeholder="Write your code here..."
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="compiler-log-container"></div>
+        </div>
+
+        <div class="main-right-container">
+          <h1>Output</h1>
+        </div>
+      </div>
     </div>
+
+    <script>
+      const editor = document.querySelector('.editor');
+      const lineNumbers = document.querySelector('.line-numbers');
+
+      const updateLineNumbers = () => {
+        const lineCount = editor.value.split('\n').length;
+        lineNumbers.innerHTML = Array.from(
+          { length: lineCount },
+          (_, i) => i + 1
+        ).join('<br>');
+      };
+
+      editor.addEventListener('input', updateLineNumbers);
+      editor.addEventListener('scroll', () => {
+        lineNumbers.scrollTop = editor.scrollTop;
+      });
+
+      updateLineNumbers();
+    </script>
   </body>
 </html>

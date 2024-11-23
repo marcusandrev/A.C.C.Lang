@@ -2,6 +2,7 @@
   font-family: 'Fredoka';
   src: url('../static/fonts/Fredoka-VariableFont.ttf') format('truetype');
 }
+
 body {
   font-family: 'Fredoka', sans-serif;
   margin: 0;
@@ -52,4 +53,91 @@ body {
 .logo-container img {
   width: 200px;
   height: auto;
+}
+
+/* Main */
+
+.main-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 15px;
+  margin: 0 10px;
+}
+
+.main-left-container {
+  display: grid;
+  grid-template-rows: 3fr 1fr;
+  gap: 15px;
+  height: calc(100vh - 100px);
+}
+
+.editor-container {
+  background-color: lightgrey;
+  border-radius: 10px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-tab {
+  margin-right: 10px;
+  background-color: #ffff;
+  margin-left: 25px;
+  border-radius: 5px 5px 0 0;
+  width: 100px;
+}
+
+.tab-text {
+  margin-left: 5px;
+}
+
+.editor-wrapper {
+  display: flex;
+  flex: 1;
+  position: relative;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.line-numbers {
+  width: 10px;
+  padding: 10px;
+  text-align: right;
+  color: #333;
+  background-color: #ffff;
+  border-radius: 0 0 0 10px;
+  overflow: hidden;
+  font-family: monospace;
+  font-size: 14px;
+  height: calc(100% - 20px);
+  max-height: 450px;
+}
+
+.editor {
+  resize: none;
+  width: calc(100% - 100px);
+  border: none;
+  font-family: monospace;
+  font-size: 14px;
+  outline: none;
+  padding: 10px;
+  background-color: #ffff;
+  border-radius: 0 10px 10px 0;
+  height: calc(100% - 20px);
+  max-height: 450px;
+}
+
+.compiler-log-container {
+  width: 100%;
+  background-color: lightgrey;
+  border-radius: 10px;
+  overflow: auto;
+}
+
+.main-right-container {
+  background-color: lightgrey;
+  border-radius: 10px;
 }
