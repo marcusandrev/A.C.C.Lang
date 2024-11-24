@@ -1,14 +1,8 @@
-# Reading of the lexemes                ✓
-# Helper functions
-# - reserve words   (expect_reserved)   ✓
-# - identifiers     (expect_id)         ✓
-# - string          (expect_string)     ✓
-# - comment         (expect_comment)    ✓
-# - int/float       (expect_int_float)  ✓
-# - error handling                      X
-
 from constants import ATOMS,DELIMS
 from error_handler import UnknownCharError, DelimError, UnclosedString
+
+# Lexer.token_stream stores lexemes and tokens
+# Lexer.log stores the error log
 
 def print_lex(source: list):
     if not source[0:]: # Quit the program if source code is empty
@@ -376,7 +370,7 @@ class Lexer:
 
     def expect_int_float(self):
         """
-        lexer for integers
+        lexer for integers and floats
         """
         num = ""
         while self.curr_char().isdigit() and len(num) < 10:
