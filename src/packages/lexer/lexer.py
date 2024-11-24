@@ -1,5 +1,6 @@
 from constants import ATOMS,DELIMS
-from error_handler import UnknownCharError, DelimError, UnclosedString
+# from error_handler import UnknownCharError, DelimError, UnclosedString
+from .error_handler import UnknownCharError, DelimError, UnclosedString
 
 # Lexer.token_stream stores lexemes and tokens
 # Lexer.log stores the error log
