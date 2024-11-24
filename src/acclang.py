@@ -1,7 +1,7 @@
 # This file is for the implementation of the GUI
 from flask import Flask, render_template, request, jsonify
 import os
-from src.packages.lexer.lexer import Lexer
+from src.packages.lexer.lexer import Lexer, print_lex, generate_error_log
 
 app = Flask(__name__)
 
@@ -17,11 +17,13 @@ def lex():
     # with open(file_path, 'r') as file:
     #     source_code = file.readlines()
     source_code = request.form['source_code']
-    lexer = Lexer(source_code)
-    lexer.start()
-    token_stream = lexer.token_stream
+    token_stream = print_lex(source_code)
+    # lexer = Lexer(source_code)
+    # lexer.start()
+    # token_stream = lexer.token_stream
     print(token_stream)
-    error_log = lexer.log
+    # error_log = lexer.log
+    error_log = generate_error_log(source_code)
     print(error_log)
     return jsonify({'token_stream': token_stream, 'error_log': str(error_log)})
 

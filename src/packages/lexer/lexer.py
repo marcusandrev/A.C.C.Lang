@@ -17,6 +17,15 @@ def print_lex(source: list):
     for lexeme, token in lex.token_stream:
         print(f'{lexeme:^26}{' '*5}{token:^25}')
     if lex.log: print(f"\n{lex.log}")
+    token_stream = lex.token_stream
+    return token_stream
+
+def generate_error_log(source: list):
+    source_lines = source.splitlines()
+    lex = Lexer(source_lines)
+    lex.start()
+    error_log = lex.log  # Get the error log
+    return error_log
 
 class Lexer:
     def __init__(self, source: str):
