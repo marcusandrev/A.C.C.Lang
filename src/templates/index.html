@@ -13,7 +13,7 @@
     <div class="app-container">
       <div class="navbar-container">
         <div class="navbar-left">
-          <button class="run-button">
+          <button class="run-button" onclick="runLexer()">
             <img
               src="{{ url_for('static', filename='assets/button-run.png') }}"
               alt="Run"
@@ -53,6 +53,7 @@
               <div class="line-numbers"></div>
               <textarea
                 class="editor"
+                id="source-code"
                 placeholder="Write your code here..."
               ></textarea>
             </div>
@@ -62,43 +63,28 @@
             <div class="compiler-log-tab">
               <text class="tab-text-compiler-log"> Compiler Logs </text>
             </div>
-            <div class="compiler-log"></div>
+            <div class="compiler-log" id="compiler-log"></div>
           </div>
         </div>
 
         <div class="main-right-container">
-            <div class="table-tab">
-                <text class="tab-text-table"> Lexer </text>
-              </div>
-            
-            <div class="table-container">
+          <div class="table-tab">
+            <text class="tab-text-table"> Lexer </text>
+          </div>
+
+          <div class="table-container">
             <table class="table-wrapper">
               <thead>
                 <tr>
-                  <th>Token</th>
                   <th>Lexeme</th>
+                  <th>Token</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                    <td>shiminet</td>
-                    <td>void</td>
-                  </tr>
-                  <tr>
-                    <td>kween</td>
-                    <td>main</td>
-                  </tr>
-                  <tr>
-                    <td>shiminet</td>
-                    <td>void</td>
-                  </tr>
-                  <tr>
-                    <td>kween</td>
-                    <td>main</td>
-                  </tr>
+              <tbody id="token-stream">
+                <!-- Token stream will be populated here -->
               </tbody>
             </table>
-          
+          </div>
         </div>
       </div>
     </div>
@@ -121,6 +107,52 @@
       });
 
       updateLineNumbers();
+    </script>
+
+    <script>
+      function runLexer() {
+        console.log('Run button clicked');
+        const sourceCode = document.getElementById('source-code').value;
+        console.log('Source code:', sourceCode);
+        fetch('/lex', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: `source_code=${encodeURIComponent(sourceCode)}`,
+        })
+          .then((response) => {
+            console.log('Response received:', response);
+            return response.json();
+          })
+          .then((data) => {
+            console.log('Data received:', data); // Log the data to the console
+            const tokenStream = document.getElementById('token-stream');
+            const compilerLog = document.getElementById('compiler-log');
+            tokenStream.innerHTML = '';
+            compilerLog.innerHTML = '';
+
+            // Display token stream
+            data.token_stream.forEach((token) => {
+              const row = document.createElement('tr');
+              const lexemeCell = document.createElement('td');
+              const tokenCell = document.createElement('td');
+              lexemeCell.textContent = token[0];
+              tokenCell.textContent = token[1];
+              row.appendChild(lexemeCell);
+              row.appendChild(tokenCell);
+              tokenStream.appendChild(row);
+            });
+
+            // Display error log
+            if (data.error_log) {
+              const pre = document.createElement('pre');
+              pre.textContent = data.error_log;
+              compilerLog.appendChild(pre);
+            }
+          })
+          .catch((error) => console.error('Error:', error));
+      }
     </script>
   </body>
 </html>

@@ -131,16 +131,20 @@ body {
 
 .compiler-log-container {
   background-color: lightgrey;
-  border-radius: 10px;
-  overflow: auto;
+  border: 1px solid #ddd;
+  border-radius: 5px;
   padding: 10px 20px 10px 20px;
+  overflow-y: auto;
 }
 
 .compiler-log {
-  background-color: #ffff;
-  height: calc(100% - 20px);
-  width: 100%;
-  border-radius: 0 10px 10px 10px;
+  background-color: #fff;
+  border-radius: 0 0 5px 5px;
+  padding: 10px;
+  font-family: monospace;
+  white-space: pre-wrap;
+  color: #333;
+  height: calc(100% - 40px);
 }
 
 .compiler-log-tab {
@@ -149,6 +153,7 @@ body {
   border-radius: 5px 5px 0 0;
   width: 120px;
 }
+
 
 .tab-text-compiler-log {
   margin-left: 5px;
