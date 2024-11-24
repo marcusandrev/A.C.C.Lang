@@ -5,7 +5,7 @@ from .error_handler import UnknownCharError, DelimError, UnclosedString
 # Lexer.token_stream stores lexemes and tokens
 # Lexer.log stores the error log
 
-def print_lex(source: list):
+def print_lex(source: str):
     if not source[0:]: # Quit the program if source code is empty
         print("quitting")
         exit(1)
@@ -17,19 +17,10 @@ def print_lex(source: list):
     for lexeme, token in lex.token_stream:
         print(f'{lexeme:^26}{' '*5}{token:^25}')
     if lex.log: print(f"\n{lex.log}")
-    token_stream = lex.token_stream
-    return token_stream
-
-def generate_error_log(source: list):
-    source_lines = source.splitlines()
-    lex = Lexer(source_lines)
-    lex.start()
-    error_log = lex.log  # Get the error log
-    return error_log
 
 class Lexer:
     def __init__(self, source: str):
-        self._source = source
+        self._source = [line + '\n' for line in source.splitlines()] # Converts source into a list of lines
         self._index = 0, 0
         self._id_map: dict = {}
         self.token_stream: list[dict] = []
@@ -46,7 +37,7 @@ class Lexer:
         if self._index[1] + 1 >= len(self._source[self._index[0]]):
             if self._index[0] + 1 >= len(self._source): return "\0"
             else: return self._source[self._index[0] + 1][0]
-        else: return self._source[0][self._index[1] + 1]
+        else: return self._source[self._index[0]][self._index[1] + 1]
 
     def is_EOF(self):
         return self.curr_char() == "\0"
@@ -64,7 +55,6 @@ class Lexer:
             elif self._index[0] > 0: self._index = max(0, self._index[0] - 1), len(self._source[self._index[0] - 1]) - 1
     
     def start(self):
-        # self._source[-1] += ' ' # This determines the end of file
         while not self.is_EOF() and not self.log:
             if self.curr_char() in [" ", "\t", "\n"]: #, "\r"]:
                 # self.token_stream.append("WHITESPACE")
