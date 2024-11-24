@@ -1,0 +1,6 @@
+/^Testing Lexer^/
+shimenet kween() {
+    chika name = "Shrek"; #
+    andamhie age = 247.365;
+    serve("Name: " + name + ", Age: " + age);
+}
