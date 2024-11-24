@@ -6,17 +6,10 @@ from lexer import *
 from token import *
 from error_handler import *
 
-source_code = r"""
-/^Testing Lexer^/
-shimenet kween() {
-    chika name = "Shrek";
-    anda age = 247.365;
-    serve("Name: " + name + ", Age: " + age);
-}
-"""
-
 if __name__ == '__main__':
+    source_code = open("A.C.C.Lang/Files/lexer_test.acc", "r").readlines()
     print_lex(source_code)
+
     # Test()
     # Test2()
     # Test3()

@@ -8,8 +8,9 @@
 # - error handling                      X
 
 from constants import ATOMS,DELIMS
+from error_handler import UnknownCharError, DelimError, UnclosedString
 
-def print_lex(source: str):
+def print_lex(source: list):
     if not source[0:]: # Quit the program if source code is empty
         print("quitting")
         exit(1)
@@ -20,31 +21,47 @@ def print_lex(source: str):
     print(f"{'-'*10}LEXEME{'-'*10 + ' '*5 + '-'*10}TOKEN{'-'*10}")
     for lexeme, token in lex.token_stream:
         print(f'{lexeme:^26}{' '*5}{token:^25}')
+    if lex.log: print(f"\n{lex.log}")
 
 class Lexer:
     def __init__(self, source: str):
-        self.source = source
-        self.index = 0
+        self._source = source
+        self._index = 0, 0
+        self._id_map: dict = {}
         self.token_stream: list[dict] = []
-        self.id_map: dict = {}
+        self.log = ""
     
     ## TRACKING CHARACTERS
     def curr_char(self):
-        if self.index >= len(self.source): return "\0"
-        return self.source[self.index]
+        if self._index[0] >= len(self._source): return "\0"
+        return self._source[self._index[0]][self._index[1]]
     def next_char(self):
-        if self.index + 1 >= len(self.source): return "\0"
-        return self.source[self.index + 1]
+        # if self._index[0] + 1 >= len(self._source): return "\0"
+        # return self._source[self._index + 1]
+
+        if self._index[1] + 1 >= len(self._source[self._index[0]]):
+            if self._index[0] + 1 >= len(self._source): return "\0"
+            else: return self._source[self._index[0] + 1][0]
+        else: return self._source[0][self._index[1] + 1]
+
     def is_EOF(self):
         return self.curr_char() == "\0"
 
     def advance(self, count = 1):
-        self.index = min(self.index + count, len(self.source))
+        # self._index = min(self._index + count, len(self._source))
+        for i in range(count):
+            if self._index[1] >= len(self._source[self._index[0]]) - 1: self._index = min(self._index[0] + 1, len(self._source)), 0
+            else: self._index = self._index[0], self._index[1] + 1
+
     def reverse(self, count = 1):
-        self.index = max(0, self.index - count)
+        # self._index = max(0, self._index - count)
+        for i in range(count):
+            if self._index[1] > 0: self._index = self._index[0], self._index[1] - 1
+            elif self._index[0] > 0: self._index = max(0, self._index[0] - 1), len(self._source[self._index[0] - 1]) - 1
     
     def start(self):
-        while not self.is_EOF():
+        # self._source[-1] += ' ' # This determines the end of file
+        while not self.is_EOF() and not self.log:
             if self.curr_char() in [" ", "\t", "\n"]: #, "\r"]:
                 # self.token_stream.append("WHITESPACE")
                 self.advance()
@@ -86,7 +103,7 @@ class Lexer:
             # eklabool, eme, IDENTIFIER
             elif "e" == self.curr_char():
                 if self.expect_reserved("eklabool", ATOMS['similar_delim']): continue
-                elif self.expect_reserved("eme", ATOMS['value_delim']): continue
+                elif self.expect_reserved("eme", ATOMS['eklabool_delim']): continue
                 else: self.expect_id()
             
             # forda, from, IDENTIFIER
@@ -105,7 +122,7 @@ class Lexer:
             # keri, korik, kween, IDENTIFIER
             elif "k" == self.curr_char():
                 if self.expect_reserved("keri", DELIMS['control_flow_delim']): continue
-                elif self.expect_reserved("korik", DELIMS['value_delim']): continue
+                elif self.expect_reserved("korik", DELIMS['eklabool_delim']): continue
                 elif self.expect_reserved("kween", DELIMS['control_flow_delim']): continue
                 else: self.expect_id()
 
@@ -256,9 +273,10 @@ class Lexer:
 
             else:
                 print(f"unknown character: {self.curr_char()}")
+                self.log = UnknownCharError(self._source[self._index[0]], self._index)
                 self.advance()
 
-    def expect_reserved(self, expected: str, delims: list = [], symbol = False) -> bool:
+    def expect_reserved(self, expected: str, delims: list, symbol = False) -> bool:
         """
         generic lexer for reserved words/symbols.
         handles possible identifiers that contain reserved words in its name
@@ -273,9 +291,14 @@ class Lexer:
 
         # currently, cursor is at delimiter
         # check if word is IDENTIFIER if it is not a res symbol
-        if self.curr_char() not in delims and not symbol:
+        if (self.curr_char().isalnum() or self.curr_char() == '_') and not symbol:
             self.reverse(len(res))
             return False
+
+        if self.curr_char() not in delims:
+            self.log = DelimError(self._source[self._index[0]], self._index, delims)
+            return True # return true to continue the loop
+        
         self.token_stream.append((res,res))
         return True
 
@@ -285,15 +308,19 @@ class Lexer:
         handles reserved words impostors
         """
         name = ""
-        while self.curr_char().isalnum() or self.curr_char() == '_':
+        while (self.curr_char().isalnum() or self.curr_char() == '_') and len(name) < 20:
             name += self.curr_char()
             self.advance()
         # if name in reserved:
         #     self.reverse(len(name))
         #     return False
 
-        token = self.id_map.get(name, f'ID_{len(self.id_map) + 1}')
-        self.id_map[name] = token
+        if self.curr_char() not in DELIMS['id_delim']:
+            self.log = DelimError(self._source[self._index[0]], self._index, DELIMS['id_delim'])
+            return True
+
+        token = self._id_map.get(name, f'ID_{len(self._id_map) + 1}')
+        self._id_map[name] = token
 
         self.token_stream.append((name, token))
         return True
@@ -309,6 +336,10 @@ class Lexer:
                     break
                 self.advance()
 
+            # if self.curr_char() not in DELIMS['terminator_delim']:
+            #     self.log = DelimError(self._source[self._index[0]], self._index, DELIMS['terminator_delim'])
+            #     return True
+
             self.token_stream.append((comment,'COMMENT'))
             return True
         
@@ -317,7 +348,6 @@ class Lexer:
     def expect_string(self):
         self.advance()
         string = '"'
-        escape = False
         while self.curr_char() != '"' and self.curr_char() != '\0':
             string += self.curr_char()
             self.advance()
@@ -330,28 +360,46 @@ class Lexer:
                 string += self.curr_char()
                 self.advance()
                 break
+        
+        if string[-1] != '"':
+            self.reverse(len(string))
+            self.log = UnclosedString(self._source[self._index[0]], self._index)
+            return
+        
+        if self.curr_char() not in DELIMS['string_delim']:
+            self.reverse(len(string))
+            self.log = DelimError(self._source[self._index[0]], self._index, DELIMS['string_delim'])
+            return
 
         self.token_stream.append((string,'CHIKA_LITERAL'))
-        return True
+        return
 
     def expect_int_float(self):
         """
         lexer for integers
         """
         num = ""
-        while self.curr_char().isdigit():
+        while self.curr_char().isdigit() and len(num) < 10:
             num += self.curr_char()
             self.advance()
         
         if self.curr_char() != '.':
+            if self.curr_char() not in DELIMS['int_float_delim']:
+                self.log = DelimError(self._source[self._index[0]], self._index, DELIMS['int_float_delim'])
+                return True
             self.token_stream.append((num,'ANDA_LITERAL'))
             return
 
         num += '.'
         self.advance()
-        while self.curr_char().isdigit():
+        while self.curr_char().isdigit() and len(num.split('.')[1]) < 6:
             num += self.curr_char()
             self.advance()
+
+        if self.curr_char() not in DELIMS['int_float_delim']:
+            self.log = DelimError(self._source[self._index[0]], self._index, DELIMS['int_float_delim'])
+            return True
+        
         self.token_stream.append((num,'ANDAMHIE_LITERAL'))
 
         
