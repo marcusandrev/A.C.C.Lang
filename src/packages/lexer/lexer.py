@@ -168,55 +168,55 @@ class Lexer:
 
             # PLUS SIGN
             elif self.curr_char() == '+':
-                if self.expect_reserved('+', DELIMS['plus_and_or_delim'], symbol=True): continue 
-                elif self.expect_reserved('++', DELIMS['unary_delim'], symbol=True): continue
+                if self.expect_reserved('++', DELIMS['unary_delim'], symbol=True): continue
                 elif self.expect_reserved('+=', DELIMS['most_symbol_delim'], symbol=True): continue
+                elif self.expect_reserved('+', DELIMS['plus_and_or_delim'], symbol=True): continue 
 
             # MINUS SIGN
             elif self.curr_char() == '-':
-                if self.expect_reserved('-', DELIMS['minus_delim'], symbol=True): continue 
-                elif self.expect_reserved('--', DELIMS['unary_delim'], symbol=True): continue
+                if self.expect_reserved('--', DELIMS['unary_delim'], symbol=True): continue
                 elif self.expect_reserved('-=', DELIMS['most_symbol_delim'], symbol=True): continue
+                elif self.expect_reserved('-', DELIMS['minus_delim'], symbol=True): continue 
 
             # ASTERISK
             elif self.curr_char() == '*':
-                if self.expect_reserved('*', DELIMS['most_symbol_delim'], symbol=True): continue 
+                if self.expect_reserved('**=', DELIMS['most_symbol_delim'], symbol=True): continue
                 elif self.expect_reserved('*=', DELIMS['most_symbol_delim'], symbol=True): continue
                 elif self.expect_reserved('**', DELIMS['most_symbol_delim'], symbol=True): continue
-                elif self.expect_reserved('**=', DELIMS['most_symbol_delim'], symbol=True): continue
+                elif self.expect_reserved('*', DELIMS['most_symbol_delim'], symbol=True): continue 
            
             # SLASH
             elif self.curr_char() == '/':
                 if self.expect_comment(): continue
-                elif self.expect_reserved('/', DELIMS['most_symbol_delim'], symbol=True): continue 
+                elif self.expect_reserved('//=', DELIMS['most_symbol_delim'], symbol=True): continue
                 elif self.expect_reserved('/=', DELIMS['most_symbol_delim'], symbol=True): continue
                 elif self.expect_reserved('//', DELIMS['most_symbol_delim'], symbol=True): continue
-                elif self.expect_reserved('//=', DELIMS['most_symbol_delim'], symbol=True): continue
+                elif self.expect_reserved('/', DELIMS['most_symbol_delim'], symbol=True): continue 
 
             # MODULO
             elif self.curr_char() == '%':
-                if self.expect_reserved('%', DELIMS['most_symbol_delim'], symbol=True): continue 
-                elif self.expect_reserved('%=', DELIMS['most_symbol_delim'], symbol=True): continue
+                if self.expect_reserved('%=', DELIMS['most_symbol_delim'], symbol=True): continue
+                elif self.expect_reserved('%', DELIMS['most_symbol_delim'], symbol=True): continue 
 
             # EQUAL
             elif self.curr_char() == '=':
-                if self.expect_reserved('=', DELIMS['equal_comma_delim'], symbol=True): continue 
-                elif self.expect_reserved('==', DELIMS['logical_not_delim'], symbol=True): continue
+                if self.expect_reserved('==', DELIMS['logical_not_delim'], symbol=True): continue
+                elif self.expect_reserved('=', DELIMS['equal_comma_delim'], symbol=True): continue 
               
             # LOGICAL NOT
             elif self.curr_char() == '!':
-                if self.expect_reserved('!', DELIMS['logical_not_delim'], symbol=True): continue 
-                elif self.expect_reserved('!=', DELIMS['logical_not_delim'], symbol=True): continue
+                if self.expect_reserved('!=', DELIMS['logical_not_delim'], symbol=True): continue
+                elif self.expect_reserved('!', DELIMS['logical_not_delim'], symbol=True): continue 
             
             # LESS THAN
             elif self.curr_char() == '<':
-                if self.expect_reserved('<', DELIMS['most_symbol_delim'], symbol=True): continue 
-                elif self.expect_reserved('<=', DELIMS['most_symbol_delim'], symbol=True): continue
+                if self.expect_reserved('<=', DELIMS['most_symbol_delim'], symbol=True): continue
+                elif self.expect_reserved('<', DELIMS['most_symbol_delim'], symbol=True): continue 
 
             # GREATER THAN
             elif self.curr_char() == '>':
-                if self.expect_reserved('>', DELIMS['most_symbol_delim'], symbol=True): continue 
-                elif self.expect_reserved('>=', DELIMS['most_symbol_delim'], symbol=True): continue
+                if self.expect_reserved('>=', DELIMS['most_symbol_delim'], symbol=True): continue
+                elif self.expect_reserved('>', DELIMS['most_symbol_delim'], symbol=True): continue 
 
             # LOGICAL AND
             elif self.curr_char() == '&':
@@ -361,7 +361,6 @@ class Lexer:
             return
         
         if self.curr_char() not in DELIMS['string_delim']:
-            self.reverse(len(string))
             self.log = DelimError(self._source[self._index[0]], self._index, DELIMS['string_delim'])
             return
 
