@@ -14,5 +14,5 @@ ATOMS = {
 
     'general_operators': {'+', '-', '*', '/', '%', '<', '>', '=', '!', '&', '|'},
 
-    'similar_delim': {' ', '\n'}
+    'similar_delim': {'/', ' ', '\n'}
 }

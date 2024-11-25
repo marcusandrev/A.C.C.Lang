@@ -8,11 +8,11 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..','..
 from src.packages.lexer.lexer import print_lex
 
 if __name__ == '__main__':
-    source_code = open("A.C.C.Lang/Files/lexer_test.acc", "r").readlines()
+    # source_code = open("A.C.C.Lang/Files/lexer_test.acc", "r").read()
 
     # For MacOS
-    # file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'Files', 'lexer_test.acc'))
-    # source_code = open(file_path, "r").readlines()
+    file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'Files', 'lexer_test.acc'))
+    source_code = open(file_path, "r").read()
     print_lex(source_code)
 
     # Test()
