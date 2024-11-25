@@ -149,6 +149,10 @@
               const pre = document.createElement('pre');
               pre.textContent = data.error_log;
               compilerLog.appendChild(pre);
+            } else {
+              const pre = document.createElement('pre');
+              pre.textContent = 'No Errors';
+              compilerLog.appendChild(pre);
             }
           })
           .catch((error) => console.error('Error:', error));
