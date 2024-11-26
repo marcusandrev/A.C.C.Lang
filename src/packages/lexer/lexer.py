@@ -334,7 +334,7 @@ class Lexer:
             #     self.log = DelimError(self._source[self._index[0]], self._index, DELIMS['terminator_delim'])
             #     return True
 
-            self.token_stream.append((comment,'COMMENT'))
+            self.token_stream.append((comment,'comment'))
             return True
         
         return False
@@ -364,7 +364,7 @@ class Lexer:
             self.log = DelimError(self._source[self._index[0]], self._index, DELIMS['string_delim'])
             return
 
-        self.token_stream.append((string,'CHIKA_LITERAL'))
+        self.token_stream.append((string,'chika_literal'))
         return
 
     def expect_int_float(self):
@@ -380,7 +380,7 @@ class Lexer:
             if self.curr_char() not in DELIMS['int_float_delim']:
                 self.log = DelimError(self._source[self._index[0]], self._index, DELIMS['int_float_delim'])
                 return True
-            self.token_stream.append((num,'ANDA_LITERAL'))
+            self.token_stream.append((num,'anda_literal'))
             return
 
         num += '.'
@@ -393,7 +393,7 @@ class Lexer:
             self.log = DelimError(self._source[self._index[0]], self._index, DELIMS['int_float_delim'])
             return True
         
-        self.token_stream.append((num,'ANDAMHIE_LITERAL'))
+        self.token_stream.append((num,'andamhie_literal'))
 
         
 
