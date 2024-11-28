@@ -399,7 +399,7 @@ body {
 
 .compiler-log {
   background-color: #fff;
-  border-radius: 0 0 5px 5px;
+  border-radius: 0 10px 10px 10px;
   margin: 0px;
   padding: 10px;
   font-family: monospace;
