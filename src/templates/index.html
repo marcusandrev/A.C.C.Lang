@@ -10,27 +10,48 @@
     <title>ACCLang Compiler</title>
   </head>
   <body>
+    <div class="contain">
+      <div class="background-layer">
+        <div class="ellipse-1"></div>
+        <div class="ellipse-2"></div>
+      </div>
+
     <div class="app-container">
       <div class="navbar-container">
         <div class="navbar-left">
-          <button class="run-button" onclick="runLexer()">
-            <img
-              src="{{ url_for('static', filename='assets/button-run.png') }}"
-              alt="Run"
-            />
-          </button>
-          <button class="save-button">
-            <img
-              src="{{ url_for('static', filename='assets/button-save.png') }}"
-              alt="Save"
-            />
-          </button>
-          <button class="open-button">
-            <img
-              src="{{ url_for('static', filename='assets/button-open.png') }}"
-              alt="Open"
-            />
-          </button>
+          <div class="con-tooltip bottom">
+            <button class="run-button shine" onclick="runLexer()">
+              <img
+                src="{{ url_for('static', filename='assets/button-run.png') }}"
+                alt="Run"
+              />
+            </button>
+          <div class="tooltip">
+            <p> Run </p>
+          </div>
+          </div>
+          <div class="con-tooltip bottom">
+            <button class="save-button shine">
+              <img
+                src="{{ url_for('static', filename='assets/button-save.png') }}"
+                alt="Save"
+              />
+            </button>
+          <div class="tooltip">
+            <p> Save </p>
+          </div>
+          </div>
+          <div class="con-tooltip bottom">
+            <button class="open-button shine">
+              <img
+                src="{{ url_for('static', filename='assets/button-open.png') }}"
+                alt="Open"
+              />
+            </button>
+          <div class="tooltip">
+            <p> Open </p>
+          </div>
+          </div>
         </div>
 
         <div class="navbar-right">
@@ -88,7 +109,7 @@
         </div>
       </div>
     </div>
-
+  </div>
     <script>
       const editor = document.querySelector('.editor');
       const lineNumbers = document.querySelector('.line-numbers');
