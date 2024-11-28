@@ -13,8 +13,8 @@ body {
 .app-container {
   position: relative;
   z-index: 1;
-  height: 100vh; 
-  overflow-y: auto; 
+  height: 100vh;
+  overflow-y: auto;
   overflow-x: hidden;
 }
 
@@ -38,26 +38,56 @@ body {
 }
 
 @keyframes ellipse-1 {
-  0%   {right:0px; top:-100px;}
-  25%  {right:100px; top:-50px;}
-  50%  {right:200px; top:700px;}
-  75%  {right:300px; top:600px;}
-  100% {right:0px; top:400px;}
+  0% {
+    right: 0px;
+    top: -100px;
+  }
+  25% {
+    right: 100px;
+    top: -50px;
+  }
+  50% {
+    right: 200px;
+    top: 700px;
+  }
+  75% {
+    right: 300px;
+    top: 600px;
+  }
+  100% {
+    right: 0px;
+    top: 400px;
+  }
 }
 
 @keyframes ellipse-2 {
-  0%   {left:0px; top:0px;}
-  25%  {left:200px; top:50px;}
-  50%  {left:400px; top:100px;}
-  75%  {left:300px; top:-300px;}
-  100% {left:0px; top:0px;}
+  0% {
+    left: 0px;
+    top: 0px;
+  }
+  25% {
+    left: 200px;
+    top: 50px;
+  }
+  50% {
+    left: 400px;
+    top: 100px;
+  }
+  75% {
+    left: 300px;
+    top: -300px;
+  }
+  100% {
+    left: 0px;
+    top: 0px;
+  }
 }
 .ellipse-1,
 .ellipse-1 * {
   box-sizing: border-box;
 }
 .ellipse-1 {
-animation: ellipse-1 10s linear 0s infinite alternate;
+  animation: ellipse-1 10s linear 0s infinite alternate;
   background: linear-gradient(
     180deg,
     rgba(0, 139, 253, 0.322) 25%,
@@ -78,7 +108,7 @@ animation: ellipse-1 10s linear 0s infinite alternate;
   box-sizing: border-box;
 }
 .ellipse-2 {
-animation: ellipse-2 10s linear 0s infinite alternate;
+  animation: ellipse-2 10s linear 0s infinite alternate;
   background: linear-gradient(
     180deg,
     rgba(237, 54, 22, 0.322) 0%,
@@ -93,7 +123,6 @@ animation: ellipse-2 10s linear 0s infinite alternate;
   filter: blur(150px);
   z-index: 7;
 }
-
 
 /* Navbar */
 .navbar-container {
@@ -137,12 +166,12 @@ animation: ellipse-2 10s linear 0s infinite alternate;
 .shine {
   position: relative;
   display: inline-block;
-  overflow: hidden; 
+  overflow: hidden;
 }
 
 .shine img {
   display: block;
-  width: 100%; 
+  width: 100%;
   height: auto;
 }
 
@@ -150,8 +179,8 @@ animation: ellipse-2 10s linear 0s infinite alternate;
   content: '';
   position: absolute;
   top: 0;
-  left: -150%; 
-  width: 200%; 
+  left: -150%;
+  width: 200%;
   height: 100%;
   background: linear-gradient(
     135deg,
@@ -159,8 +188,8 @@ animation: ellipse-2 10s linear 0s infinite alternate;
     rgba(255, 255, 255, 0.6) 50%,
     rgba(255, 255, 255, 0) 100%
   );
-  transform: skewX(-20deg); 
-  opacity: 0; 
+  transform: skewX(-20deg);
+  opacity: 0;
   transition: opacity 0.3s;
   pointer-events: none;
 }
@@ -181,7 +210,6 @@ animation: ellipse-2 10s linear 0s infinite alternate;
 
 /*tooltip*/
 .con-tooltip {
-
   position: relative;
   display: inline-block;
   transition: all 0.3s ease-in-out;
@@ -192,18 +220,17 @@ animation: ellipse-2 10s linear 0s infinite alternate;
 .tooltip {
   visibility: hidden;
   z-index: 1;
-  opacity: .40;
+  opacity: 0.4;
   width: 60%;
   margin-left: 10px;
   padding: 0px 20px;
 
   background: #333333d8;
   color: #f0e6ee;
-  
+
   position: absolute;
-  top:-140%;
+  top: -140%;
   left: -25%;
-  
 
   border-radius: 9px;
   font: 16px;
@@ -211,49 +238,48 @@ animation: ellipse-2 10s linear 0s infinite alternate;
 
   transform: translateY(9px);
   transition: all 0.3s ease-in-out;
-  
+
   box-shadow: 0 0 3px rgba(56, 54, 54, 0.86);
 }
 
-
 /* tooltip  after*/
 .tooltip::after {
-  content: " ";
+  content: ' ';
   width: 0;
   height: 0;
-  
+
   border-style: solid;
   border-width: 12px 12.5px 0 12.5px;
   border-color: #333333d8 transparent transparent transparent;
 
   position: absolute;
-
 }
 
-.con-tooltip:hover .tooltip{
+.con-tooltip:hover .tooltip {
   visibility: visible;
   transform: translateY(-10px);
   opacity: 1;
-    transition: .3s linear;
-  animation: odsoky 1s ease-in-out infinite  alternate;
-
+  transition: 0.3s linear;
+  animation: odsoky 1s ease-in-out infinite alternate;
 }
 @keyframes odsoky {
-  0%{
-    transform: translateY(6px);	
+  0% {
+    transform: translateY(6px);
   }
 
-  100%{
-    transform: translateY(1px);	
+  100% {
+    transform: translateY(1px);
   }
-
 }
 
-.bottom .tooltip { top:115%; left:-20%; }
+.bottom .tooltip {
+  top: 115%;
+  left: -20%;
+}
 
-.bottom .tooltip::after{
-  top:-22%;
-  left:20%;
+.bottom .tooltip::after {
+  top: -22%;
+  left: 20%;
   transform: rotate(180deg);
 }
 
@@ -278,7 +304,7 @@ animation: ellipse-2 10s linear 0s infinite alternate;
   grid-template-columns: 2fr 1fr;
   gap: 15px;
   margin: 0 10px;
-  z-index: 1; 
+  z-index: 1;
 }
 
 .main-left-container {
@@ -289,7 +315,12 @@ animation: ellipse-2 10s linear 0s infinite alternate;
 }
 
 .editor-container {
-  background: linear-gradient(107.95deg, rgba(250, 225, 225, 0.425) 0%, rgba(241, 241, 241, 0.342) 48.5%, rgba(248, 244, 228, 0.384) 97%);
+  background: linear-gradient(
+    107.95deg,
+    rgba(250, 225, 225, 0.425) 0%,
+    rgba(241, 241, 241, 0.342) 48.5%,
+    rgba(248, 244, 228, 0.384) 97%
+  );
   border-radius: 10px;
   padding-top: 10px;
   padding-bottom: 20px;
@@ -352,23 +383,34 @@ animation: ellipse-2 10s linear 0s infinite alternate;
 }
 
 .compiler-log-container {
-  background: linear-gradient(107.95deg, rgba(250, 225, 225, 0.425) 0%, rgba(241, 241, 241, 0.342) 48.5%, rgba(248, 244, 228, 0.384) 97%);
+  background: linear-gradient(
+    107.95deg,
+    rgba(250, 225, 225, 0.425) 0%,
+    rgba(241, 241, 241, 0.342) 48.5%,
+    rgba(248, 244, 228, 0.384) 97%
+  );
   border: 1px solid #ddd;
   border-radius: 5px;
   box-shadow: 0px 4px 8px white inset, 0px 8px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #ddd;
   padding: 10px 20px 10px 20px;
-  overflow-y: auto;
-  height: 300px; /* or any desired height */
+  height: 260px;
 }
 .compiler-log {
   background-color: #fff;
   border-radius: 0 0 5px 5px;
+  margin: 0px;
   padding: 10px;
   font-family: monospace;
   white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
   color: #333;
-  height: calc(100% - 40px);
+  height: calc(100% - 20px);
+  overflow-y: auto;
+  max-width: 100%;
+  box-sizing: border-box;
+  color: #ff0000;
 }
 
 .compiler-log-tab {
@@ -386,14 +428,20 @@ animation: ellipse-2 10s linear 0s infinite alternate;
 /* Table */
 
 .main-right-container {
-  background: linear-gradient(107.95deg, rgba(250, 225, 225, 0.425) 0%, rgba(241, 241, 241, 0.342) 48.5%, rgba(248, 244, 228, 0.384) 97%);
+  background: linear-gradient(
+    107.95deg,
+    rgba(250, 225, 225, 0.425) 0%,
+    rgba(241, 241, 241, 0.342) 48.5%,
+    rgba(248, 244, 228, 0.384) 97%
+  );
   border-radius: 10px;
   box-shadow: 0px 4px 8px white inset, 0px 8px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #ddd;
   padding: 20px;
-  height: calc(89vh - 40px); /* Set the height (you can adjust this as needed) */
+  height: calc(
+    89vh - 40px
+  ); 
 }
-
 
 .table-tab {
   background-color: #ffff;
@@ -402,7 +450,6 @@ animation: ellipse-2 10s linear 0s infinite alternate;
   width: 55px;
   padding: 3px;
   overflow-y: auto; /* Allow scrolling */
-
 }
 
 .tab-text-table {
