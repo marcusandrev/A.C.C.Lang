@@ -1,8 +1,5 @@
 # This file is used to define the tokens of acclang
 
-def Test2():
-    print("Test for Token")
-
 reserved = {
     'amaccana','anda','andamhie',
     'betsung',
@@ -60,5 +57,8 @@ def tokenize(lexemes: list[str]):
         token = id_map.get(lexeme, f"id_{len(id_map) + 1}")
         id_map[lexeme] = token
         token_stream.append((lexeme, token))
+
+    if token_stream and token_stream[-1][1] == 'newline':
+        token_stream.pop()
 
     return token_stream
