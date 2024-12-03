@@ -71,9 +71,13 @@ class Lexer:
                 self._lexemes.append(r'\n')
                 self.advance()
             elif curr_char.isdigit():
-                self._lexemes.append(self.lexemize_int_float())
-                self.advance()
-            else: self._lexemes.append(self.lexemize())
+                num = self.lexemize_int_float()
+                if num:
+                    self._lexemes.append(num)
+            else:
+                lexeme = self.lexemize()
+                if lexeme:
+                    self._lexemes.append(lexeme)
         self.token_stream = tokenize(self._lexemes)
                 
     def lexemize(self, curr_state: int = 0):
@@ -88,25 +92,21 @@ class Lexer:
             if lexeme is not None: return curr_char + lexeme
             else:self.reverse()
         return None
-
     
+   
     def lexemize_int_float(self, curr_state: int = 0):
-            num = ""
-            while True:
-                branches = STATES[curr_state].branches
-                for state in branches:
-                    curr_char = self.curr_char()
-                    if curr_char not in STATES[state].chars:
-                        continue
-                    print(f"{curr_state} -> {state}: {curr_char if len(STATES[state].branches) > 0 else 'end state'}")
-                    num += curr_char
-                    self.advance()
-                    curr_state = state
-                    break
-                else:
-                    break
-
-            return num
+        branches = STATES[curr_state].branches
+        for state in branches:
+            curr_char = self.curr_char()
+            if self.curr_char() not in STATES[state].chars: continue
+            print(f"{curr_state} -> {state}: {curr_char if len(STATES[state].branches) > 0 else "end state"}")
+            if len(STATES[state].branches) == 0: return ''
+            self.advance()
+            num = self.lexemize(state)
+            if num is not None: return curr_char + num
+            else:self.reverse()
+        return None
+    
 
 if __name__ == "__main__":
     print("Starting")

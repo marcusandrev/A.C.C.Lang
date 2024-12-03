@@ -53,6 +53,13 @@ def tokenize(lexemes: list[str]):
         if lexeme in reserved:
             token_stream.append((lexeme, lexeme))
             continue
+
+        if lexeme.replace('.', '', 1).isdigit():
+            if '.' in lexeme:
+                token_stream.append((lexeme, 'andamhie_literal'))
+            else:
+                token_stream.append((lexeme, 'anda_literal'))
+            continue
         
         token = id_map.get(lexeme, f"id_{len(id_map) + 1}")
         id_map[lexeme] = token
