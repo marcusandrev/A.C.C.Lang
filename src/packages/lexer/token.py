@@ -80,6 +80,14 @@ def tokenize(lexemes: list[str]):
                 token_stream.append((lexeme, 'anda_literal'))
             continue
         
+        if lexeme[0] == '"':
+            token_stream.append((lexeme, "chika_literal"))
+            continue
+
+        if lexeme[:2] == '/^':
+            token_stream.append((lexeme, "comment"))
+            continue
+        
         token = id_map.get(lexeme, f"id_{len(id_map) + 1}")
         id_map[lexeme] = token
         token_stream.append((lexeme, token))
