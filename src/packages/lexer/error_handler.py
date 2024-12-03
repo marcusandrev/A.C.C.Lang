@@ -11,7 +11,7 @@ class UnknownCharError():
     def __str__(self):
         error_message = f"unknown character: '{self._line[self._position[1]]}'\n" \
                         f" {self._position[0]+1:<5}|{self._line}\n" \
-                        f"      |{' '*self._position[1]}^"
+                        f"      |{' '*self._position[1]}^\n"
         
         return error_message
 
@@ -24,7 +24,7 @@ class DelimError():
     def __str__(self):
         error_message = f"undelimited: expected any {self._delims}\n" \
                         f" {self._position[0]+1:<5}|{self._line}\n" \
-                        f"      |{' '*self._position[1]}^"
+                        f"      |{' '*self._position[1]}^\n"
         
         return error_message
 
@@ -36,10 +36,21 @@ class UnclosedString():
     def __str__(self):
         error_message = f"unclosed string: expected '\"'\n" \
                         f" {self._position[0]+1:<5}|{self._line}\n" \
-                        f"      |{' '*self._position[1]}^"
+                        f"      |{' '*self._position[1]}^\n"
         
         return error_message
 
+class UnclosedComment():
+    def __init__(self, line: str, position: tuple[int, int]):
+        self._line = line.replace('\n', '')
+        self._position = position
+
+    def __str__(self):
+        error_message = f"unclosed comment: expected '^/'\n" \
+                        f" {self._position[0]+1:<5}|{self._line}\n" \
+                        f"      |{' '*self._position[1]}^\n"
+        
+        return error_message
 
 if __name__ == '__main__':
     error_type = "UnknownError"
