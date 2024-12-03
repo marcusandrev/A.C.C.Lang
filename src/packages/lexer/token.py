@@ -56,8 +56,27 @@ def tokenize(lexemes: list[str]):
 
         if lexeme.replace('.', '', 1).isdigit():
             if '.' in lexeme:
+                integer_part, fractional_part = lexeme.split('.')
+                # Strip leading zeroes from the integer part
+                integer_part = integer_part.lstrip('0') or '0'
+                # Clamp the integer part to a maximum of 10 digits
+                if len(integer_part) > 10:
+                    integer_part = '9999999999'
+                # Truncate the fractional part to a maximum of 6 digits
+                fractional_part = fractional_part[:6]
+                # Strip trailing zeroes from the fractional part
+                if fractional_part.rstrip('0') == '':
+                    fractional_part = '0'
+                else:
+                    fractional_part = fractional_part.rstrip('0')
+                lexeme = integer_part + ('.' + fractional_part if fractional_part else '')
                 token_stream.append((lexeme, 'andamhie_literal'))
             else:
+                # Strip leading zeroes from the integer part
+                lexeme = lexeme.lstrip('0') or '0'
+                # Clamp the integer part to a maximum of 10 digits
+                if len(lexeme) > 10:
+                    lexeme = '9999999999'
                 token_stream.append((lexeme, 'anda_literal'))
             continue
         
