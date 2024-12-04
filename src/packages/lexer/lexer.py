@@ -102,10 +102,10 @@ class Lexer:
 
                 # For unclosed string
                 if curr_char == '\0' and not STATES[state].isEnd:
-                    if state >= 274 and state <= 278:
+                    if state >= 263 and state <= 278:
                         return UnclosedString(self._source[self._index[0] - 1], self._index)
 
-                    if state >= 280 and state <= 284:
+                    if state >= 269 and state <= 273:
                         return UnclosedComment(self._source[self._index[0] - 1], self._index)
 
                 continue
