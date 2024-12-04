@@ -1,5 +1,5 @@
 from constants import ATOMS,DELIMS
-from .error_handler import UnknownCharError, DelimError, UnclosedString, UnclosedComment
+from .error_handler import UnknownCharError, DelimError, UnclosedString, UnclosedComment, UnfinishedAndamhie
 from .td import STATES
 from .token import tokenize
 
@@ -33,7 +33,7 @@ class Lexer:
     
     ## TRACKING CHARACTERS
     def curr_char(self):
-        if self._index[0] >= len(self._source): return "\0"
+        if self._index[1] >= len(self._source[-1]) and self._index[0] >= len(self._source) - 1: return "\0"
         return self._source[self._index[0]][self._index[1]]
     def next_char(self):
         # if self._index[0] + 1 >= len(self._source): return "\0"
@@ -50,8 +50,9 @@ class Lexer:
     def advance(self, count = 1):
         # self._index = min(self._index + count, len(self._source))
         for i in range(count):
-            if self._index[0] >= len(self._source): return
-            if self._index[1] >= len(self._source[self._index[0]]) - 1: self._index = min(self._index[0] + 1, len(self._source)), 0
+            if self._index[0] >= len(self._source) and self._index[1] >= len(self._source[0]): return
+            if self._index[1] >= len(self._source[self._index[0]]) - 1 and self._index[0] < len(self._source)-1:
+                self._index = min(self._index[0] + 1, len(self._source)), 0
             else: self._index = self._index[0], self._index[1] + 1
 
     def reverse(self, count = 1):
@@ -63,7 +64,7 @@ class Lexer:
     def start(self):
         while not self.is_EOF():
             curr_char = self.curr_char()
-            next_char = self.curr_char()
+            # next_char = self.next_char()
             if curr_char == ' ':
                 # self._lexemes.append(' ')
                 self.advance()
@@ -79,6 +80,10 @@ class Lexer:
                 self.log += str(lexeme) + '\n'
                 self.advance()
             elif type(lexeme) is DelimError:
+                print(lexeme)
+                self.log += str(lexeme) + '\n'
+                continue
+            elif type(lexeme) is UnfinishedAndamhie:
                 print(lexeme)
                 self.log += str(lexeme) + '\n'
                 continue
@@ -100,13 +105,16 @@ class Lexer:
                     if curr_char not in [*ATOMS['alphanumeric'], '_'] or state >= 146:
                         return DelimError(self._source[self._index[0]], self._index, STATES[state].chars)
 
-                # For unclosed string
+                # For unclosed string, unclosed comment, and unfinished andamhie literal
                 if curr_char == '\0' and not STATES[state].isEnd:
-                    if state >= 263 and state <= 278:
+                    if state >= 263 and state <= 267:
                         return UnclosedString(self._source[self._index[0] - 1], self._index)
 
                     if state >= 269 and state <= 273:
                         return UnclosedComment(self._source[self._index[0] - 1], self._index)
+                    
+                if state == 260 and len(branches) == 1 and not STATES[state].isEnd:
+                    return UnfinishedAndamhie(self._source[self._index[0]], self._index, STATES[state].chars)
 
                 continue
 
@@ -118,12 +126,13 @@ class Lexer:
 
             if type(lexeme) is str: return curr_char + lexeme
             if type(lexeme) is DelimError: return lexeme
+            if type(lexeme) is UnfinishedAndamhie: return lexeme
             if type(lexeme) is UnclosedString:
                 self.reverse()
                 return UnclosedString(self._source[self._index[0]], self._index)
             if type(lexeme) is UnclosedComment:
                 self.reverse()
-                return UnclosedComment(self._source[self._index[0] - 1], self._index)
+                return UnclosedComment(self._source[self._index[0]], self._index)
             if state <= 146:
                 self.reverse()
                 
