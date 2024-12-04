@@ -7,7 +7,7 @@ class State:
         self.isEnd = end
 
 STATES = {
-    0: State('initial', [1, 19, 27, 33, 40, 52, 62, 83, 98, 103, 108, 116, 134, 137, 143, 147, 153, 159, 167, 175, 179, 183, 187, 191, 195, 198, 201, 203, 205, 207, 209, 211, 213, 215, 217, 257, 273]),
+    0: State('initial', [1, 19, 27, 33, 40, 52, 62, 83, 98, 103, 108, 116, 134, 137, 143, 147, 153, 159, 167, 175, 179, 183, 187, 191, 195, 198, 201, 203, 205, 207, 209, 211, 213, 215, 217, 257, 262]),
     1: State('a', [2, 10]), 2: State('m', 3), 3: State('a', 4), 4: State('c', 5), 5: State('c', 6), 6: State('a', 7), 7: State('n', 8), 8: State('a', 9), 9: State(DELIMS['amaccana_gogogo_delim'], end = True),
                             10: State('n', 11), 11: State('d', 12), 12: State('a', [13, 14]), 13: State(ATOMS['similar_delim'], end = True),
                                                                                               14: State('m', 15), 15: State('h', 16), 16: State('i', 17), 17: State('e', 18), 18: State(ATOMS['similar_delim'], end = True),
@@ -45,7 +45,7 @@ STATES = {
                                       161: State('=', 162), 162: State(DELIMS['most_symbol_delim'], end = True),
                                       163: State('*', [164, 165]), 164: State(DELIMS['most_symbol_delim'], end = True),
                                                                     165: State('=', 166), 166: State(DELIMS['most_symbol_delim'], end = True),
-    167: State('/', [168, 169, 171, 279]), 168: State(DELIMS['most_symbol_delim'], end = True),
+    167: State('/', [168, 169, 171, 268]), 168: State(DELIMS['most_symbol_delim'], end = True),
                                            169: State('=', 170), 170: State(DELIMS['most_symbol_delim'], end = True),
                                            171: State('/', [172, 173]), 172: State(DELIMS['most_symbol_delim'], end = True),
                                                                         173: State('=', 174), 174: State(DELIMS['most_symbol_delim'], end = True),
@@ -92,8 +92,8 @@ STATES = {
     257: State(ATOMS['digit'], [257, 258, 259]), 258: State(DELIMS['int_float_delim'], end = True),
         259: State('.', 260),
             260: State(ATOMS['digit'], [260, 261]), 261: State(DELIMS['int_float_delim'], end = True),
-    273: State('"', [274, 275, 277]), 274: State(ATOMS['ascii_274'], [274, 275, 277]), 275: State('"', 276), 276: State(DELIMS['string_delim'], end = True),
-                                      277: State('\\', 278), 278: State(ATOMS['ascii'], [274, 275, 277]),
-            279: State('^', [280, 283]), 280: State('^', [281, 284]), 281: State('/', 282), 282: State(DELIMS['terminator_delim'], end = True),
-            283: State(ATOMS['ascii_283'], [280, 283]), 284: State(ATOMS['ascii_284'], [280, 283])
+    262: State('"', [263, 264, 266]), 263: State(ATOMS['ascii_263'], [263, 264, 266]), 264: State('"', 265), 265: State(DELIMS['string_delim'], end = True),
+                                      266: State('\\', 267), 267: State(ATOMS['ascii'], [263, 264, 266]),
+            268: State('^', [269, 272]), 269: State('^', [270, 273]), 270: State('/', 271), 271: State(DELIMS['terminator_delim'], end = True),
+            272: State(ATOMS['ascii_272'], [269, 272]), 273: State(ATOMS['ascii_273'], [269, 272])
 }
