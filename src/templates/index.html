@@ -42,7 +42,10 @@
               </div>
             </div>
             <div class="con-tooltip bottom">
-              <button class="open-button shine">
+              <button
+                class="open-button shine"
+                onclick="document.getElementById('file-input').click();"
+              >
                 <img
                   src="{{ url_for('static', filename='assets/button-open.png') }}"
                   alt="Open"
@@ -52,6 +55,13 @@
                 <p>Open</p>
               </div>
             </div>
+            <input
+              type="file"
+              id="file-input"
+              accept=".txt"
+              style="display: none"
+              onchange="loadFile(event)"
+            />
           </div>
 
           <div class="navbar-right">
@@ -68,7 +78,7 @@
           <div class="main-left-container">
             <div class="editor-container">
               <div class="editor-tab">
-                <text class="tab-text"> untitled.acc </text>
+                <text class="tab-text" id="file-name"> untitled.acc </text>
               </div>
               <div class="editor-wrapper">
                 <div class="line-numbers"></div>
@@ -173,6 +183,34 @@
             }
           })
           .catch((error) => console.error('Error:', error));
+      }
+
+      function loadFile(event) {
+        const input = event.target;
+        if ('files' in input && input.files.length > 0) {
+          const file = input.files[0];
+          placeFileContent(document.getElementById('source-code'), file);
+          document.getElementById('file-name').textContent = file.name;
+          input.value = '';
+        }
+      }
+
+      function placeFileContent(target, file) {
+        readFileContent(file)
+          .then((content) => {
+            target.value = content;
+            updateLineNumbers();
+          })
+          .catch((error) => console.error(error));
+      }
+
+      function readFileContent(file) {
+        const reader = new FileReader();
+        return new Promise((resolve, reject) => {
+          reader.onload = (event) => resolve(event.target.result);
+          reader.onerror = (error) => reject(error);
+          reader.readAsText(file);
+        });
       }
     </script>
   </body>
