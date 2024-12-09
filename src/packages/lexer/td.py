@@ -7,7 +7,7 @@ class State:
         self.isEnd = end
 
 STATES = {
-    0: State('initial', [1, 19, 27, 33, 40, 52, 62, 83, 98, 103, 108, 116, 134, 137, 143, 147, 153, 159, 167, 175, 179, 183, 187, 191, 195, 198, 201, 203, 205, 207, 209, 211, 213, 215, 217, 257, 262]),
+    0: State('initial', [1, 19, 27, 33, 40, 52, 62, 83, 98, 103, 108, 116, 134, 137, 143, 149, 155, 163, 171, 175, 179, 183, 187, 191, 194, 197, 199, 201, 203, 205, 207, 209, 211, 213, 253, 258]),
     1: State('a', [2, 10]), 2: State('m', 3), 3: State('a', 4), 4: State('c', 5), 5: State('c', 6), 6: State('a', 7), 7: State('n', 8), 8: State('a', 9), 9: State(DELIMS['amaccana_gogogo_delim'], end = True),
                             10: State('n', 11), 11: State('d', 12), 12: State('a', [13, 14]), 13: State(ATOMS['similar_delim'], end = True),
                                                                                               14: State('m', 15), 15: State('h', 16), 16: State('i', 17), 17: State('e', 18), 18: State(ATOMS['similar_delim'], end = True),
@@ -45,7 +45,7 @@ STATES = {
                                         157: State('=', 158), 158: State(DELIMS['most_symbol_delim'], end = True),
                                         159: State('*', [160, 161]), 160: State(DELIMS['most_symbol_delim'], end = True),
                                                                         161: State('=', 162), 162: State(DELIMS['most_symbol_delim'], end = True),
-    163: State('/', [164, 165, 167, 268]), 164: State(DELIMS['most_symbol_delim'], end = True),
+    163: State('/', [164, 165, 167, 264]), 164: State(DELIMS['forward_slash_delim'], end = True),
                                             165: State('=', 166), 166: State(DELIMS['most_symbol_delim'], end = True),
                                             167: State('/', [168, 169]), 168: State(DELIMS['most_symbol_delim'], end = True),
                                                                             169: State('=', 170), 170: State(DELIMS['most_symbol_delim'], end = True),

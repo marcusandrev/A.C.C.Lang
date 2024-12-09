@@ -101,19 +101,19 @@ class Lexer:
             curr_char = self.curr_char()
             if curr_char not in STATES[state].chars:
                 if STATES[state].isEnd:
-                    if state != branches[-1] and state >= 146: continue
-                    if curr_char not in [*ATOMS['alphanumeric'], '_'] or state >= 146:
+                    if state != branches[-1] and state >= 142: continue
+                    if curr_char not in [*ATOMS['alphanumeric'], '_'] or state >= 142:
                         return DelimError(self._source[self._index[0]], self._index, STATES[state].chars)
 
                 # For unclosed string, unclosed comment, and unfinished andamhie literal
                 if curr_char == '\0' and not STATES[state].isEnd:
-                    if state >= 263 and state <= 267:
+                    if state >= 259 and state <= 263:
                         return UnclosedString(self._source[self._index[0] - 1], self._index)
 
-                    if state >= 269 and state <= 273:
+                    if state >= 265 and state <= 269:
                         return UnclosedComment(self._source[self._index[0] - 1], self._index)
                     
-                if state == 260 and len(branches) == 1 and not STATES[state].isEnd:
+                if state == 256 and len(branches) == 1 and not STATES[state].isEnd:
                     return UnfinishedAndamhie(self._source[self._index[0]], self._index, STATES[state].chars)
 
                 continue
@@ -133,7 +133,7 @@ class Lexer:
             if type(lexeme) is UnclosedComment:
                 self.reverse()
                 return UnclosedComment(self._source[self._index[0]], self._index)
-            if state <= 146:
+            if state <= 142:
                 self.reverse()
                 
         if curr_state == 0: return UnknownCharError(self._source[self._index[0]], self._index)
