@@ -137,6 +137,9 @@ class Lexer:
                 self.reverse()
                 
         if curr_state == 0: return UnknownCharError(self._source[self._index[0]], self._index)
+        if curr_state in [191, 194]: 
+            self.reverse()
+            return UnknownCharError(self._source[self._index[0]], self._index)
         if curr_state >= 143 and curr_state <= 212: return DelimError(self._source[self._index[0]], self._index, STATES[state].chars)
         return None
     
