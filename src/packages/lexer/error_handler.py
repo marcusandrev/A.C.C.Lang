@@ -1,4 +1,5 @@
 # This file is used for the error handling of the lexer
+from constants import ATOMS
 
 def Test3():
     print("Test for Error Handling")
@@ -19,7 +20,7 @@ class DelimError():
     def __init__(self, line: str, position: tuple[int, int], delims: list):
         self._line = line.replace('\n', '')
         self._position = position
-        self._delims = delims
+        self._delims = shorten_delims(list(delims))
 
     def __str__(self):
         error_message = f"undelimited: expected any {self._delims}\n" \
@@ -32,7 +33,7 @@ class UnfinishedAndamhie():
     def __init__(self, line: str, position: tuple[int, int], delims: list):
         self._line = line.replace('\n', '')
         self._position = position
-        self._delims = delims
+        self._delims = shorten_delims(list(delims))
 
     def __str__(self):
         error_message = f"unfinished andamhie literal: expected any {self._delims}\n" \
@@ -64,6 +65,22 @@ class UnclosedComment():
                         f"      |{' '*self._position[1]}^\n"
         
         return error_message
+
+def shorten_delims(delims: list):
+    if all(d in delims for d in ATOMS['alphabet']):
+        for d in ATOMS['alphabet']:
+            if d in delims:
+                delims.remove(d)
+        delims.append('A-Z')
+        delims.append('a-z')
+
+    if all(d in delims for d in ATOMS['digit']):
+        for d in ATOMS['digit']:
+            if d in delims:
+                delims.remove(d)
+        delims.append('0-9')
+
+    return delims
 
 if __name__ == '__main__':
     error_type = "UnknownError"
