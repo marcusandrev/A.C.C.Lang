@@ -6,7 +6,6 @@ DELIMS = {
     'close_bracket_delim': {';', ',', *ATOMS['general_operators'], ')', '[', ']', '}', *ATOMS['similar_delim']},
     'close_parenthesis_delim': {';', ',', *ATOMS['general_operators'], ')', '[', ']', '{', '}', *ATOMS['similar_delim']},
     'control_flow_delim': {'(', *ATOMS['similar_delim']},
-    'type_delim': {' ', '\n', '\0'},
     'ditech_delim': {':', *ATOMS['similar_delim']},
     'bool_delim': {';', ',', '=', '!', '&', '|', ')', '}', *ATOMS['similar_delim']},
     'equal_comma_delim': {'"', '-', '!', '(', '{', *ATOMS['alphanumeric'], *ATOMS['similar_delim']},
