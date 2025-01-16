@@ -66,11 +66,11 @@ class Lexer:
             curr_char = self.curr_char()
             # next_char = self.next_char()
             if curr_char == ' ':
-                # self._lexemes.append(' ')
+                self._lexemes.append(' ')
                 self.advance()
                 continue
             elif curr_char == '\n':
-                # self._lexemes.append(r'\n')
+                self._lexemes.append(r'\n')
                 self.advance()
                 continue
             
@@ -110,8 +110,8 @@ class Lexer:
                     if state >= 259 and state <= 263:
                         return UnclosedString(self._source[self._index[0] - 1], self._index)
 
-                    if state >= 265 and state <= 269:
-                        return UnclosedComment(self._source[self._index[0] - 1], self._index)
+                    # if state >= 265 and state <= 269:
+                    #     return UnclosedComment(self._source[self._index[0] - 1], self._index)
                     
                 if state == 256 and len(branches) == 1 and not STATES[state].isEnd:
                     return UnfinishedAndamhie(self._source[self._index[0]], self._index, STATES[state].chars)
