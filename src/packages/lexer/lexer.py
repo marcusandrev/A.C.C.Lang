@@ -109,9 +109,10 @@ class Lexer:
                 if curr_char == '\0' and not STATES[state].isEnd:
                     if state >= 259 and state <= 263:
                         return UnclosedString(self._source[self._index[0] - 1], self._index)
-
                     # if state >= 265 and state <= 269:
                     #     return UnclosedComment(self._source[self._index[0] - 1], self._index)
+                    if state >= 265 and state <= 269: # Unclosed comment will be returned
+                        return ''
                     
                 if state == 256 and len(branches) == 1 and not STATES[state].isEnd:
                     return UnfinishedAndamhie(self._source[self._index[0]], self._index, STATES[state].chars)
