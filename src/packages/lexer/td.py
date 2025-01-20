@@ -45,7 +45,7 @@ STATES = {
                                         157: State('=', 158), 158: State(DELIMS['most_symbol_delim'], end = True),
                                         159: State('*', [160, 161]), 160: State(DELIMS['most_symbol_delim'], end = True),
                                                                         161: State('=', 162), 162: State(DELIMS['most_symbol_delim'], end = True),
-    163: State('/', [165, 167, 264, 164]), 164: State(DELIMS['forward_slash_delim'], end = True),
+    163: State('/', [165, 167, 264, 164]), 164: State(DELIMS['most_symbol_delim'], end = True),
                                             165: State('=', 166), 166: State(DELIMS['most_symbol_delim'], end = True),
                                             167: State('/', [168, 169]), 168: State(DELIMS['most_symbol_delim'], end = True),
                                                                             169: State('=', 170), 170: State(DELIMS['most_symbol_delim'], end = True),
@@ -90,12 +90,12 @@ STATES = {
                                                                             249: State([*ATOMS['alphanumeric'], '_'], [250, 251]), 250: State(DELIMS['id_delim'], end = True),
                                                                                 251: State([*ATOMS['alphanumeric'], '_'], 252), 252: State(DELIMS['id_delim'], end = True),
                                                           
-    253: State(ATOMS['digit'], [253, 254, 255]), 254: State(DELIMS['int_float_delim'], end = True),
+    253: State(ATOMS['digit'], [253, 255, 254]), 254: State(DELIMS['int_float_delim'], end = True),
         255: State('.', 256),
             256: State(ATOMS['digit'], [256, 257]), 257: State(DELIMS['int_float_delim'], end = True),
     258: State('"', [259, 260, 262]), 259: State(ATOMS['ascii_263'], [259, 260, 262]), 260: State('"', 261), 261: State(DELIMS['string_delim'], end = True),
-                                    262: State('\\', 263), 263: State(ATOMS['ascii'], [259, 260, 261]),
-        264: State('^', [265, 268]), 265: State('^', [266, 269]), 266: State('/', 267), 267: State(DELIMS['terminator_delim'], end = True),
+                                    262: State('\\', 263), 263: State(ATOMS['ascii'], [259, 260, 261, 262]),
+        264: State('^', [265, 268]), 265: State('^', [266, 269]), 266: State('/', 267), 267: State(ATOMS['ascii'], end = True),
         268: State(ATOMS['ascii_272'], [265, 268]), 269: State(ATOMS['ascii_273'], [265, 268])
 
 }
