@@ -90,7 +90,7 @@ STATES = {
                                                                             249: State([*ATOMS['alphanumeric'], '_'], [250, 251]), 250: State(DELIMS['id_delim'], end = True),
                                                                                 251: State([*ATOMS['alphanumeric'], '_'], 252), 252: State(DELIMS['id_delim'], end = True),
                                                           
-    253: State(ATOMS['digit'], [253, 254, 255]), 254: State(DELIMS['int_float_delim'], end = True),
+    253: State(ATOMS['digit'], [253, 255, 254]), 254: State(DELIMS['int_float_delim'], end = True),
         255: State('.', 256),
             256: State(ATOMS['digit'], [256, 257]), 257: State(DELIMS['int_float_delim'], end = True),
     258: State('"', [259, 260, 262]), 259: State(ATOMS['ascii_263'], [259, 260, 262]), 260: State('"', 261), 261: State(DELIMS['string_delim'], end = True),
