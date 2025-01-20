@@ -19,7 +19,7 @@ DELIMS = {
     'open_bracket_delim': {'-', '(', ']', *ATOMS['alphanumeric'], *ATOMS['similar_delim']},
     'open_parenthesis_delim': {'"', '+', '-', '!', '(', ')', *ATOMS['alphanumeric'], *ATOMS['similar_delim']},
     'plus_and_or_delim': {'"', '-', '(', *ATOMS['alphanumeric'], *ATOMS['similar_delim']},
-    'string_delim': {';', ',', '+', '=', ';', ')', '[', ']', '}', *ATOMS['similar_delim']},
+    'string_delim': {';', ',', '+', '=', '!', ')', '}', *ATOMS['similar_delim']},
     'terminator_delim': {*ATOMS['alphabet'], *ATOMS['similar_delim']},
     'unary_delim': {';', *ATOMS['general_operators'], ')', *ATOMS['alphabet'], *ATOMS['similar_delim']},
     'wiz_delim': {';', ',', '=', '!', ')', ']', '}', *ATOMS['similar_delim']}
