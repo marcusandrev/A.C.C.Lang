@@ -45,7 +45,7 @@ STATES = {
                                         157: State('=', 158), 158: State(DELIMS['most_symbol_delim'], end = True),
                                         159: State('*', [160, 161]), 160: State(DELIMS['most_symbol_delim'], end = True),
                                                                         161: State('=', 162), 162: State(DELIMS['most_symbol_delim'], end = True),
-    163: State('/', [165, 167, 264, 164]), 164: State(DELIMS['forward_slash_delim'], end = True),
+    163: State('/', [165, 167, 264, 164]), 164: State(DELIMS['most_symbol_delim'], end = True),
                                             165: State('=', 166), 166: State(DELIMS['most_symbol_delim'], end = True),
                                             167: State('/', [168, 169]), 168: State(DELIMS['most_symbol_delim'], end = True),
                                                                             169: State('=', 170), 170: State(DELIMS['most_symbol_delim'], end = True),

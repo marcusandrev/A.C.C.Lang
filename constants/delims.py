@@ -9,7 +9,6 @@ DELIMS = {
     'ditech_delim': {':', *ATOMS['similar_delim']},
     'bool_delim': {';', ',', '=', '!', '&', '|', ')', '}', *ATOMS['similar_delim']},
     'equal_comma_delim': {'"', '-', '!', '(', '{', *ATOMS['alphanumeric'], *ATOMS['similar_delim']},
-    'forward_slash_delim': {'"', '-', '!', '(', '{', *ATOMS['alphanumeric'], ' ', '\n', '\0'},
     'id_delim': {';', ',', *ATOMS['general_operators'], '(', ')', '[', ']', '}', *ATOMS['similar_delim']},
     'int_float_delim': {';', ",", *ATOMS['arithmetic_operators'], '=', '!', ')', ']', '}', *ATOMS['similar_delim']},
     'kerilang_ganern_delim': {'{', *ATOMS['similar_delim']},
