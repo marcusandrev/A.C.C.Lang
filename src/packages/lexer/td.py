@@ -95,7 +95,7 @@ STATES = {
             256: State(ATOMS['digit'], [256, 257]), 257: State(DELIMS['int_float_delim'], end = True),
     258: State('"', [259, 260, 262]), 259: State(ATOMS['ascii_263'], [259, 260, 262]), 260: State('"', 261), 261: State(DELIMS['string_delim'], end = True),
                                     262: State('\\', 263), 263: State(ATOMS['ascii'], [259, 260, 261, 262]),
-        264: State('^', [265, 268]), 265: State('^', [266, 269]), 266: State('/', 267), 267: State(ATOMS['ascii'], end = True),
-        268: State(ATOMS['ascii_272'], [265, 268]), 269: State(ATOMS['ascii_273'], [265, 268])
+        264: State('^', [265, 268]), 265: State('^', [265, 266, 268]), 266: State('/', 267), 267: State(ATOMS['ascii'], end = True),
+        268: State(ATOMS['ascii_272'], [265, 268])
 
 }
