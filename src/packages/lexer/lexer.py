@@ -120,12 +120,15 @@ class Lexer:
                 continue
 
             print(f"{curr_state} -> {state}: {curr_char if len(STATES[state].branches) > 0 else "end state"}")
-            if len(STATES[state].branches) == 0: return '' # The lexeme will be returned
+            if len(STATES[state].branches) == 0: # The lexeme will be returned
+                if state <= 212: return ('','') # For reserved
+                return ''  # For others
 
             self.advance()
             lexeme = self.lexemize(state)
 
             if type(lexeme) is str: return curr_char + lexeme
+            if type(lexeme) is tuple: return (curr_char + lexeme[0], curr_char + lexeme[0])
             if type(lexeme) is DelimError: return lexeme
             if type(lexeme) is UnfinishedAndamhie: return lexeme
             if type(lexeme) is UnclosedString:

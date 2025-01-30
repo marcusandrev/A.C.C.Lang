@@ -1,42 +1,5 @@
 # This file is used to define the tokens of acclang
 
-reserved = {
-    'amaccana','anda','andamhie',
-    'betsung',
-    'chika',
-    'ditech',
-    'eklabool', 'eme',
-    'forda', 'from',
-    'ganern', 'givenchy', 'gogogo',
-    'keri', 'korik', 'kween',
-    'lang',
-    'naur',
-    'pak', 'push',
-    'serve', 'shimenet', 'step',
-    'to',
-    'versa',
-    '+', '++', '+=',
-    '-', '--', '-=',
-    '*', '*=', '**', '**=',
-    '/', '/=', '//', '//=',
-    '%', '%=',
-    '=', '==',
-    '!', '!=',
-    '<', '<=',
-    '>', '>=',
-    '&&',
-    '||',
-    ',',
-    '.',
-    ';',
-    '(',
-    ')',
-    '[',
-    ']',
-    '{',
-    '}',
-}
-
 def tokenize(lexemes: list[str]):
     token_stream = []
     id_map = {}
@@ -49,8 +12,8 @@ def tokenize(lexemes: list[str]):
             token_stream.append((lexeme, 'newline'))
             continue
 
-        if lexeme in reserved:
-            token_stream.append((lexeme, lexeme))
+        if type(lexeme) is tuple:
+            token_stream.append(lexeme)
             continue
 
         if lexeme.replace('.', '', 1).isdigit():
