@@ -43,11 +43,22 @@
         </div>
       </div>
 
+<<<<<<< Updated upstream
       <div class="main-container">
         <div class="main-left-container">
           <div class="editor-container">
             <div class="editor-tab">
               <text class="tab-text"> untitled.acc </text>
+=======
+          <div class="navbar-right">
+            <input class="switch" type="checkbox" id="theme-switch" />
+            <div class="logo-container">
+              <img
+                src="{{ url_for('static', filename='assets/logo-dark.png') }}"
+                alt="ACCLang Logo"
+                id="logo"
+              />
+>>>>>>> Stashed changes
             </div>
             <div class="editor-wrapper">
               <div class="line-numbers"></div>
@@ -157,6 +168,21 @@
           })
           .catch((error) => console.error('Error:', error));
       }
+    </script>
+    <script>
+      const themeSwitch = document.getElementById('theme-switch');
+      const logo = document.getElementById('logo');
+      const body = document.body;
+
+      themeSwitch.addEventListener('change', () => {
+        if (themeSwitch.checked) {
+          logo.src = "{{ url_for('static', filename='assets/logo-light.png') }}";
+          body.classList.add('dark-mode');
+        } else {
+          logo.src = "{{ url_for('static', filename='assets/logo-dark.png') }}";
+          body.classList.remove('dark-mode');
+        }
+      });
     </script>
   </body>
 </html>

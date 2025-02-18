@@ -10,8 +10,219 @@ body {
   background: linear-gradient(180deg, #f8f8f8 0%, #e1e1e1 100%);
 }
 
+body.dark-mode {
+  background: #262038;
+}
+
+body.dark-mode .editor-container,
+body.dark-mode .compiler-log-container,
+body.dark-mode .main-right-container {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0px 4px 8px rgba(255, 255, 255, 0.205) inset, 0px 8px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body.dark-mode .editor-tab,
+body.dark-mode .compiler-log-tab,
+body.dark-mode .table-tab {
+  background-color: #1B2331;
+  color: white;
+}
+
+body.dark-mode .editor,
+body.dark-mode .line-numbers,
+body.dark-mode .compiler-log,
+body.dark-mode .table-container {
+  background-color: #1B2331;
+  color: white;
+}
+
+body.dark-mode .table-wrapper th {
+  background-color: #2F3D56;
+  color: white;
+}
+
+body.dark-mode .table-wrapper tr:nth-child(odd) {
+  background-color: #224361;
+}
+
+body.dark-mode .table-wrapper tr:nth-child(even) {
+  background-color: #1A344D;
+}
+
+body.dark-mode .editor::placeholder {
+  color: #999;
+}
+
 .app-container {
+<<<<<<< Updated upstream
   margin: 10px 10px;
+=======
+  position: relative;
+  z-index: 1;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/*Switch type="checkbox"*/
+.switch {
+  position: relative;
+  width: 52px;
+  height: 32px;
+  border: 1px solid #bebebe;
+  border-radius: 28px;
+  outline: 0;
+  box-sizing: border-box;
+  background-color: #dfdfdf;
+  appearance: none;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+.switch:before {
+  content: ' ';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 50px;
+  height: 30px;
+  border-radius: 27px;
+  background-color: #fdfdfd;
+  transition: transform 0.35s cubic-bezier(0.45, 1, 0.4, 1);
+}
+
+.switch:after {
+  content: ' ';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 30px;
+  height: 30px;
+  background-color: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  transition: transform 0.35s cubic-bezier(0.4, 0.4, 0.25, 1.35);
+}
+
+.switch:checked {
+  border-color: #1AAD19;
+  background-color: #1AAD19;
+}
+
+.switch:checked:before {
+  transform: scale(0);
+}
+
+.switch:checked:after {
+  transform: translateX(20px);
+}
+
+/* Background orbs */
+
+.contain {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.background-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1; /* Keep it behind the content */
+  pointer-events: none; /* Prevent background interaction */
+  overflow: hidden; /* Prevent scrollbars caused by background */
+}
+
+@keyframes ellipse-1 {
+  0% {
+    right: 0px;
+    top: -100px;
+  }
+  25% {
+    right: 100px;
+    top: -50px;
+  }
+  50% {
+    right: 200px;
+    top: 700px;
+  }
+  75% {
+    right: 300px;
+    top: 600px;
+  }
+  100% {
+    right: 0px;
+    top: 400px;
+  }
+}
+
+@keyframes ellipse-2 {
+  0% {
+    left: 0px;
+    top: 0px;
+  }
+  25% {
+    left: 200px;
+    top: 50px;
+  }
+  50% {
+    left: 400px;
+    top: 100px;
+  }
+  75% {
+    left: 300px;
+    top: -300px;
+  }
+  100% {
+    left: 0px;
+    top: 0px;
+  }
+}
+.ellipse-1,
+.ellipse-1 * {
+  box-sizing: border-box;
+}
+.ellipse-1 {
+  animation: ellipse-1 10s linear 0s infinite alternate;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 139, 253, 0.322) 25%,
+    rgba(41, 158, 226, 0.322) 100%
+  );
+  border-radius: 100%;
+  width: 613.19px;
+  height: 1053.81px;
+  position: absolute;
+  transform-origin: 10 0;
+  transform: rotate(59.45deg) scale(1, 1);
+  filter: blur(150px);
+  z-index: 7;
+}
+
+.ellipse-2,
+.ellipse-2 * {
+  box-sizing: border-box;
+}
+.ellipse-2 {
+  animation: ellipse-2 10s linear 0s infinite alternate;
+  background: linear-gradient(
+    180deg,
+    rgba(237, 54, 22, 0.322) 0%,
+    rgba(226, 152, 41, 0.322) 100%
+  );
+  border-radius: 100%;
+  width: 613.19px;
+  height: 1053.81px;
+  position: absolute;
+  transform-origin: 10 0;
+  transform: rotate(-59.45deg) scale(1, 1);
+  filter: blur(150px);
+  z-index: 7;
+>>>>>>> Stashed changes
 }
 
 /* Navbar */
