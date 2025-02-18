@@ -31,6 +31,7 @@ def get_first_set(non_terminals, productions):
             return {symbol}
         if not first_set[symbol]:
             for production in productions:
+                if production == '': continue
                 head, body = production.split("->")
                 head = head.strip()
                 body = body.strip().split()
@@ -60,6 +61,7 @@ def get_follow_set(non_terminals, productions, first_set):
     def follow(symbol):
         print(symbol)
         for production in productions:
+            if production == '': continue
             head, body = production.split("->")
             head = head.strip()
             body = body.strip().split()
@@ -88,6 +90,7 @@ def get_follow_set(non_terminals, productions, first_set):
 def get_predict_set(productions, first_set, follow_set):
     predict_set = {}
     for production in productions:
+        if production == '': continue
         head, body = production.split("->")
         head = head.strip()
         body = body.strip().split()
