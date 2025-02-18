@@ -109,6 +109,7 @@ def get_predict_set(productions, first_set, follow_set):
 def convert_to_ebnf(non_terminals, productions):
     ebnf_dict = {}
     for production in productions:
+        if production == '': continue
         head, body = production.split("->")
         head = head.strip().lstrip('<').rstrip('>').replace('-','_').replace('2', 'two').replace('3', 'three')
         temp_body = ''
