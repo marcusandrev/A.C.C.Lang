@@ -105,7 +105,7 @@ class Parser:
             else:
                 ebnf_dict[head].append(temp_body)
         
-        ebnf = '%import common.WS\n%ignore WS\n\n'
+        ebnf = '%import common.WS\n%ignore WS\n\nstart: program'
         for key, value in ebnf_dict.items():
             ebnf += f'{key}: '
             for val in value:
