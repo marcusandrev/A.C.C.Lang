@@ -2,6 +2,7 @@
 from flask import Flask, render_template, request, jsonify
 import os
 from src.packages.lexer.lexer import Lexer
+from src.packages.parser.parser import Parser
 
 app = Flask(__name__)
 
@@ -23,9 +24,13 @@ def lex():
     token_stream = lex.token_stream
     print(token_stream)
     
-    error_log = lex.log
+    error_log = str(lex.log)
     print(error_log)
-    return jsonify({'token_stream': token_stream, 'error_log': str(error_log)})
+
+    parser = Parser(token_stream)
+    parser.start()
+    error_log += parser.log
+    return jsonify({'token_stream': token_stream, 'error_log': error_log})
 
 
 
