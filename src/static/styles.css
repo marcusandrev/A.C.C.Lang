@@ -38,7 +38,7 @@ body.dark-mode .table-container {
 }
 
 body.dark-mode .table-wrapper th {
-  background-color: #2F3D56;
+  background-color: #1A344D;
   color: white;
 }
 
@@ -47,7 +47,7 @@ body.dark-mode .table-wrapper tr:nth-child(odd) {
 }
 
 body.dark-mode .table-wrapper tr:nth-child(even) {
-  background-color: #1A344D;
+  background-color: #2a374e;
 }
 
 body.dark-mode .editor::placeholder {
@@ -56,6 +56,16 @@ body.dark-mode .editor::placeholder {
 
 body.dark-mode .compiler-log {
   color: #FF2727;
+}
+
+body.dark-mode .tooltip {
+  background: #3d5b8fbb; /* Change to a similar blue in dark mode */
+  color: #f0e6ee;
+  border-color: #3d5b8fbb; /* Ensure the arrow matches the tooltip background */
+}
+
+body.dark-mode .tooltip::after {
+  border-color: #3d5b8fbb transparent transparent transparent; /* Ensure the arrow matches the tooltip background */
 }
 
 .app-container {
@@ -245,7 +255,9 @@ body.dark-mode .compiler-log {
   border: none;
   margin-right: 15px;
   cursor: pointer;
-  border-radius: 12px;
+  border-radius: 50%; /* Change to circle */
+  width: 40px; /* Ensure width and height are equal */
+  height: 40px; /* Ensure width and height are equal */
   transition: transform 0.1s;
 }
 
@@ -254,8 +266,8 @@ body.dark-mode .compiler-log {
 }
 
 .navbar-left button img {
-  width: 40px;
-  height: 40px;
+  width: 40px; /* Adjust to fit the button */
+  height: 40px; /* Adjust to fit the button */
   vertical-align: middle;
   transition: opacity 0.1s;
 }
@@ -267,13 +279,19 @@ body.dark-mode .compiler-log {
 .shine {
   position: relative;
   display: inline-block;
-  overflow: hidden;
+  overflow: hidden; /* Crop the animation */
+  border-radius: 50%; /* Change to circle */
+  width: 40px; /* Ensure width and height are equal */
+  height: 40px; /* Ensure width and height are equal */
+  vertical-align: middle; /* Align with the image */
+  padding: 1px; /* Adjust padding to ensure inner content is 38px by 38px */
 }
 
 .shine img {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  border-radius: 0; /* Do not crop the image */
 }
 
 .shine::after {
@@ -291,13 +309,16 @@ body.dark-mode .compiler-log {
   );
   transform: skewX(-20deg);
   opacity: 0;
-  transition: opacity 0.3s;
+  transition: opacity 0.3s, left 1s; /* Add transition for left property */
   pointer-events: none;
+  border-radius: 50%; /* Crop the animation to a circle */
+  z-index: 1; /* Ensure shine is in front of the button */
 }
 
 .shine:hover::after {
   opacity: 1;
-  animation: shine 1s linear;
+  left: 150%; /* Move shine effect */
+  animation: none; /* Disable animation */
 }
 
 @keyframes shine {
@@ -375,12 +396,12 @@ body.dark-mode .compiler-log {
 
 .bottom .tooltip {
   top: 115%;
-  left: -20%;
+  left: -26%;
 }
 
 .bottom .tooltip::after {
   top: -22%;
-  left: 20%;
+  left: 18%;
   transform: rotate(180deg);
 }
 
