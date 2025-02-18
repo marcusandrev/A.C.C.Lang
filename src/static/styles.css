@@ -8,6 +8,7 @@ body {
   margin: 0;
   padding: 0;
   background: linear-gradient(180deg, #f8f8f8 0%, #e1e1e1 100%);
+  transition: background 0.5s ease; 
 }
 
 body.dark-mode {
@@ -20,6 +21,7 @@ body.dark-mode .main-right-container {
   background: rgba(255, 255, 255, 0.1);
   box-shadow: 0px 4px 8px rgba(255, 255, 255, 0.205) inset, 0px 8px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: background 0.5s ease, box-shadow 0.5s ease, border 0.5s ease; 
 }
 
 body.dark-mode .editor-tab,
@@ -27,6 +29,7 @@ body.dark-mode .compiler-log-tab,
 body.dark-mode .table-tab {
   background-color: #1B2331;
   color: white;
+  transition: background-color 0.5s ease, color 0.5s ease; 
 }
 
 body.dark-mode .editor,
@@ -35,37 +38,65 @@ body.dark-mode .compiler-log,
 body.dark-mode .table-container {
   background-color: #1B2331;
   color: white;
+  transition: background-color 0.5s ease, color 0.5s ease; 
 }
 
 body.dark-mode .table-wrapper th {
   background-color: #1A344D;
   color: white;
+  transition: background-color 0.5s ease, color 0.5s ease; 
 }
 
 body.dark-mode .table-wrapper tr:nth-child(odd) {
   background-color: #224361;
+  transition: background-color 0.5s ease; 
 }
 
 body.dark-mode .table-wrapper tr:nth-child(even) {
   background-color: #2a374e;
+  transition: background-color 0.5s ease; 
 }
 
 body.dark-mode .editor::placeholder {
   color: #999;
+  transition: color 0.5s ease; 
 }
 
 body.dark-mode .compiler-log {
   color: #FF2727;
+  transition: background-color 0.5s ease, color 0.5s ease; 
 }
 
 body.dark-mode .tooltip {
-  background: #3d5b8fbb; /* Change to a similar blue in dark mode */
+  background: #3d5b8fbb; 
   color: #f0e6ee;
-  border-color: #3d5b8fbb; /* Ensure the arrow matches the tooltip background */
+  border-color: #3d5b8fbb; 
+  transition: background 0.5s ease, color 0.5s ease, border-color 0.5s ease; 
 }
 
 body.dark-mode .tooltip::after {
-  border-color: #3d5b8fbb transparent transparent transparent; /* Ensure the arrow matches the tooltip background */
+  border-color: #3d5b8fbb transparent transparent transparent; 
+}
+
+body .editor-container,
+body .compiler-log-container,
+body .main-right-container,
+body .editor-tab,
+body .compiler-log-tab,
+body .table-tab,
+body .editor,
+body .line-numbers,
+body .compiler-log,
+body .table-container,
+body .table-wrapper tr:nth-child(odd),
+body .table-wrapper tr:nth-child(even),
+body .editor::placeholder,
+body .tooltip {
+  transition: background-color 0.5s ease, color 0.5s ease, box-shadow 0.5s ease, border 0.5s ease; 
+}
+
+body .table-wrapper th {
+  transition: background-color 0.5s ease; 
 }
 
 .app-container {
@@ -143,9 +174,9 @@ body.dark-mode .tooltip::after {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: -1; /* Keep it behind the content */
-  pointer-events: none; /* Prevent background interaction */
-  overflow: hidden; /* Prevent scrollbars caused by background */
+  z-index: -1; 
+  pointer-events: none; 
+  overflow: hidden; 
 }
 
 @keyframes ellipse-1 {
@@ -242,7 +273,7 @@ body.dark-mode .tooltip::after {
   align-items: center;
   width: 100%;
   margin: 10px;
-  z-index: 10; /* Ensure navbar stays on top */
+  z-index: 10; 
 }
 
 .navbar-left {
@@ -255,9 +286,9 @@ body.dark-mode .tooltip::after {
   border: none;
   margin-right: 15px;
   cursor: pointer;
-  border-radius: 50%; /* Change to circle */
-  width: 40px; /* Ensure width and height are equal */
-  height: 40px; /* Ensure width and height are equal */
+  border-radius: 50%; 
+  width: 40px; 
+  height: 40px; 
   transition: transform 0.1s;
 }
 
@@ -266,8 +297,8 @@ body.dark-mode .tooltip::after {
 }
 
 .navbar-left button img {
-  width: 40px; /* Adjust to fit the button */
-  height: 40px; /* Adjust to fit the button */
+  width: 40px; 
+  height: 40px; 
   vertical-align: middle;
   transition: opacity 0.1s;
 }
@@ -279,19 +310,19 @@ body.dark-mode .tooltip::after {
 .shine {
   position: relative;
   display: inline-block;
-  overflow: hidden; /* Crop the animation */
-  border-radius: 50%; /* Change to circle */
-  width: 40px; /* Ensure width and height are equal */
-  height: 40px; /* Ensure width and height are equal */
-  vertical-align: middle; /* Align with the image */
-  padding: 1px; /* Adjust padding to ensure inner content is 38px by 38px */
+  overflow: hidden; 
+  border-radius: 50%; 
+  width: 40px; 
+  height: 40px; 
+  vertical-align: middle; 
+  padding: 1px; 
 }
 
 .shine img {
   display: block;
   width: 100%;
   height: 100%;
-  border-radius: 0; /* Do not crop the image */
+  border-radius: 0; 
 }
 
 .shine::after {
@@ -309,16 +340,16 @@ body.dark-mode .tooltip::after {
   );
   transform: skewX(-20deg);
   opacity: 0;
-  transition: opacity 0.3s, left 1s; /* Add transition for left property */
+  transition: opacity 0.3s, left 1s; 
   pointer-events: none;
-  border-radius: 50%; /* Crop the animation to a circle */
-  z-index: 1; /* Ensure shine is in front of the button */
+  border-radius: 50%; 
+  z-index: 1; 
 }
 
 .shine:hover::after {
   opacity: 1;
-  left: 150%; /* Move shine effect */
-  animation: none; /* Disable animation */
+  left: 150%; 
+  animation: none; 
 }
 
 @keyframes shine {
@@ -450,8 +481,8 @@ body.dark-mode .tooltip::after {
   flex-direction: column;
   box-shadow: 0px 4px 8px white inset, 0px 8px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #ddd;
-  height: calc(60vh - 100px); /* Ensure a specific height so it can scroll */
-  overflow-y: auto; /* Allow scrolling */
+  height: calc(60vh - 100px); 
+  overflow-y: auto; 
 }
 
 .editor-tab {
@@ -487,7 +518,7 @@ body.dark-mode .tooltip::after {
   font-family: monospace;
   font-size: 14px;
   height: calc(100% - 20px);
-  /* max-height: 450px; */
+
 }
 
 .editor {
@@ -501,7 +532,7 @@ body.dark-mode .tooltip::after {
   background-color: #ffff;
   border-radius: 0 10px 10px 0;
   height: calc(100% - 20px);
-  /* max-height: 450px; */
+  
 }
 
 .compiler-log-container {
@@ -534,6 +565,7 @@ body.dark-mode .tooltip::after {
   max-width: 100%;
   box-sizing: border-box;
   color: #ff0000;
+  transition: background-color 0.5s ease, color 0.5s ease; 
 }
 
 .compiler-log-tab {
@@ -572,7 +604,7 @@ body.dark-mode .tooltip::after {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   width: 55px;
   padding: 3px;
-  overflow-y: auto; /* Allow scrolling */
+  overflow-y: auto; 
 }
 
 .tab-text-table {
@@ -585,7 +617,7 @@ body.dark-mode .tooltip::after {
   border-radius: 0 10px 10px 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   height: calc(100% - 20px);
-  overflow-y: auto; /* Enable scrolling for table */
+  overflow-y: auto; 
 }
 
 .table-wrapper {
