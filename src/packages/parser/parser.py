@@ -184,7 +184,7 @@ class Parser:
         except Exception as e:
             print(f"Parsing error: {e}")
             print(dir(e))
-            self.log = str(e)
+            self.log = str(e.considered_rules)
 
         # input_string = "shimenet kween ( ) { anda id = anda_literal ; }"
         # if parse(input_string, non_terminals, productions, predict_set):

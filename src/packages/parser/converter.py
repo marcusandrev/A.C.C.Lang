@@ -123,12 +123,33 @@ def convert_to_ebnf(non_terminals, productions):
         else:
             ebnf_dict[head].append(temp_body)
     
+    tokens = {
+        '+=': 'PLUS_EQUAL',
+        '**': 'EXPONENTIATE',
+        '//': 'FLOOR',
+        '>=': 'GREATER_EQUAL',
+        '<=': 'LESS_EQUAL',
+        '==': 'EQUAL_EQUAL',
+        '!=': 'NOT_EQUAL',
+        '&&': 'AND',
+        '||': 'OR',
+        '!': 'NOT',
+        '--': 'MINUS_MINUS',
+        '++': 'PLUS_PLUS'
+    }
     ebnf = '%import common.WS\n%ignore WS\n\nstart: program\n'
     for key, value in ebnf_dict.items():
         ebnf += f'{key}: '
         for val in value:
-            ebnf += f'{val} | '
+            value = val
+            for tok in tokens:
+                if f'"{tok}"' in val:
+                    value = value.replace(f'"{tok}"', tokens[tok])
+            ebnf += f'{value} | '
         ebnf = ebnf[:-3] + '\n'
+    for key, value in tokens.items():
+        ebnf += f'{value}: "{key}"\n'
+
     with open("Files/cfg/grammar.lark", "w") as f:
         f.write(ebnf)
     
