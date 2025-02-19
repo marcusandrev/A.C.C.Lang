@@ -109,6 +109,7 @@ body .table-wrapper th {
 
 /*Switch type="checkbox"*/
 .switch {
+  cursor: pointer;
   position: relative;
   width: 52px;
   height: 32px;
