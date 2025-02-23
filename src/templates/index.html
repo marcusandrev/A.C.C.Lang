@@ -7,7 +7,19 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='styles.css') }}"
     />
-    <title>ACCLang Compiler</title>
+    <title>A.C.C. Lang. Compiler</title>
+    <link rel="icon" type="image/x-icon" href="../static/assets/acclang-icon.png">
+    <style>
+      .shine {
+        position: relative;
+        display: inline-block;
+        overflow: hidden;
+        border-radius: 50%; 
+        width: 40px; 
+        height: 40px; 
+        vertical-align: middle; 
+      }
+    </style>
   </head>
   <body>
     <div class="contain">
@@ -65,10 +77,12 @@
           </div>
 
           <div class="navbar-right">
+            <input class="switch" type="checkbox" id="theme-switch" />
             <div class="logo-container">
               <img
                 src="{{ url_for('static', filename='assets/logo-dark.png') }}"
                 alt="ACCLang Logo"
+                id="logo"
               />
             </div>
           </div>
@@ -212,6 +226,21 @@
           reader.readAsText(file);
         });
       }
+    </script>
+    <script>
+      const themeSwitch = document.getElementById('theme-switch');
+      const logo = document.getElementById('logo');
+      const body = document.body;
+
+      themeSwitch.addEventListener('change', () => {
+        if (themeSwitch.checked) {
+          logo.src = "{{ url_for('static', filename='assets/logo-light.png') }}";
+          body.classList.add('dark-mode');
+        } else {
+          logo.src = "{{ url_for('static', filename='assets/logo-dark.png') }}";
+          body.classList.remove('dark-mode');
+        }
+      });
     </script>
   </body>
 </html>
