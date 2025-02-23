@@ -1,6 +1,70 @@
-/^Testing Lexer^/
-shimenet kween() {
-    chika name = "Shrek";
-    andamhie age = 247.365;
-    serve("Name: " + name + ", Age: " + age);
+andamhie age = 0001234567891.123000;
+anda age1 = 55;
+andamhie age2 = 12345678910.123456;
+amaccana
+anda
+andamhie
+betsung
+chika
+ditech
+eklabool
+eme
+forda
+from
+ganern
+givenchy
+gogogo
+keri
+korik
+kween
+lang
+naur
+pak
+push
+serve
+shimenet
+step
+to
+versa
+wiz
+
++
+++
++=
+-
+--
+-=
+*
+*=
+**
+**=
+/
+/=
+//
+//=
+%
+%=
+=
+==
+!
+!=
+<
+<=
+>
+>=
+&&
+||
+,
+;
+(
+)
+[
+]
+{
 }
+.
+identifier_test1
+identifier_test2
+identifier_test1
+"string test"
+/^comment test^/

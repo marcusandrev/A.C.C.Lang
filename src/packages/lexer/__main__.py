@@ -14,7 +14,3 @@ if __name__ == '__main__':
     file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'Files', 'lexer_test.acc'))
     source_code = open(file_path, "r").read()
     print_lex(source_code)
-
-    # Test()
-    # Test2()
-    # Test3()
