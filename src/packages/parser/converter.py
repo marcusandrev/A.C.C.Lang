@@ -135,7 +135,11 @@ def convert_to_ebnf(non_terminals, productions):
         '||': 'OR',
         '!': 'NOT',
         '--': 'MINUS_MINUS',
-        '++': 'PLUS_PLUS'
+        '++': 'PLUS_PLUS',
+        'id': 'ID',
+        'anda_literal': 'ANDA_LITERAL',
+        'andamhie_literal': 'ANDAMHIE_LITERAL',
+        'chika_literal':'CHIKA_LITERAL',
     }
     ebnf = '%import common.WS\n%ignore WS\n\nstart: program\n'
     for key, value in ebnf_dict.items():
@@ -148,7 +152,11 @@ def convert_to_ebnf(non_terminals, productions):
             ebnf += f'{value} | '
         ebnf = ebnf[:-3] + '\n'
     for key, value in tokens.items():
-        ebnf += f'{value}: "{key}"\n'
+        if key == 'id': ebnf += f'{value}:' + ' /[a-zA-Z][a-zA-Z0-9_]{0,19}/\n'
+        elif key == 'anda_literal': ebnf += f'{value}:' + ' /[0-9]+/\n'
+        elif key == 'andamhie_literal': ebnf += f'{value}:' + ' /[0-9]+\\.[0-9]+/\n'
+        elif key == 'chika_literal': ebnf += f'{value}:' + ' /"([^"\\\\]|\\\\.)*"/\n'
+        else: ebnf += f'{value}: "{key}"\n'
 
     with open("Files/cfg/grammar.lark", "w") as f:
         f.write(ebnf)

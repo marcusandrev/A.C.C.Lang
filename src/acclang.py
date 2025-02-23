@@ -27,9 +27,11 @@ def lex():
     error_log = str(lex.log)
     print(error_log)
 
-    parser = Parser(token_stream)
-    parser.start()
-    error_log += parser.log
+    if len(error_log) <= 0: # Only run parser if there is no lexical error
+        parser = Parser(source_code, token_stream)
+        parser.start()
+        error_log += parser.log
+
     return jsonify({'token_stream': token_stream, 'error_log': error_log})
 
 

@@ -17,5 +17,5 @@ if __name__ == '__main__':
     lexer = Lexer(source_code)
     lexer.start()
 
-    parser = Parser(lexer.token_stream)
+    parser = Parser(source_code, lexer.token_stream)
     parser.start()
