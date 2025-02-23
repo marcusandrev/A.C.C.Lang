@@ -8,16 +8,20 @@
       href="{{ url_for('static', filename='styles.css') }}"
     />
     <title>A.C.C. Lang. Compiler</title>
-    <link rel="icon" type="image/x-icon" href="../static/assets/acclang-icon.png">
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="../static/assets/acclang-icon.png"
+    />
     <style>
       .shine {
         position: relative;
         display: inline-block;
         overflow: hidden;
-        border-radius: 50%; 
-        width: 40px; 
-        height: 40px; 
-        vertical-align: middle; 
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        vertical-align: middle;
       }
     </style>
   </head>
@@ -234,12 +238,23 @@
 
       themeSwitch.addEventListener('change', () => {
         if (themeSwitch.checked) {
-          logo.src = "{{ url_for('static', filename='assets/logo-light.png') }}";
+          logo.src =
+            "{{ url_for('static', filename='assets/logo-light.png') }}";
           body.classList.add('dark-mode');
         } else {
           logo.src = "{{ url_for('static', filename='assets/logo-dark.png') }}";
           body.classList.remove('dark-mode');
         }
+      });
+    </script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const textarea = document.getElementById('source-code');
+
+        textarea.addEventListener('input', function () {
+          // Replace all curly quotes with straight quotes
+          this.value = this.value.replace(/“|”/g, '"');
+        });
       });
     </script>
   </body>
