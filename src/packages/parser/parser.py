@@ -1,4 +1,5 @@
 from lark import Lark
+from .error_handler import UnexpectedError
 
 class Parser:
     def __init__(self, source_code, token_stream):
@@ -26,6 +27,7 @@ class Parser:
             elif token == 'comma': token = ','
             elif token == 'semicolon': token = ';'
             elif token == 'plus_equal': token = '+='
+            elif token == 'star': token = '*'
             elif token == 'exponentiate': token = '**'
             elif token == 'floor': token = '//'
             elif token == 'greater_equal': token = '>='
@@ -62,11 +64,11 @@ class Parser:
             source = self._source_code.splitlines('\n')
             source[-1] += ' '
             index = (e.line if e.line > 0 else len(source), e.column if e.column > 0 else len(source[-1]))
-            unexpected = ''
-            print("error is:", source[index[0]-1][18:])
-            for char in source[index[0]-1][index[1]-1:]:
-                if char in [' ', '\n']: break
-                unexpected += char
+            unexpected = UnexpectedError(source[index[0]-1], index)
+            # for char in source[index[0]-1][index[1]-1:]:
+            #     if char in [' ', '\n']: break
+            #     unexpected += char
+
             try:
                 expected = e.allowed
             except:
