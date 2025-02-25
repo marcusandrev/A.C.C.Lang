@@ -1,0 +1,107 @@
+%import common.WS
+%ignore WS
+
+start: program
+program: global_dec func_def "shimenet" "kween" "(" ")" "{" kween_body "}" func_def 
+global_dec: var_dec_init global_dec  |  
+var_dec_init: naur_case data_type var_init ";"  | data_type ID func_array_init_tail ";"  | "shimenet" ID func_case ";"  |  
+naur_case: "naur"  |  
+return_type: data_type  | "shimenet" 
+data_type: "anda"  | "andamhie"  | "chika"  | "eklabool" 
+func_array_init_tail: func_case  | array_case array_init 
+func_case: "(" parameters ")" 
+parameters: func_parameters multi_parameters  |  
+func_parameters: data_type ID 
+multi_parameters: "," func_parameters multi_parameters  |  
+array_case: "[" array_values "]" twod_index  |  
+twod_index: "[" array_values "]" threed_index  |  
+threed_index: "[" array_values "]"  |  
+array_values: expression 
+literals: ANDA_LITERAL  | ANDAMHIE_LITERAL  | CHIKA_LITERAL  | eklabool 
+eklabool: "korik"  | "eme" 
+func_array: func_array_value  |  
+func_array_value: "(" arguments ")"  | array_case 
+var_init: ID var_init_tail multi_init_values 
+var_init_tail: "=" init_values  |  
+multi_init_values: "," ID multi_init_values_tail multi_init_values  |  
+multi_init_values_tail: "=" init_values  |  
+init_values: expression 
+array_init: "=" "{" array_elements "}" 
+array_elements: array_values extra_array_value  | "{" twod_array_elements "}" extra_twod_array_value 
+twod_array_elements: array_values extra_array_value  | "{" array_values extra_array_value "}" extra_twod_array_value  |  
+extra_array_value: "," array_values extra_array_value  |  
+extra_twod_array_value: "," "{" extra_threed_array_value "}" extra_twod_array_value  |  
+extra_threed_array_value: array_values extra_array_value  | "{" array_values extra_array_value "}" extra_twod_array_value  |  
+func_def: return_type ID "(" parameters ")" "{" func_body "}" func_def  |  
+func_body: local_dec statements multi_statements  |  
+multi_statements: statements multi_statements  |  
+local_dec: local_dec_init array_assign local_dec  |  
+local_dec_init: naur_case data_type var_init ";"  | data_type ID array_case array_init ";" 
+arguments: arguments_value multi_arguments_value  |  
+multi_arguments_value: "," arguments_value multi_arguments_value  |  
+arguments_value: expression 
+array_assign: ID array_case "=" array_values ";"  |  
+kween_body: func_body 
+expression: simple_expression  | multi_expression 
+simple_expression: expression_operands expression_tail 
+multi_expression: "(" expression ")" expression_tail 
+expression_tail: general_operators expression_operands expression_tail  |  
+expression_operands: negative_value expression_value 
+negative_value: "-"  |  
+expression_value: unary_operator ID  | ID identifier_tail  | general_operands  | "(" expression ")" 
+identifier_tail: func_array  | unary_operator  |  
+unary_operator: MINUS_MINUS  | PLUS_PLUS 
+general_operands: literals 
+general_operators: "+"  | PLUS_EQUAL  | "-"  | "%"  | "/"  | "*"  | EXPONENTIATE  | FLOOR  | ">"  | "<"  | GREATER_EQUAL  | LESS_EQUAL  | EQUAL_EQUAL  | NOT_EQUAL  | "="  | AND  | OR  | NOT 
+statements: ID assign_stmts statements  | input_stmts statements  | output_stmts statements  | conditional_stmts statements  | loop_stmts statements  | switch_stmts statements  | control_flow_stmts statements  | return_stmts statements  | unary_stmts statements  |  
+assign_stmts: func_array arithmetic_operators "=" assignment_values ";" 
+arithmetic_operators: "+"  | "-"  | "%"  | "/"  | FLOOR  | "*"  | EXPONENTIATE  |  
+assignment_values: expression 
+input_stmts: input_type ID "=" "givenchy" "(" givenchy_values ")" ";" 
+input_type: data_type  |  
+givenchy_values: expression_operands 
+output_stmts: "serve" "(" output_values ")" ";" 
+output_values: expression 
+conditional_stmts: "pak" "(" condition ")" "{" conditional_body "}" ganern_pak_statement ganern_case 
+condition: expression 
+conditional_body: local_dec statements multi_statements  |  
+ganern_pak_statement: "ganern" "pak" "(" condition ")" "{" conditional_body "}" ganern_pak_statement  |  
+ganern_case: "ganern" "{" conditional_body "}"  |  
+loop_stmts: forda_statement  | keri_statement 
+forda_statement: "forda" "(" loop_type_init ID "from" start_value "to" end_value step_case ")" "{" for_loop_body "}" 
+loop_type_init: data_type  |  
+start_value: loop_conditions 
+end_value: loop_conditions 
+step_case: "step" update  |  
+update: expression  |  
+loop_conditions: expression 
+for_loop_body: local_dec statements multi_statements  |  
+keri_statement: "keri" keri_case 
+keri_case: "(" condition ")" "{" while_loop_body "}"  | "lang" "{" while_loop_body "}" "keri" "(" condition ")" 
+while_loop_body: local_dec statements multi_statements  |  
+switch_stmts: "versa" "(" switch_values ")" "{" "betsung" switch_values ":" switch_statements amaccana_case multi_cases ditech_case "}" 
+multi_cases: "betsung" switch_values ":" switch_statements amaccana_case multi_cases  |  
+switch_values: expression 
+switch_statements: local_dec statements multi_statements 
+amaccana_case: "amaccana" ";"  |  
+ditech_case: "ditech" ":" switch_statements  |  
+control_flow_stmts: "gogogo" ";"  | "amaccana" ";" 
+return_stmts: "push" push_values ";"  |  
+unary_stmts: unary_operator ID ";"  | ID unary_operator ";" 
+push_values: expression  |  
+PLUS_EQUAL: "+="
+EXPONENTIATE: "**"
+FLOOR: "//"
+GREATER_EQUAL: ">="
+LESS_EQUAL: "<="
+EQUAL_EQUAL: "=="
+NOT_EQUAL: "!="
+AND: "&&"
+OR: "||"
+NOT: "!"
+MINUS_MINUS: "--"
+PLUS_PLUS: "++"
+ID: /[a-zA-Z][a-zA-Z0-9_]{0,19}/
+ANDA_LITERAL: /[0-9]+/
+ANDAMHIE_LITERAL: /[0-9]+\.[0-9]+/
+CHIKA_LITERAL: /"([^"\\]|\\.)*"/

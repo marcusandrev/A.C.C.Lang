@@ -89,31 +89,6 @@ class Parser:
                         predict_set[production].update(follow_set[body[0]])
         return predict_set
 
-    def convert_to_ebnf(self, non_terminals, productions):
-        ebnf_dict = {}
-        for production in productions:
-            head, body = production.split("->")
-            head = head.strip().lstrip('<').rstrip('>').replace('-','_')
-            temp_body = ''
-            for token in body.split():
-                if token in non_terminals:
-                    temp_body += f'{token.strip().lstrip('<').rstrip('>').replace('-','_')} '
-                else:
-                    temp_body += f'{f'"{token}"' if token != 'Î»' else ''} '
-            if ebnf_dict.get(head) is None:
-                ebnf_dict[head] = [temp_body]
-            else:
-                ebnf_dict[head].append(temp_body)
-        
-        ebnf = '%import common.WS\n%ignore WS\n\nstart: program'
-        for key, value in ebnf_dict.items():
-            ebnf += f'{key}: '
-            for val in value:
-                ebnf += f'{val} | '
-            ebnf = ebnf[:-3] + '\n'
-        with open("Files/cfg/grammar.lark", "w") as f:
-            f.write(ebnf)
-
     def parse(self, input_string, non_terminals, productions, predict_set):
         stack = ['$']
         stack.append(non_terminals[0])
@@ -155,39 +130,37 @@ class Parser:
                     non_terminals.append(production)
                 productions.append(line.strip())
 
-        # first_set = self.get_first_set(non_terminals, productions)
-        # follow_set = self.get_follow_set(non_terminals, productions, first_set)
-        # predict_set = self.get_predict_set(productions, first_set, follow_set)
+        first_set = self.get_first_set(non_terminals, productions)
+        follow_set = self.get_follow_set(non_terminals, productions, first_set)
+        predict_set = self.get_predict_set(productions, first_set, follow_set)
 
-        # print(f'{"_"*35}FIRST SET{"_"*35}')
-        # for set in first_set:
-        #     print(f'{set}: {first_set[set]}')
+        print(f'{"_"*35}FIRST SET{"_"*35}')
+        for set in first_set:
+            print(f'{set}: {first_set[set]}')
 
-        # print(f'{"_"*35}FOLLOW SET{"_"*35}')
-        # for set in follow_set:
-        #     print(f'{set}: {follow_set[set]}')
+        print(f'{"_"*35}FOLLOW SET{"_"*35}')
+        for set in follow_set:
+            print(f'{set}: {follow_set[set]}')
 
-        # print(f'{"_"*35}PREDICT SET{"_"*35}')
-        # for set in predict_set:
-        #     print(f'{set.replace("Î»", "λ")}: {predict_set[set]}')
+        print(f'{"_"*35}PREDICT SET{"_"*35}')
+        for set in predict_set:
+            print(f'{set.replace("Î»", "λ")}: {predict_set[set]}')
 
-        # self.convert_to_ebnf(non_terminals, productions)
+        # with open("Files/cfg/grammar.lark", "r") as file:
+        #     grammar = file.read()
 
-        with open("Files/cfg/grammar.lark", "r") as file:
-            grammar = file.read()
+        # parser = Lark(grammar, parser="earley")
 
-        parser = Lark(grammar, parser="earley")
+        # try:
+        #     parse_tree = parser.parse(self._source_code)
+        #     print(parse_tree)
+        # except Exception as e:
+        #     print(f"Parsing error: {e}")
+        #     print(dir(e))
+        #     self.log = str(e)
 
-        try:
-            parse_tree = parser.parse(self._source_code)
-            print(parse_tree)
-        except Exception as e:
-            print(f"Parsing error: {e}")
-            print(dir(e))
-            self.log = str(e)
-
-        # input_string = "shimenet kween ( ) { anda id = anda_literal ; }"
-        # if parse(input_string, non_terminals, productions, predict_set):
-        #     print("No Error")
-        # else:
-        #     print("SYNTAX ERROR")
+        input_string = "shimenet kween ( ) { anda id = anda_literal ; }"
+        if self.parse(input_string, non_terminals, productions, predict_set):
+            print("No Error")
+        else:
+            print("SYNTAX ERROR")

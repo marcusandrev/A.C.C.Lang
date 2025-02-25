@@ -7,6 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..','..
 # from error_handler import *
 from src.packages.lexer.lexer import Lexer
 from src.packages.parser.parser import Parser
+from src.packages.parser.parse import Parser as parse
 
 if __name__ == '__main__':
     # source_code = open("A.C.C.Lang/Files/lexer_test.acc", "r").read()
@@ -18,4 +19,5 @@ if __name__ == '__main__':
     lexer.start()
 
     parser = Parser(source_code, lexer.token_stream)
+    # parser = parse(lexer.token_stream)
     parser.start()
