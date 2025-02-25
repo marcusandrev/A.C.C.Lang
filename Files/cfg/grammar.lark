@@ -53,7 +53,9 @@ identifier_tail: func_array  | unary_operator  |
 unary_operator: MINUS_MINUS  | PLUS_PLUS 
 general_operands: literals 
 general_operators: "+"  | PLUS_EQUAL  | "-"  | "%"  | "/"  | "*"  | EXPONENTIATE  | FLOOR  | ">"  | "<"  | GREATER_EQUAL  | LESS_EQUAL  | EQUAL_EQUAL  | NOT_EQUAL  | "="  | AND  | OR  | NOT 
-statements: ID assign_stmts statements  | input_stmts statements  | output_stmts statements  | conditional_stmts statements  | loop_stmts statements  | switch_stmts statements  | control_flow_stmts statements  | return_stmts statements  | unary_stmts statements  |  
+statements: ID assign_stmts statements  | input_stmts statements  | output_stmts statements  | conditional_stmts statements  | loop_stmts statements  | switch_stmts statements  | return_stmts statements  | unary_stmts statements  |  
+loop_body: ID assign_stmts loop_body  | input_stmts loop_body  | output_stmts loop_body  | loop_stmts loop_body  | loop_conditional_stmts loop_body  | loop_switch_stmts loop_body  | return_stmts loop_body  | unary_stmts loop_body  | control_flow_stmts loop_body  |  
+multi_loop_body: loop_body multi_loop_body  |  
 assign_stmts: func_array arithmetic_operators "=" assignment_values ";" 
 arithmetic_operators: "+"  | "-"  | "%"  | "/"  | FLOOR  | "*"  | EXPONENTIATE  |  
 assignment_values: expression 
@@ -65,6 +67,8 @@ output_values: expression
 conditional_stmts: "pak" "(" condition ")" "{" conditional_body "}" ganern_pak_statement ganern_case 
 condition: expression 
 conditional_body: local_dec statements multi_statements  |  
+loop_conditional_stmts: "pak" "(" condition ")" "{" loop_conditional_body "}" ganern_pak_statement ganern_case 
+loop_conditional_body: local_dec loop_body multi_loop_body  |  
 ganern_pak_statement: "ganern" "pak" "(" condition ")" "{" conditional_body "}" ganern_pak_statement  |  
 ganern_case: "ganern" "{" conditional_body "}"  |  
 loop_stmts: forda_statement  | keri_statement 
@@ -75,17 +79,20 @@ end_value: loop_conditions
 step_case: "step" update  |  
 update: expression  |  
 loop_conditions: expression 
-for_loop_body: local_dec statements multi_statements  |  
+for_loop_body: local_dec loop_body multi_loop_body  |  
 keri_statement: "keri" keri_case 
 keri_case: "(" condition ")" "{" while_loop_body "}"  | "lang" "{" while_loop_body "}" "keri" "(" condition ")" 
-while_loop_body: local_dec statements multi_statements  |  
+while_loop_body: local_dec loop_body multi_loop_body  |  
 switch_stmts: "versa" "(" switch_values ")" "{" "betsung" switch_values ":" switch_statements amaccana_case multi_cases ditech_case "}" 
 multi_cases: "betsung" switch_values ":" switch_statements amaccana_case multi_cases  |  
 switch_values: expression 
 switch_statements: local_dec statements multi_statements 
+loop_switch_stmts: "versa" "(" switch_values ")" "{" "betsung" switch_values ":" loop_switch_statements loop_multi_cases ditech_case "}" 
+loop_multi_cases: "betsung" switch_values ":" loop_switch_statements loop_multi_cases  |  
+loop_switch_statements: local_dec loop_body multi_loop_body 
 amaccana_case: "amaccana" ";"  |  
 ditech_case: "ditech" ":" switch_statements  |  
-control_flow_stmts: "gogogo" ";"  | "amaccana" ";" 
+control_flow_stmts: "gogogo" ";"  | "amaccana" ";"  |  
 return_stmts: "push" push_values ";"  |  
 unary_stmts: unary_operator ID ";"  | ID unary_operator ";" 
 push_values: expression  |  

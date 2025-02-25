@@ -124,68 +124,87 @@
 | 120 | \<statements\> | → | \<conditional-stmts\> \<statements\> |
 | 121 | \<statements\> | → | \<loop-stmts\> \<statements\> |
 | 122 | \<statements\> | → | \<switch-stmts\> \<statements\> |
-| 123 | \<statements\> | → | \<control-flow-stmts\> \<statements\> |
-| 124 | \<statements\> | → | \<return-stmts\> \<statements\> |
-| 125 | \<statements\> | → | \<unary-stmts\> \<statements\> |
-| 126 | \<statements\> | → | λ |
-| 127 | \<assign-stmts\> | → | \<func-array\> \<arithmetic-operators\> \= \<assignment-values\> ; |
-| 128 | \<arithmetic-operators\> | → | \+ |
-| 129 | \<arithmetic-operators\> | → | \- |
-| 130 | \<arithmetic-operators\> | → | % |
-| 131 | \<arithmetic-operators\> | → | / |
-| 132 | \<arithmetic-operators\> | → | // |
-| 133 | \<arithmetic-operators\> | → | \* |
-| 134 | \<arithmetic-operators\> | → | \*\* |
-| 135 | \<arithmetic-operators\> | → | λ |
-| 136 | \<assignment-values\> | → | \<expression\> |
-| 137 | \<input-stmts\> | → | \<input-type\> id \= givenchy ( \<givenchy-values\> ) ; |
-| 138 | \<input-type\> | → | \<data-type\> |
-| 139 | \<input-type\> | → | λ |
-| 140 | \<givenchy-values\> | → | \<expression-operands\> |
-| 141 | \<output-stmts\> | → | serve ( \<output-values\> ) ; |
-| 142 | \<output-values\> | → | \<expression\> |
-| 143 | \<conditional-stmts\> | → | pak ( \<condition\> ) { \<conditional-body\> } \<ganern-pak-statement\> \<ganern-case\> |
-| 144 | \<condition\> | → | \<expression\> |
-| 145 | \<conditional-body\> | → | \<local-dec\> \<statements\> \<multi-statements\> |
-| 146 | \<conditional-body\> | → | λ |
-| 147 | \<ganern-pak-statement\> | → | ganern pak ( \<condition\> ) { \<conditional-body\> } \<ganern-pak-statement\> |
-| 148 | \<ganern-pak-statement\> | → | λ |
-| 149 | \<ganern-case\> | → | ganern { \<conditional-body\> } |
-| 150 | \<ganern-case\> | → | λ |
-| 151 | \<loop-stmts\> | → | \<forda-statement\> |
-| 152 | \<loop-stmts\> | → | \<keri-statement\> |
-| 153 | \<forda-statement\> | → | forda ( \<loop-type-init\> id from \<start-value\> to \<end-value\> \<step-case\> ) { \<for-loop-body\> } |
-| 154 | \<loop-type-init\> | → | \<data-type\> |
-| 155 | \<loop-type-init\> | → | λ |
-| 156 | \<start-value\> | → | \<loop-conditions\> |
-| 157 | \<end-value\> | → | \<loop-conditions\> |
-| 158 | \<step-case\> | → | step \<update\> |
-| 159 | \<step-case\> | → | λ |
-| 160 | \<update\> | → | \<expression\> |
-| 161 | \<update\> | → | λ |
-| 162 | \<loop-conditions\> | → | \<expression\> |
-| 163 | \<for-loop-body\> | → | \<local-dec\> \<statements\> \<multi-statements\> |
-| 164 | \<for-loop-body\> | → | λ |
-| 165 | \<keri-statement\> | → | keri \<keri-case\>  |
-| 166 | \<keri-case\> | → | ( \<condition\> ) { \<while-loop-body\> } |
-| 167 | \<keri-case\> | → | lang { \<while-loop-body\> } keri ( \<condition\> ) |
-| 168 | \<while-loop-body\> | → | \<local-dec\> \<statements\> \<multi-statements\> |
-| 169 | \<while-loop-body\> | → | λ |
-| 170 | \<switch-stmts\> | → | versa ( \<switch-values\> ) { betsung \<switch-values\> : \<switch-statements\> \<amaccana-case\> \<multi-cases\> \<ditech-case\> } |
-| 171 | \<multi-cases\> | → | betsung \<switch-values\> : \<switch-statements\> \<amaccana-case\> \<multi-cases\> |
-| 172 | \<multi-cases\> | → | λ |
-| 173 | \<switch-values\> | → | \<expression\> |
-| 174 | \<switch-statements\> | → | \<local-dec\> \<statements\> \<multi-statements\> |
-| 175 | \<amaccana-case\> | → | amaccana ; |
-| 176 | \<amaccana-case\> | → | λ |
-| 177 | \<ditech-case\> | → | ditech : \<switch-statements\> |
-| 178 | \<ditech-case\> | → | λ |
-| 179 | \<control-flow-stmts\> | → | gogogo ; |
-| 180 | \<control-flow-stmts\> | → | amaccana ; |
-| 181 | \<return-stmts\> | → | push \<push-values\> ;    |
-| 182 | \<return-stmts\> | → | λ |
-| 183 | \<unary-stmts\> | → | \<unary-operator\> id ; |
-| 184 | \<unary-stmts\> | → | id \<unary-operator\> ; |
-| 185 | \<push-values\> | → | \<expression\> |
-| 186 | \<push-values\> | → | λ |
+| 123 | \<statements\> | → | \<return-stmts\> \<statements\> |
+| 124 | \<statements\> | → | \<unary-stmts\> \<statements\> |
+| 125 | \<statements\> | → | λ |
+| 126 | \<loop-body\> | → | id \<assign-stmts\> \<loop-body\> |
+|  | \<loop-body\> | → | \<input-stmts\> \<loop-body\> |
+|  | \<loop-body\> | → | \<output-stmts\> \<loop-body\> |
+|  | \<loop-body\> | → | \<loop-stmts\> \<loop-body\> |
+|  | \<loop-body\> | → | \<loop-conditional-stmts\> \<loop-body\> |
+|  | \<loop-body\> | → | \<loop-switch-stmts\> \<loop-body\> |
+|  | \<loop-body\> | → | \<return-stmts\> \<loop-body\> |
+|  | \<loop-body\> | → | \<unary-stmts\> \<loop-body\> |
+| 127 | \<loop-body\> | → | \<control-flow-stmts\> \<loop-body\> |
+| 128 | \<loop-body\> | → | λ |
+| 129 | \<multi-loop-body\> | → | \<loop-body\> \<multi-loop-body\> |
+| 130 | \<multi-loop-body\> | → | λ |
+| 131 | \<assign-stmts\> | → | \<func-array\> \<arithmetic-operators\> \= \<assignment-values\> ; |
+| 132 | \<arithmetic-operators\> | → | \+ |
+| 133 | \<arithmetic-operators\> | → | \- |
+| 134 | \<arithmetic-operators\> | → | % |
+| 135 | \<arithmetic-operators\> | → | / |
+| 136 | \<arithmetic-operators\> | → | // |
+| 137 | \<arithmetic-operators\> | → | \* |
+| 138 | \<arithmetic-operators\> | → | \*\* |
+| 139 | \<arithmetic-operators\> | → | λ |
+| 140 | \<assignment-values\> | → | \<expression\> |
+| 141 | \<input-stmts\> | → | \<input-type\> id \= givenchy ( \<givenchy-values\> ) ; |
+| 142 | \<input-type\> | → | \<data-type\> |
+| 143 | \<input-type\> | → | λ |
+| 144 | \<givenchy-values\> | → | \<expression-operands\> |
+| 145 | \<output-stmts\> | → | serve ( \<output-values\> ) ; |
+| 146 | \<output-values\> | → | \<expression\> |
+| 147 | \<conditional-stmts\> | → | pak ( \<condition\> ) { \<conditional-body\> } \<ganern-pak-statement\> \<ganern-case\> |
+| 148 | \<condition\> | → | \<expression\> |
+| 149 | \<conditional-body\> | → | \<local-dec\> \<statements\> \<multi-statements\> |
+| 150 | \<conditional-body\> | → | λ |
+|  | \<loop-conditional-stmts\> | → | pak ( \<condition\> ) { \<loop-conditional-body\> } \<ganern-pak-statement\> \<ganern-case\> |
+|  | \<loop-conditional-body\> | → | \<local-dec\> \<loop-body\> \<multi-loop-body\> |
+|  | \<loop-conditional-body\> | → | λ |
+| 151 | \<ganern-pak-statement\> | → | ganern pak ( \<condition\> ) { \<conditional-body\> } \<ganern-pak-statement\> |
+| 152 | \<ganern-pak-statement\> | → | λ |
+| 153 | \<ganern-case\> | → | ganern { \<conditional-body\> } |
+| 154 | \<ganern-case\> | → | λ |
+| 155 | \<loop-stmts\> | → | \<forda-statement\> |
+| 156 | \<loop-stmts\> | → | \<keri-statement\> |
+| 157 | \<forda-statement\> | → | forda ( \<loop-type-init\> id from \<start-value\> to \<end-value\> \<step-case\> ) { \<for-loop-body\> } |
+| 158 | \<loop-type-init\> | → | \<data-type\> |
+| 159 | \<loop-type-init\> | → | λ |
+| 160 | \<start-value\> | → | \<loop-conditions\> |
+| 161 | \<end-value\> | → | \<loop-conditions\> |
+| 162 | \<step-case\> | → | step \<update\> |
+| 163 | \<step-case\> | → | λ |
+| 164 | \<update\> | → | \<expression\> |
+| 165 | \<update\> | → | λ |
+| 166 | \<loop-conditions\> | → | \<expression\> |
+| 167 | \<for-loop-body\> | → | \<local-dec\> \<loop-body\> \<multi-loop-body\> |
+| 168 | \<for-loop-body\> | → | λ |
+| 169 | \<keri-statement\> | → | keri \<keri-case\>  |
+| 170 | \<keri-case\> | → | ( \<condition\> ) { \<while-loop-body\> } |
+| 171 | \<keri-case\> | → | lang { \<while-loop-body\> } keri ( \<condition\> ) |
+| 172 | \<while-loop-body\> | → | \<local-dec\> \<loop-body\> \<multi-loop-body\> |
+| 173 | \<while-loop-body\> | → | λ |
+| 174 | \<switch-stmts\> | → | versa ( \<switch-values\> ) { betsung \<switch-values\> : \<switch-statements\> \<amaccana-case\> \<multi-cases\> \<ditech-case\> } |
+| 175 | \<multi-cases\> | → | betsung \<switch-values\> : \<switch-statements\> \<amaccana-case\> \<multi-cases\> |
+| 176 | \<multi-cases\> | → | λ |
+| 177 | \<switch-values\> | → | \<expression\> |
+| 178 | \<switch-statements\> | → | \<local-dec\> \<statements\> \<multi-statements\> |
+|  | \<loop-switch-stmts\> | → | versa ( \<switch-values\> ) { betsung \<switch-values\> : \<loop-switch-statements\> \<loop-multi-cases\> \<ditech-case\> } |
+|  | \<loop-multi-cases\> | → | betsung \<switch-values\> : \<loop-switch-statements\> \<loop-multi-cases\> |
+|  | \<loop-multi-cases\> | → | λ |
+|  | \<loop-switch-statements\> | → | \<local-dec\> \<loop-body\> \<multi-loop-body\> |
+| 179 | \<amaccana-case\> | → | amaccana ; |
+| 180 | \<amaccana-case\> | → | λ |
+| 181 | \<ditech-case\> | → | ditech : \<switch-statements\> |
+| 182 | \<ditech-case\> | → | λ |
+| 183 | \<control-flow-stmts\> | → | gogogo ; |
+| 184 | \<control-flow-stmts\> | → | amaccana ; |
+|  | \<control-flow-stmts\> | → | λ |
+| 185 | \<return-stmts\> | → | push \<push-values\> ;    |
+| 186 | \<return-stmts\> | → | λ |
+| 187 | \<unary-stmts\> | → | \<unary-operator\> id ; |
+| 188 | \<unary-stmts\> | → | id \<unary-operator\> ; |
+| 189 | \<push-values\> | → | \<expression\> |
+| 190 | \<push-values\> | → | λ |
 
