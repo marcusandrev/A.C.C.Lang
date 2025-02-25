@@ -101,7 +101,7 @@ OR: "||"
 NOT: "!"
 MINUS_MINUS: "--"
 PLUS_PLUS: "++"
-ID: /[a-zA-Z][a-zA-Z0-9_]{0,19}/
+ID: /(?!(eklabool|anda|andamhie|chika|givenchy|serve|pak|ganern|versa|betsung|ditech|forda|keri|lang|amaccana|gogogo|kween|shimenet|push|korik|eme|naur|from|to|step))/ /[a-zA-Z][a-zA-Z0-9_]{0,19}/
 ANDA_LITERAL: /[0-9]+/
 ANDAMHIE_LITERAL: /[0-9]+\.[0-9]+/
 CHIKA_LITERAL: /"([^"\\]|\\.)*"/
