@@ -78,6 +78,39 @@ body.dark-mode .tooltip::after {
   border-color: #3d5b8fbb transparent transparent transparent; 
 }
 
+/* Scrollbar styles */
+body.dark-mode ::-webkit-scrollbar {
+  width: 12px;
+}
+
+body.dark-mode ::-webkit-scrollbar-track {
+  background: #1B2331;
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb {
+  background-color: #3d5b8f;
+  border-radius: 10px;
+  border: 3px solid #1B2331;
+}
+
+body ::-webkit-scrollbar {
+  width: 12px;
+}
+
+body ::-webkit-scrollbar-track {
+  background: #f8f8f8;
+}
+
+body ::-webkit-scrollbar-thumb {
+  background-color: #c1c1c1;
+  border-radius: 10px;
+  border: 3px solid #f8f8f8;
+}
+
+body ::-webkit-scrollbar-button {
+  display: none;
+}
+
 body .editor-container,
 body .compiler-log-container,
 body .main-right-container,
