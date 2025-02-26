@@ -12,7 +12,7 @@ DELIMS = {
     'id_delim': {';', ',', *ATOMS['general_operators'], '(', ')', '[', ']', '}', *ATOMS['similar_delim']},
     'int_float_delim': {';', ':', ",", *ATOMS['arithmetic_operators'], '=', '!', '&', '|', ')', ']', '}', *ATOMS['similar_delim']},
     'kerilang_ganern_delim': {'{', *ATOMS['similar_delim']},
-    'logical_not_delim': {'"', '-', '!', '(', *ATOMS['alphanumeric'], *ATOMS['similar_delim']},
+    'logical_not_delim': {'"', '+', '-', '!', '(', *ATOMS['alphanumeric'], *ATOMS['similar_delim']},
     'minus_delim': {'"', '(', *ATOMS['alphanumeric'], *ATOMS['similar_delim']},
     'most_symbol_delim': {'-', '(', *ATOMS['alphanumeric'], *ATOMS['similar_delim']},
     'open_brace_delim': {'"', '-', '!', '(', '{', '}', *ATOMS['alphanumeric'], *ATOMS['similar_delim']},

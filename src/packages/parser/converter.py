@@ -185,8 +185,9 @@ if __name__ == "__main__":
     for set in first_set:
         print(f'{set}: {first_set[set]}')
 
-    df = pd.DataFrame({'No.':[i for i in range(1, len(first_set) + 1)],
-                                 'Production': first_set.keys(),
+    first_set_keys = [f'First({first})' for first in first_set.keys()]
+    df = pd.DataFrame({'No.':[i for i in range(1, len(first_set_keys) + 1)],
+                                 'Production': first_set_keys,
                                  '':['->' for i in range(1, len(first_set) + 1)],
                                  'First Set': first_set.values()})
     df.to_excel("Files/cfg/first_set.xlsx", index=False)
@@ -195,8 +196,9 @@ if __name__ == "__main__":
     for set in follow_set:
         print(f'{set}: {follow_set[set]}')
     
-    df = pd.DataFrame({'No.':[i for i in range(1, len(follow_set) + 1)],
-                                 'Production': follow_set.keys(),
+    follow_set_keys = [f'Follow({follow})' for follow in follow_set.keys()]
+    df = pd.DataFrame({'No.':[i for i in range(1, len(follow_set_keys) + 1)],
+                                 'Production': follow_set_keys,
                                  '':['->' for i in range(1, len(first_set) + 1)],
                                  'Follow Set': follow_set.values()})
     df.to_excel("Files/cfg/follow_set.xlsx", index=False)
@@ -210,5 +212,26 @@ if __name__ == "__main__":
                                  '':['->' for i in range(1, len(predict_set) + 1)],
                                  'Predict Set': predict_set.values()})
     df.to_excel("Files/cfg/predict_set.xlsx", index=False)
+
+    production_column = []
+    set_column = []
+    for key, value in predict_set.items():
+        head, body = key.split("->")
+        print('Head is:', head)
+        print('Body is:', body)
+        if 'Î»' in body:
+            print('NULL')
+            production_column.append(f'First(λ) U Follow({head})')
+            set_column.append(f'Follow({head})')
+        else:
+            print('NOT NULL')
+            production_column.append(f'First({body.split()[0]})')
+            set_column.append(f'First({body.split()[0]})')
+
+    df = pd.DataFrame({'No.':[i for i in range(1, len(predict_set) + 1)],
+                                 'Production': production_column,
+                                 'set': set_column,
+                                 'Predict Set': predict_set.values()})
+    df.to_excel("Files/cfg/predict_set_docu.xlsx", index=False)
 
     convert_to_ebnf(non_terminals, productions)
