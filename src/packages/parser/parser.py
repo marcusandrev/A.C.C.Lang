@@ -54,7 +54,7 @@ class Parser:
         with open("Files/cfg/grammar.lark", "r") as file:
             grammar = file.read()
 
-        parser = Lark(grammar, parser="earley")
+        parser = Lark(grammar, parser="earley", lexer="basic")
 
         try:
             parse_tree = parser.parse(self._source_code)
