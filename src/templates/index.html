@@ -138,25 +138,6 @@
         </div>
       </div>
     </div>
-    <script>
-      const editor = document.querySelector('.editor');
-      const lineNumbers = document.querySelector('.line-numbers');
-
-      const updateLineNumbers = () => {
-        const lineCount = editor.value.split('\n').length;
-        lineNumbers.innerHTML = Array.from(
-          { length: lineCount },
-          (_, i) => i + 1
-        ).join('<br>');
-      };
-
-      editor.addEventListener('input', updateLineNumbers);
-      editor.addEventListener('scroll', () => {
-        lineNumbers.scrollTop = editor.scrollTop;
-      });
-
-      updateLineNumbers();
-    </script>
 
     <script>
       function runLexer() {
@@ -231,31 +212,7 @@
         });
       }
     </script>
-    <script>
-      const themeSwitch = document.getElementById('theme-switch');
-      const logo = document.getElementById('logo');
-      const body = document.body;
 
-      themeSwitch.addEventListener('change', () => {
-        if (themeSwitch.checked) {
-          logo.src =
-            "{{ url_for('static', filename='assets/logo-light.png') }}";
-          body.classList.add('dark-mode');
-        } else {
-          logo.src = "{{ url_for('static', filename='assets/logo-dark.png') }}";
-          body.classList.remove('dark-mode');
-        }
-      });
-    </script>
-    <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        const textarea = document.getElementById('source-code');
-
-        textarea.addEventListener('input', function () {
-          // Replace all curly quotes with straight quotes
-          this.value = this.value.replace(/“|”/g, '"');
-        });
-      });
-    </script>
+    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
   </body>
 </html>
