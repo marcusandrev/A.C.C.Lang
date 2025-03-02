@@ -257,5 +257,27 @@
         });
       });
     </script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const textarea = document.getElementById('source-code');
+
+        textarea.addEventListener('keydown', function (event) {
+          if (event.key === 'Tab') {
+            event.preventDefault();
+
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+
+            const spaces = '     ';
+            this.value =
+              this.value.substring(0, start) +
+              spaces +
+              this.value.substring(end);
+
+            this.selectionStart = this.selectionEnd = start + spaces.length;
+          }
+        });
+      });
+    </script>
   </body>
 </html>
