@@ -221,11 +221,15 @@ if __name__ == "__main__":
         print('Body is:', body)
         if 'Î»' in body:
             print('NULL')
-            production_column.append(f'First(λ) U Follow({head})')
+            production_column.append(f'First(λ-λ) U Follow({head})')
             set_column.append(f'Follow({head})')
         else:
             print('NOT NULL')
-            production_column.append(f'First({body.split()[0]})')
+            prod = ''
+            for i in body.split():
+                prod += f'{i} '
+            prod = prod.rstrip(' ')
+            production_column.append(f'First({prod})')
             set_column.append(f'First({body.split()[0]})')
 
     df = pd.DataFrame({'No.':[i for i in range(1, len(predict_set) + 1)],
