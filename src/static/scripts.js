@@ -54,6 +54,48 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 //Codemirror
+function acclangLinter(text) {
+  let errors = [];
+  let lines = text.split("\n");
+  
+  for (let lineNum = 0; lineNum < lines.length; lineNum++) {
+    let line = lines[lineNum];
+    
+    // Unknown Character Detection (from Error Handler)
+    for (let i = 0; i < line.length; i++) {
+      if (!/^[a-zA-Z0-9_+\-*/%=&|!<>();{}\[\]\"\^\/]$/.test(line[i])) {
+        errors.push({
+          message: `Unknown character: '${line[i]}'`,
+          severity: "error",
+          from: CodeMirror.Pos(lineNum, i),
+          to: CodeMirror.Pos(lineNum, i + 1)
+        });
+      }
+    }
+    
+    // Unclosed String Detection
+    if ((line.match(/"/g) || []).length % 2 !== 0) {
+      errors.push({
+              message: "Unclosed string: expected '\"'",
+              severity: "error",
+        from: CodeMirror.Pos(lineNum, line.lastIndexOf("\"")),
+        to: CodeMirror.Pos(lineNum, line.length)
+      });
+    }
+    
+    // Unclosed Comment Detection
+    if (line.includes("/^") && !line.includes("^/")) {
+      errors.push({
+        message: "Unclosed comment: expected '^/'",
+        severity: "error",
+        from: CodeMirror.Pos(lineNum, line.indexOf("/^")),
+        to: CodeMirror.Pos(lineNum, line.length)
+      });
+    }
+  }
+  return errors;
+}
+
 CodeMirror.defineMode("acclang", function(config, parserConfig) {
   var keywords = new Set(["eklabool", "anda", "andamhie", "chika", "pak", "ganern", "ganern pak", "versa", "betsung", "ditech", "forda", "keri", "keri lang", "amaccana", "gogogo", "givenchy", "serve", "kween", "shimenet", "push", "korik", "eme", "naur", "from", "to", "step"]);
   var operators = /[+\-*/%=&|!<>]+/;
@@ -90,27 +132,26 @@ CodeMirror.defineMode("acclang", function(config, parserConfig) {
         state.inString = true;
         return "string";
       }
-      
-      if (stream.match(/^[(){}\[\]]/)) {
-        return "block";
-      }
-      if (stream.match(/^[+\-*/%=&|!<>]/)) {
-        return "operator";
-      }
-      if (stream.match(/^[0-9]+/)) {
-        return "number";
-      }
-      
+
       if (stream.match(/^[a-zA-Z_][a-zA-Z0-9_]*/)) {
         var word = stream.current();
         if (keywords.has(word)) return "keyword";
+        return "variable";
       }
-      
-      // Handle single-character symbols separately
-      var ch = stream.next();
-      if (blockSymbols.test(ch)) return "block";
-      if (operators.test(ch)) return "operator";
-      
+
+      if (stream.match(/[(){}\[\]]/)) {
+        return "block";
+      }
+
+      if (stream.match(/[+\-*/%=&|!<>]/)) {
+        return "operator";
+      }
+
+      if (stream.match(numbers)) {
+        return "number";
+      }
+
+      stream.next();
       return null;
     }
   };
@@ -124,7 +165,10 @@ var editor = CodeMirror.fromTextArea(document.getElementById("source-code"), {
   tabSize: 4,
   smartIndent: true,
   autoCloseBrackets: true,
-  extraKeys: { "Ctrl-Space": "autocomplete" }
+  matchBrackets: true,
+  gutters: ["CodeMirror-linenumbers", "CodeMirror-lint-markers"],
+  lint: acclangLinter,
+  extraKeys: { "Ctrl-Space": "autocomplete", "Ctrl-Q": function(cm){ cm.foldCode(cm.getCursor()); } }
 });
 
 CodeMirror.registerHelper("hint", "acclang", function(editor) {
@@ -150,7 +194,7 @@ function runLexer() {
   fetch('/lex', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `source_code=${encodeURIComponent(sourceCode)}`,
+    body:'source_code=${encodeURIComponent(sourceCode)}',
   })
     .then((response) => response.json())
     .then((data) => {
@@ -159,14 +203,37 @@ function runLexer() {
     .catch((error) => console.error('Error:', error));
 }
 
+
 document.getElementById('theme-switch').addEventListener('change', function () {
   if (this.checked) {
     document.body.classList.add('dark-mode');
     editor.setOption('theme', 'dracula');
     document.getElementById('logo').src = '/static/assets/logo-light.png';
+    style.innerHTML = `
+      .cm-variable, .cm-def, .cm-identifier { color: white !important; }
+    `;
   } else {
     document.body.classList.remove('dark-mode');
     editor.setOption('theme', 'default');
     document.getElementById('logo').src = '/static/assets/logo-dark.png';
+    style.innerHTML = `
+      .cm-variable, .cm-def, .cm-identifier { color: black !important; }
+    `;
   }
 });
+
+
+const style = document.createElement("style");
+document.head.appendChild(style);
+
+function updateEditorTheme(isDarkMode) {
+  if (isDarkMode) {
+    style.innerHTML = `
+      .cm-variable, .cm-def, .cm-identifier { color: white !important; }
+    `;
+  } else {
+    style.innerHTML = `
+      .cm-variable, .cm-def, .cm-identifier { color: black !important; }
+    `;
+  }
+}
