@@ -3,16 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='styles.css') }}"
-    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
     <title>A.C.C. Lang. Compiler</title>
-    <link
-      rel="icon"
-      type="image/x-icon"
-      href="../static/assets/acclang-icon.png"
-    />
+    <link rel="icon" type="image/x-icon" href="../static/assets/acclang-icon.png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.css">
     <style>
       .shine {
         position: relative;
@@ -23,6 +19,17 @@
         height: 40px;
         vertical-align: middle;
       }
+      body {
+        transition: background-color 0.5s ease, color 0.5s ease;
+      }
+      .CodeMirror {
+        transition: background-color 0.5s ease, color 0.5s ease;
+        border-radius: 0 10px 10px 10px;
+        height: calc(100% - 20px);
+      }
+      .cm-comment { color: #999999; font-style: italic; }
+      .cm-string { color: #f1fa8c; }
+      .cm-block { color: #6995fc; font-weight: bold; }
     </style>
   </head>
   <body>
@@ -37,57 +44,29 @@
           <div class="navbar-left">
             <div class="con-tooltip bottom">
               <button class="run-button shine" onclick="runLexer()">
-                <img
-                  src="{{ url_for('static', filename='assets/button-run.png') }}"
-                  alt="Run"
-                />
+                <img src="{{ url_for('static', filename='assets/button-run.png') }}" alt="Run" />
               </button>
-              <div class="tooltip">
-                <p>Run</p>
-              </div>
+              <div class="tooltip"><p>Run</p></div>
             </div>
             <div class="con-tooltip bottom">
               <button class="save-button shine">
-                <img
-                  src="{{ url_for('static', filename='assets/button-save.png') }}"
-                  alt="Save"
-                />
+                <img src="{{ url_for('static', filename='assets/button-save.png') }}" alt="Save" />
               </button>
-              <div class="tooltip">
-                <p>Save</p>
-              </div>
+              <div class="tooltip"><p>Save</p></div>
             </div>
             <div class="con-tooltip bottom">
-              <button
-                class="open-button shine"
-                onclick="document.getElementById('file-input').click();"
-              >
-                <img
-                  src="{{ url_for('static', filename='assets/button-open.png') }}"
-                  alt="Open"
-                />
+              <button class="open-button shine" onclick="document.getElementById('file-input').click();">
+                <img src="{{ url_for('static', filename='assets/button-open.png') }}" alt="Open" />
               </button>
-              <div class="tooltip">
-                <p>Open</p>
-              </div>
+              <div class="tooltip"><p>Open</p></div>
             </div>
-            <input
-              type="file"
-              id="file-input"
-              accept=".txt"
-              style="display: none"
-              onchange="loadFile(event)"
-            />
+            <input type="file" id="file-input" accept=".txt" style="display: none" onchange="loadFile(event)" />
           </div>
 
           <div class="navbar-right">
             <input class="switch" type="checkbox" id="theme-switch" />
             <div class="logo-container">
-              <img
-                src="{{ url_for('static', filename='assets/logo-dark.png') }}"
-                alt="ACCLang Logo"
-                id="logo"
-              />
+              <img src="{{ url_for('static', filename='assets/logo-dark.png') }}" alt="ACCLang Logo" id="logo" />
             </div>
           </div>
         </div>
@@ -98,14 +77,7 @@
               <div class="editor-tab">
                 <text class="tab-text" id="file-name"> untitled.acc </text>
               </div>
-              <div class="editor-wrapper">
-                <div class="line-numbers"></div>
-                <textarea
-                  class="editor"
-                  id="source-code"
-                  placeholder="Write your code here..."
-                ></textarea>
-              </div>
+              <textarea id="source-code"></textarea>
             </div>
 
             <div class="compiler-log-container">
@@ -120,7 +92,6 @@
             <div class="table-tab">
               <text class="tab-text-table"> Lexer </text>
             </div>
-
             <div class="table-container">
               <table class="table-wrapper">
                 <thead>
@@ -129,9 +100,7 @@
                     <th>Token</th>
                   </tr>
                 </thead>
-                <tbody id="token-stream">
-                  <!-- Token stream will be populated here -->
-                </tbody>
+                <tbody id="token-stream"></tbody>
               </table>
             </div>
           </div>
@@ -139,80 +108,10 @@
       </div>
     </div>
 
-    <script>
-      function runLexer() {
-        console.log('Run button clicked');
-        const sourceCode = document.getElementById('source-code').value;
-        console.log('Source code:', sourceCode);
-        fetch('/lex', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: `source_code=${encodeURIComponent(sourceCode)}`,
-        })
-          .then((response) => {
-            console.log('Response received:', response);
-            return response.json();
-          })
-          .then((data) => {
-            console.log('Data received:', data); // Log the data to the console
-            const tokenStream = document.getElementById('token-stream');
-            const compilerLog = document.getElementById('compiler-log');
-            tokenStream.innerHTML = '';
-            compilerLog.innerHTML = '';
-
-            // Display token stream
-            data.token_stream.forEach((token) => {
-              const row = document.createElement('tr');
-              const lexemeCell = document.createElement('td');
-              const tokenCell = document.createElement('td');
-              lexemeCell.textContent = token[0];
-              tokenCell.textContent = token[1];
-              row.appendChild(lexemeCell);
-              row.appendChild(tokenCell);
-              tokenStream.appendChild(row);
-            });
-
-            // Display error log
-            if (data.error_log) {
-              compilerLog.textContent = data.error_log;
-            } else {
-              compilerLog.textContent = 'No Errors';
-            }
-          })
-          .catch((error) => console.error('Error:', error));
-      }
-
-      function loadFile(event) {
-        const input = event.target;
-        if ('files' in input && input.files.length > 0) {
-          const file = input.files[0];
-          placeFileContent(document.getElementById('source-code'), file);
-          document.getElementById('file-name').textContent = file.name;
-          input.value = '';
-        }
-      }
-
-      function placeFileContent(target, file) {
-        readFileContent(file)
-          .then((content) => {
-            target.value = content;
-            updateLineNumbers();
-          })
-          .catch((error) => console.error(error));
-      }
-
-      function readFileContent(file) {
-        const reader = new FileReader();
-        return new Promise((resolve, reject) => {
-          reader.onload = (event) => resolve(event.target.result);
-          reader.onerror = (error) => reject(error);
-          reader.readAsText(file);
-        });
-      }
-    </script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/closebrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/clike/clike.min.js"></script>
     <script src="{{ url_for('static', filename='scripts.js') }}"></script>
   </body>
 </html>
