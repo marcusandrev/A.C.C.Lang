@@ -93,6 +93,185 @@ function acclangLinter(text) {
       });
     }
   }
+//     // ERROR: Unclosed String
+//     if ((line.match(/"/g) || []).length % 2 !== 0) {
+//       errors.push({
+//         from: CodeMirror.Pos(lineNum, line.indexOf('"')),
+//         to: CodeMirror.Pos(lineNum, line.length),
+//         message: 'Unclosed string: expected \'"\'',
+//         severity: 'error'
+//       });
+//     }
+
+//     // ERROR: Unterminated Comment
+//     if (line.includes('/^') && !line.includes('^/')) {
+//       errors.push({
+//         from: CodeMirror.Pos(lineNum, line.indexOf('/^')),
+//         to: CodeMirror.Pos(lineNum, line.length),
+//         message: 'Unterminated comment: expected \'^/\'',
+//         severity: 'error'
+//       });
+//     }
+
+//     // ERROR: Mismatched Brackets, Braces, and Parentheses
+//     let openBrackets = (line.match(/\[/g) || []).length;
+//     let closeBrackets = (line.match(/\]/g) || []).length;
+//     if (openBrackets !== closeBrackets) {
+//       errors.push({
+//         from: CodeMirror.Pos(lineNum, line.indexOf('[')),
+//         to: CodeMirror.Pos(lineNum, line.length),
+//         message: "Unmatched array brackets: expected ']'",
+//         severity: 'error'
+//       });
+//     }
+
+//     let openBraces = (line.match(/{/g) || []).length;
+//     let closeBraces = (line.match(/}/g) || []).length;
+//     if (openBraces !== closeBraces) {
+//       errors.push({
+//         from: CodeMirror.Pos(lineNum, line.indexOf('{')),
+//         to: CodeMirror.Pos(lineNum, line.length),
+//         message: "Unmatched curly braces: expected '}'",
+//         severity: 'error'
+//       });
+//     }
+
+//     let openParentheses = (line.match(/\(/g) || []).length;
+//     let closeParentheses = (line.match(/\)/g) || []).length;
+//     if (openParentheses !== closeParentheses) {
+//       errors.push({
+//         from: CodeMirror.Pos(lineNum, line.indexOf('(')),
+//         to: CodeMirror.Pos(lineNum, line.length),
+//         message: "Unmatched parentheses: expected ')'",
+//         severity: 'error'
+//       });
+//     }
+
+//     // ERROR: Use of Reserved Word as Identifier
+//     let reservedWords = ["kween", "shimenet", "push", "pak", "ganern", "serve", "givenchy"];
+//     let words = line.split(/\s+/);
+//     words.forEach(word => {
+//       if (reservedWords.includes(word)) {
+//         errors.push({
+//           from: CodeMirror.Pos(lineNum, line.indexOf(word)),
+//           to: CodeMirror.Pos(lineNum, line.indexOf(word) + word.length),
+//           message: `Invalid identifier: '${word}' is a reserved keyword`,
+//           severity: 'error'
+//         });
+//       }
+//     });
+
+//     // ERROR: Missing Semicolon
+//     if (!/;\s*$/.test(line) && /[^{}]$/.test(line)) {
+//       errors.push({
+//         from: CodeMirror.Pos(lineNum, line.length),
+//         to: CodeMirror.Pos(lineNum, line.length + 1),
+//         message: "Expected ';' at end of statement",
+//         severity: 'error'
+//       });
+//     }
+
+//     // ERROR: Type Mismatch in Assignment
+//     if (/anda\s+\w+\s*=\s*"/.test(line)) {
+//       errors.push({
+//         from: CodeMirror.Pos(lineNum, line.indexOf('anda')),
+//         to: CodeMirror.Pos(lineNum, line.length),
+//         message: "Type mismatch: cannot assign 'chika' to 'anda'",
+//         severity: 'error'
+//       });
+//     }
+
+//     // ERROR: Integer/Float Limit Violations
+//     if (/anda\s+\w+\s*=\s*(\d{11,})/.test(line)) {
+//       errors.push({
+//         from: CodeMirror.Pos(lineNum, line.indexOf('anda')),
+//         to: CodeMirror.Pos(lineNum, line.length),
+//         message: "Integer value exceeds allowed limit (-9999999999 to 9999999999)",
+//         severity: 'error'
+//       });
+//     }
+
+//     if (/andamhie\s+\w+\s*=\s*\d{11,}\.\d{7,}/.test(line)) {
+//       errors.push({
+//         from: CodeMirror.Pos(lineNum, line.indexOf('andamhie')),
+//         to: CodeMirror.Pos(lineNum, line.length),
+//         message: "Floating-point value exceeds precision of 10 integer and 6 decimal places",
+//         severity: 'error'
+//       });
+//     }
+
+//     // ERROR: Incorrect Function Call
+//     if (/\b\w+\s+\w+;/.test(line) && !line.includes("(")) {
+//       errors.push({
+//         from: CodeMirror.Pos(lineNum, line.indexOf('(')),
+//         to: CodeMirror.Pos(lineNum, line.length),
+//         message: "Function call error: expected '()'",
+//         severity: 'error'
+//       });
+//     }
+
+//     // WARNING: Unused Variable
+//     let variableMatch = line.match(/\banda\s+(\w+)/);
+//     if (variableMatch) {
+//       let variable = variableMatch[1];
+//       let variableRegex = new RegExp(`\\b${variable}\\b`, "g");
+//       if (!variableRegex.test(text)) {
+//         errors.push({
+//           from: CodeMirror.Pos(lineNum, line.indexOf(variable)),
+//           to: CodeMirror.Pos(lineNum, line.indexOf(variable) + variable.length),
+//           message: `Variable '${variable}' declared but never used`,
+//           severity: 'warning'
+//         });
+//       }
+//     }
+
+//     // WARNING: Implicit Type Conversion
+//     if (/anda\s+\w+\s*=\s*\d+\.\d+/.test(line)) {
+//       errors.push({
+//         from: CodeMirror.Pos(lineNum, line.indexOf('anda')),
+//         to: CodeMirror.Pos(lineNum, line.length),
+//         message: "Implicit conversion: 'andamhie' to 'anda' may lose precision",
+//         severity: 'warning'
+//       });
+//     }
+
+//     // WARNING: Redundant Parentheses
+//     if (/\(\s*\w+\s*\)/.test(line)) {
+//       errors.push({
+//         from: CodeMirror.Pos(lineNum, line.indexOf('(')),
+//         to: CodeMirror.Pos(lineNum, line.length),
+//         message: "Unnecessary parentheses",
+//         severity: 'warning'
+//       });
+//     }
+
+//     // WARNING: Nested If Without Braces
+//     if (/pak\s*\(.*\)\s*pak/.test(line)) {
+//       errors.push({
+//         from: CodeMirror.Pos(lineNum, line.indexOf('pak')),
+//         to: CodeMirror.Pos(lineNum, line.length),
+//         message: "Consider using curly braces for nested 'pak' statements",
+//         severity: 'warning'
+//       });
+//     }
+
+//     // ERROR: Unknown Character Detection
+//     for (let i = 0; i < line.length; i++) {
+//       const char = line[i];
+//       if (!/[a-zA-Z0-9\s+\-*/%=&|!<>()[\]{}"^/]/.test(char)) {
+//         errors.push({
+//           from: CodeMirror.Pos(lineNum, i),
+//           to: CodeMirror.Pos(lineNum, i + 1),
+//           message: `Unknown character: '${char}'`,
+//           severity: 'error'
+//         });
+//       }
+//     }
+//   }
+
+//   return errors;
+// }
+
   return errors;
 }
 
