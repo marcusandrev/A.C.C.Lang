@@ -11,23 +11,38 @@ app = Flask(__name__)
 def index():
     return render_template('index.html')
 
-@app.route('/lex', methods=['POST'])
-def lex():
-    # file_path = os.path.join(os.path.dirname(__file__), '..', 'Files', 'lexer_test.acc')
-    # with open(file_path, 'r') as file:
-    #     source_code = file.readlines()
+# @app.route('/lex', methods=['POST'])
+# def lex():
+#     # file_path = os.path.join(os.path.dirname(__file__), '..', 'Files', 'lexer_test.acc')
+#     # with open(file_path, 'r') as file:
+#     #     source_code = file.readlines()
 
-    source_code = request.form['source_code']
+#     source_code = request.form['source_code']
+#     lex = Lexer(source_code)
+#     lex.start()
+#     token_stream = lex.token_stream
+#     print(token_stream)
+    
+#     error_log = lex.log
+#     print(error_log)
+#     return jsonify({'token_stream': token_stream, 'error_log': str(error_log)})
+
+@app.route('/run_lexer', methods=['POST'])
+def run_lexer():
+    source_code = request.form.get('source_code')
+    
+    # if not source_code.strip():
+    #     return jsonify({'error': 'No source code provided'}), 400
+
     lex = Lexer(source_code)
     lex.start()
     token_stream = lex.token_stream
     print(token_stream)
-    
+
     error_log = lex.log
     print(error_log)
-    return jsonify({'token_stream': token_stream, 'error_log': str(error_log)})
 
-
+    return jsonify({'tokens': lex.token_stream, 'log': lex.log, 'error_log': str(error_log)})
 
 if __name__ == "__main__":
     app.run(debug=True, host='127.0.0.1', port=5006)
