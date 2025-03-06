@@ -49,48 +49,48 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 //Codemirror
-function acclangLinter(text) {
-  let errors = [];
-  let lines = text.split('\n');
+// function acclangLinter(text) {
+//   let errors = [];
+//   let lines = text.split('\n');
 
-  for (let lineNum = 0; lineNum < lines.length; lineNum++) {
-    let line = lines[lineNum];
+//   for (let lineNum = 0; lineNum < lines.length; lineNum++) {
+//     let line = lines[lineNum];
 
-    // Unknown Character Detection (from Error Handler)
-    for (let i = 0; i < line.length; i++) {
-      if (!/^[a-zA-Z0-9_+\-*/%=&|!<>();{}\[\]\"\^\/]$/.test(line[i])) {
-        errors.push({
-          message: `Unknown character: '${line[i]}'`,
-          severity: 'error',
-          from: CodeMirror.Pos(lineNum, i),
-          to: CodeMirror.Pos(lineNum, i + 1),
-        });
-      }
-    }
+//     // Unknown Character Detection (from Error Handler)
+//     for (let i = 0; i < line.length; i++) {
+//       if (!/^[a-zA-Z0-9_+\-*/%=&|!<>();{}\[\]\"\^\/]$/.test(line[i])) {
+//         errors.push({
+//           message: `Unknown character: '${line[i]}'`,
+//           severity: 'error',
+//           from: CodeMirror.Pos(lineNum, i),
+//           to: CodeMirror.Pos(lineNum, i + 1),
+//         });
+//       }
+//     }
 
-    // Unclosed String Detection
-    if ((line.match(/"/g) || []).length % 2 !== 0) {
-      errors.push({
-        message: "Unclosed string: expected '\"'",
-        severity: 'error',
-        from: CodeMirror.Pos(lineNum, line.lastIndexOf('"')),
-        to: CodeMirror.Pos(lineNum, line.length),
-      });
-    }
+//     // Unclosed String Detection
+//     if ((line.match(/"/g) || []).length % 2 !== 0) {
+//       errors.push({
+//         message: "Unclosed string: expected '\"'",
+//         severity: 'error',
+//         from: CodeMirror.Pos(lineNum, line.lastIndexOf('"')),
+//         to: CodeMirror.Pos(lineNum, line.length),
+//       });
+//     }
 
-    // Unclosed Comment Detection
-    if (line.includes('/^') && !line.includes('^/')) {
-      errors.push({
-        message: "Unclosed comment: expected '^/'",
-        severity: 'error',
-        from: CodeMirror.Pos(lineNum, line.indexOf('/^')),
-        to: CodeMirror.Pos(lineNum, line.length),
-      });
-    }
-  }
+//     // Unclosed Comment Detection
+//     if (line.includes('/^') && !line.includes('^/')) {
+//       errors.push({
+//         message: "Unclosed comment: expected '^/'",
+//         severity: 'error',
+//         from: CodeMirror.Pos(lineNum, line.indexOf('/^')),
+//         to: CodeMirror.Pos(lineNum, line.length),
+//       });
+//     }
+//   }
 
-  return errors;
-}
+//   return errors;
+// }
 
 CodeMirror.defineMode('acclang', function (config, parserConfig) {
   var keywords = new Set([
