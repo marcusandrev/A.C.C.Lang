@@ -94,9 +94,10 @@ class Parser:
         stack.append(non_terminals[0])
         input_string = input_string.split() + ['$'] # a = 1 ; $
         index = 0
-
+        print(stack)
         while stack:
             top = stack.pop()
+            print(stack)
             if top == 'Î»': # Skip null
                 continue
             if top == input_string[index]: # Match terminal

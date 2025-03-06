@@ -125,6 +125,12 @@ def convert_to_ebnf(non_terminals, productions):
     
     tokens = {
         '+=': 'PLUS_EQUAL',
+        '-=': 'MINUS_EQUAL',
+        "%=": 'MODULO_EQUAL',
+        "/=": 'DIVIDE_EQUAL',
+        "//=": 'FLOOR_EQUAL',
+        "*=": 'TIMES_EQUAL',
+        "**=": 'EXPONENTIATE_EQUAL',
         '**': 'EXPONENTIATE',
         '//': 'FLOOR',
         '>=': 'GREATER_EQUAL',
@@ -157,6 +163,7 @@ def convert_to_ebnf(non_terminals, productions):
         elif key == 'andamhie_literal': ebnf += f'{value}:' + ' /[0-9]+\\.[0-9]+/\n'
         elif key == 'chika_literal': ebnf += f'{value}:' + ' /"([^"\\\\]|\\\\.)*"/\n'
         else: ebnf += f'{value}: "{key}"\n'
+    # ebnf += f'COMMENT: "/^" /(?s).*?(?:\^/|$)/'
 
     with open("Files/cfg/grammar.lark", "w") as f:
         f.write(ebnf)
