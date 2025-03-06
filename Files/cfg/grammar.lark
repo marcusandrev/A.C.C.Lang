@@ -1,5 +1,6 @@
 %import common.WS
 %ignore WS
+%ignore "/^" /(.|\n)*?(?=\^\/)/ "^/" | "/^" /(.|\n)*/
 
 start: program
 program: global_dec func_def "shimenet" "kween" "(" ")" "{" kween_body "}" func_def 

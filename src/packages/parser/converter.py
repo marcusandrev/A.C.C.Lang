@@ -147,7 +147,7 @@ def convert_to_ebnf(non_terminals, productions):
         'andamhie_literal': 'ANDAMHIE_LITERAL',
         'chika_literal':'CHIKA_LITERAL',
     }
-    ebnf = '%import common.WS\n%ignore WS\n\nstart: program\n'
+    ebnf = '%import common.WS\n%ignore WS\n%ignore "/^" /(.|\\n)*?(?=\^\/)/ "^/" | "/^" /(.|\\n)*/\n\nstart: program\n'
     for key, value in ebnf_dict.items():
         ebnf += f'{key}: '
         for val in value:
