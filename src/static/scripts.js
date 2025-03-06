@@ -189,8 +189,8 @@ var editor = CodeMirror.fromTextArea(document.getElementById('source-code'), {
   smartIndent: true,
   autoCloseBrackets: true,
   matchBrackets: true,
-  gutters: ['CodeMirror-linenumbers', 'CodeMirror-lint-markers'],
-  lint: acclangLinter,
+  gutters: ['CodeMirror-linenumbers'], //, 'CodeMirror-lint-markers'
+  // lint: acclangLinter,
   extraKeys: {
     'Ctrl-Space': 'autocomplete',
     'Ctrl-Q': function (cm) {
