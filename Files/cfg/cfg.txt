@@ -1,0 +1,206 @@
+ <program> -> <global-dec> <func-def> shimenet kween ( ) { <kween-body> } <func-def> 
+ <global-dec> -> <var-dec-init> <global-dec> 
+ <global-dec> -> λ 
+ <var-dec-init> -> <naur-case> <data-type> <var-init> ;  
+ <var-dec-init> -> <data-type> id <func-array-init-tail> ;  
+ <var-dec-init> -> shimenet id <func-case> ; 
+ <var-dec-init> -> λ 
+ <naur-case> -> naur 
+ <naur-case> -> λ 
+ <return-type> -> <data-type> 
+ <return-type> -> shimenet 
+ <data-type>  -> anda 
+ <data-type>  -> andamhie 
+ <data-type>  -> chika 
+ <data-type>  -> eklabool 
+ <func-array-init-tail> -> <func-case> 
+ <func-array-init-tail> -> <array-case> <array-init> 
+ <func-case> -> ( <parameters> ) 
+ <parameters> -> <func-parameters> <multi-parameters> 
+ <parameters> -> λ  
+ <func-parameters> -> <data-type> id  
+ <multi-parameters> -> , <func-parameters> <multi-parameters> 
+ <multi-parameters> -> λ 
+ <array-case> -> [ <array-values> ] <2d-index>  
+ <array-case> -> λ 
+ <2d-index> -> [ <array-values> ] <3d-index> 
+ <2d-index> -> λ 
+ <3d-index>  -> [ <array-values> ] 
+ <3d-index>  -> λ 
+ <array-values> -> <expression> 
+ <literals> -> anda_literal 
+ <literals> -> andamhie_literal 
+ <literals> -> chika_literal 
+ <literals> -> <eklabool> 
+ <eklabool> -> korik 
+ <eklabool> -> eme 
+ <func-array>  -> <func-array-value> 
+ <func-array>   -> λ 
+ <func-array-value> -> ( <arguments> ) 
+ <func-array-value> -> <array-case> 
+ <var-init>  -> id <var-init-tail> <multi-init-values> 
+ <var-init-tail>  -> = <init-values> 
+ <var-init-tail>  -> λ 
+ <multi-init-values> -> , id <multi-init-values-tail> <multi-init-values> 
+ <multi-init-values> -> λ 
+ <multi-init-values-tail> -> = <init-values>  
+ <multi-init-values-tail> -> λ 
+ <init-values> -> <expression> 
+ <array-init> -> = { <array-elements> } 
+ <array-init> -> λ 
+ <array-elements> -> <array-values> <extra-array-value> 
+ <array-elements> -> { <2d-array-elements> } <extra-2d-array-value>  
+ <2d-array-elements> -> <array-values> <extra-array-value> 
+ <2d-array-elements> -> { <array-values> <extra-array-value> } <extra-2d-array-value> 
+ <2d-array-elements> -> λ 
+ <extra-array-value> -> , <array-values> <extra-array-value> 
+ <extra-array-value> -> λ 
+ <extra-2d-array-value> -> , { <extra-3d-array-value> } <extra-2d-array-value> 
+ <extra-2d-array-value> -> λ 
+ <extra-3d-array-value> -> <array-values> <extra-array-value> 
+ <extra-3d-array-value> -> { <array-values> <extra-array-value> } <extra-2d-array-value> 
+ <extra-3d-array-value> -> λ 
+ <func-def> -> <return-type> id ( <parameters> ) { <func-body> } <func-def> 
+ <func-def> -> λ 
+ <func-body> -> <local-dec> <statements> <multi-statements> 
+ <func-body> -> λ 
+ <multi-statements> -> <statements> <multi-statements> 
+ <multi-statements> -> λ 
+ <local-dec> -> <local-dec-init> <array-assign> <local-dec> 
+ <local-dec> -> λ 
+ <local-dec-init> -> <naur-case> <data-type> <var-init> ;  
+ <local-dec-init> -> <data-type> id <array-case> <array-init> ;  
+ <arguments> -> <arguments-value> <multi-arguments-value> 
+ <arguments> -> λ 
+ <multi-arguments-value> -> , <arguments-value> <multi-arguments-value> 
+ <multi-arguments-value> -> λ 
+ <arguments-value> -> <expression> 
+ <array-assign> -> id <array-case> = <array-values> ; 
+ <array-assign> -> λ 
+ <kween-body> -> <func-body> 
+ <expression> -> <simple-expression> 
+ <expression> -> <multi-expression> 
+ <simple-expression> -> <expression-operands> <expression-tail> 
+ <multi-expression> -> ( <expression> ) <expression-tail> 
+ <expression-tail> -> <general-operators> <expression-operands> <expression-tail> 
+ <expression-tail> -> λ 
+ <expression-operands> -> <negative-not-value> <expression-value> 
+ <negative-not-value> -> - 
+ <negative-not-value> -> ! 
+ <negative-not-value> -> λ 
+ <expression-value> -> <unary-operator> id  
+ <expression-value> -> id <identifier-tail> 
+ <expression-value> -> <general-operands> 
+ <expression-value> -> ( <expression> ) 
+ <identifier-tail> -> <func-array> 
+ <identifier-tail> -> <unary-operator> 
+ <identifier-tail> -> λ 
+ <unary-operator> -> -- 
+ <unary-operator> -> ++ 
+ <general-operands> -> <literals> 
+ <general-operators> -> + 
+ <general-operators> -> - 
+ <general-operators> -> % 
+ <general-operators> -> / 
+ <general-operators> -> *  
+ <general-operators> -> ** 
+ <general-operators> -> // 
+ <general-operators> -> >  
+ <general-operators> -> <  
+ <general-operators> -> >= 
+ <general-operators> -> <= 
+ <general-operators> -> == 
+ <general-operators> -> != 
+ <general-operators> -> = 
+ <general-operators> -> && 
+ <general-operators> -> || 
+ <statements> -> id <assign-stmts> <statements> 
+ <statements> -> <input-stmts> <statements> 
+ <statements> -> <output-stmts> <statements> 
+ <statements> -> <conditional-stmts> <statements> 
+ <statements> -> <loop-stmts> <statements> 
+ <statements> -> <switch-stmts> <statements> 
+ <statements> -> <return-stmts> <statements> 
+ <statements> -> <unary-stmts> <statements> 
+ <statements> -> λ 
+ <loop-body> -> id <assign-stmts> <loop-body> 
+ <loop-body> -> <input-stmts> <loop-body> 
+ <loop-body> -> <output-stmts> <loop-body> 
+ <loop-body> -> <loop-stmts> <loop-body> 
+ <loop-body> -> <loop-conditional-stmts> <loop-body> 
+ <loop-body> -> <loop-switch-stmts> <loop-body> 
+ <loop-body> -> <return-stmts> <loop-body> 
+ <loop-body> -> <unary-stmts> <loop-body> 
+ <loop-body> -> <control-flow-stmts> <loop-body> 
+ <loop-body> -> λ 
+ <multi-loop-body> -> <loop-body> <multi-loop-body> 
+ <multi-loop-body> -> λ 
+ <assign-stmts> -> <func-array> <assignment-operators> <assignment-values> ; 
+ <assignment-operators> -> = 
+ <assignment-operators> -> += 
+ <assignment-operators> -> -= 
+ <assignment-operators> -> %= 
+ <assignment-operators> -> /= 
+ <assignment-operators> -> //= 
+ <assignment-operators> -> *= 
+ <assignment-operators> -> **= 
+ <assignment-values> -> <expression> 
+ <input-stmts> -> <input-type> id = givenchy ( <givenchy-values> ) ; 
+ <input-type> -> <data-type> 
+ <input-type> -> λ 
+ <givenchy-values> -> <expression-operands> 
+ <output-stmts> -> serve ( <output-values> ) ; 
+ <output-values> -> <expression> 
+ <conditional-stmts> -> pak ( <condition> ) { <conditional-body> } <ganern-pak-statement> <ganern-case> 
+ <condition> -> <expression> 
+ <conditional-body> -> <local-dec> <statements> <multi-statements> 
+ <conditional-body> -> λ 
+ <loop-conditional-stmts> -> pak ( <condition> ) { <loop-conditional-body> } <ganern-pak-statement> <ganern-case> 
+ <loop-conditional-body> -> <local-dec> <loop-body> <multi-loop-body> 
+ <loop-conditional-body> -> λ 
+ <ganern-pak-statement> -> ganern pak ( <condition> ) { <conditional-body> } <ganern-pak-statement> 
+ <ganern-pak-statement> -> λ 
+ <ganern-case> -> ganern { <conditional-body> } 
+ <ganern-case> -> λ 
+ <loop-stmts> -> <forda-statement> 
+ <loop-stmts> -> <keri-statement> 
+ <forda-statement> -> forda ( <loop-type-init> id from <start-value> to <end-value> <step-case> ) { <for-loop-body> } 
+ <loop-type-init> -> <data-type> 
+ <loop-type-init> -> λ 
+ <start-value> -> <loop-conditions> 
+ <end-value> -> <loop-conditions> 
+ <step-case> -> step <update> 
+ <step-case> -> λ 
+ <update> -> <expression> 
+ <update> -> λ 
+ <loop-conditions> -> <expression> 
+ <for-loop-body> -> <local-dec> <loop-body> <multi-loop-body> 
+ <for-loop-body> -> λ 
+ <keri-statement> -> keri <keri-case>  
+ <keri-case> -> ( <condition> ) { <while-loop-body> } 
+ <keri-case> -> lang { <while-loop-body> } keri ( <condition> ) 
+ <while-loop-body> -> <local-dec> <loop-body> <multi-loop-body> 
+ <while-loop-body> -> λ 
+ <switch-stmts> -> versa ( <switch-values> ) { betsung <switch-values> : <switch-statements> <amaccana-case> <multi-cases> <ditech-case> } 
+ <multi-cases> -> betsung <switch-values> : <switch-statements> <amaccana-case> <multi-cases> 
+ <multi-cases> -> λ 
+ <switch-values> -> <expression> 
+ <switch-statements> -> <local-dec> <statements> <multi-statements> 
+ <loop-switch-stmts> -> versa ( <switch-values> ) { betsung <switch-values> : <loop-switch-statements> <loop-multi-cases> <ditech-case> } 
+ <loop-multi-cases> -> betsung <switch-values> : <loop-switch-statements> <loop-multi-cases> 
+ <loop-multi-cases> -> λ 
+ <loop-switch-statements> -> <local-dec> <loop-body> <multi-loop-body> 
+ <amaccana-case> -> amaccana ; 
+ <amaccana-case> -> λ 
+ <ditech-case> -> ditech : <switch-statements> 
+ <ditech-case> -> λ 
+ <control-flow-stmts> -> gogogo ; 
+ <control-flow-stmts> -> amaccana ; 
+ <control-flow-stmts> -> λ 
+ <return-stmts> -> push <push-values> ;    
+ <return-stmts> -> λ 
+ <unary-stmts> -> <unary-operator> id ; 
+ <unary-stmts> -> id <unary-operator> ; 
+ <push-values> -> <expression> 
+ <push-values> -> λ 
+
