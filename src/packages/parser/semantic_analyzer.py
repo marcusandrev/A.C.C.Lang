@@ -42,7 +42,7 @@ class SemanticAnalyzer:
             self.finalize_functions()
             return True
         except SemanticError as e:
-            print(e)
+            print("Semantic error: " + str(e))
             return False
 
     def process_function_call(self):
@@ -609,7 +609,6 @@ class SemanticAnalyzer:
                         if param[0] == var_name:
                             var_entry = {"data_type": param[1]}
                             break
-                    # Check global variables if not found locally.
                     if not var_entry and var_name in self.symbol_table["variables"]:
                         var_entry = self.symbol_table["variables"][var_name]
             else:
@@ -617,6 +616,18 @@ class SemanticAnalyzer:
                     var_entry = self.symbol_table["variables"][var_name]
             if not var_entry:
                 raise SemanticError(f"Undeclared variable '{var_name}'")
+            
+            # --- Added support for postfix operators: ++ and --
+            while self.current_token() and self.current_token()[1] in ['++', '--']:
+                op = self.current_token()[1]
+                if var_entry.get("naur_flag", False):
+                    raise SemanticError(f"Operator '{op}' cannot be applied to constant variable '{var_name}'")
+                if self.current_function:
+                    for param in self.symbol_table["functions"][self.current_function]["parameters"]:
+                        if param[0] == var_name:
+                            raise SemanticError(f"Operator '{op}' cannot be applied to immutable parameter '{var_name}'")
+                self.advance()  # Consume the postfix operator.
+            # -----------------------------------------------
             return var_entry["data_type"]
         elif token[1] == '(':
             self.advance()  # Skip '('
