@@ -19,7 +19,7 @@ ATOMS = {
 
     'general_operators': {'+', '-', '*', '/', '%', '<', '>', '=', '!', '&', '|'},
 
-    'similar_delim': {' ', '\n', '\0'}
+    'similar_delim': {' ', '/', '\n', '\0'}
 }
 
 def ascii_except(chars: list[chr] = []):

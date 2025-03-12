@@ -7,7 +7,7 @@ DELIMS = {
     'close_parenthesis_delim': {';', ':', ',', *ATOMS['general_operators'], ')', '[', ']', '{', '}', *ATOMS['similar_delim']},
     'control_flow_delim': {'(', *ATOMS['similar_delim']},
     'ditech_delim': {':', *ATOMS['similar_delim']},
-    'bool_delim': {';', ':', ',', '=', '!', '&', '|', ')', '}', *ATOMS['similar_delim']},
+    'bool_delim': {';', ':', ',', '=', '!', '&', '|', ')', ']', '}', *ATOMS['similar_delim']},
     'equal_comma_delim': {'"', '+', '-', '!', '(', '{', *ATOMS['alphanumeric'], *ATOMS['similar_delim']},
     'id_delim': {';', ',', *ATOMS['general_operators'], '(', ')', '[', ']', '}', *ATOMS['similar_delim']},
     'int_float_delim': {';', ':', ",", *ATOMS['arithmetic_operators'], '=', '!', '&', '|', ')', ']', '}', *ATOMS['similar_delim']},
@@ -20,7 +20,7 @@ DELIMS = {
     'open_parenthesis_delim': {'"', '+', '-', '!', '(', ')', *ATOMS['alphanumeric'], *ATOMS['similar_delim']},
     'plus_and_or_delim': {'"', '-', '(', '!', *ATOMS['alphanumeric'], *ATOMS['similar_delim']},
     'push_delim': {';', '(', *ATOMS['similar_delim']},
-    'string_delim': {';', ':', ',', '+', '-', '/', '*', '%', '&', '|', '=', '!', ')', '}', *ATOMS['similar_delim']},
+    'string_delim': {';', ':', ',', '+', '-', '*', '%', '&', '|', '=', '!', ')', '}', *ATOMS['similar_delim']},
     'terminator_delim': {*ATOMS['alphabet'], *ATOMS['similar_delim']},
     'unary_delim': {';', *ATOMS['general_operators'], ')', *ATOMS['alphabet'], *ATOMS['similar_delim']},
     'wiz_delim': {';', ',', '=', '!', ')', ']', '}', *ATOMS['similar_delim']}

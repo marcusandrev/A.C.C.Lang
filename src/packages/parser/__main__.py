@@ -19,13 +19,13 @@ if __name__ == '__main__':
     lexer = Lexer(source_code)
     lexer.start()
 
-    print(lexer.token_stream, end='\n\n')
+    if len(lexer.log) <= 0:
+        print(lexer.token_stream, end='\n\n')
+        parser = Parser(source_code, lexer.token_stream)
+        # parser = parse(lexer.token_stream)
+        parser.start()
 
-    parser = Parser(source_code, lexer.token_stream)
-    # parser = parse(lexer.token_stream)
-    parser.start()
-
-    if 0 >= len(parser.log):
+    if len(parser.log) <= 0:
         # Step 2: Perform semantic analysis using Transformer
         analyzer = SemanticAnalyzer(lexer.token_stream)
         analyzer.analyze()
