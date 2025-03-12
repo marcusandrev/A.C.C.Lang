@@ -31,6 +31,9 @@ class SemanticAnalyzer:
                 token = self.current_token()
                 if token[1] in ['naur', 'anda', 'andamhie', 'chika', 'eklabool', 'shimenet']:
                     self.handle_declaration()
+                elif token[1] == 'push':
+                    # push in global scope is not allowed.
+                    self.process_push_statement()
                 # Detect function calls: identifier followed by '('
                 elif token[1] == 'id' and self.next_token() and self.next_token()[1] == '(':
                     self.process_function_call()
@@ -47,55 +50,50 @@ class SemanticAnalyzer:
             print("Semantic error: " + str(e))
             return False
 
-    def process_function_call(self):
-        # Ensure call is inside a function
+    def process_push_statement(self):
+        # Check that push is inside a function body.
         if self.current_function is None:
-            raise SemanticError("Function calls are only allowed inside function bodies")
+            raise SemanticError("Return statement 'push' is only allowed inside function bodies")
+        
+        # Get the current function's entry to know its return type.
+        func_entry = self.symbol_table["functions"][self.current_function]
+        declared_return_type = func_entry["return_type"]
+        self.advance()  # Skip 'push'
+        
+        # Check if there is an expression following push.
+        if self.current_token() and self.current_token()[1] != ';':
+            # Evaluate the expression for the returned value.
+            expr_type = self.evaluate_expression()
+            if not self.current_token() or self.current_token()[1] != ';':
+                raise SemanticError("Missing semicolon after return expression")
+            self.advance()  # Skip ';'
+            
+            # For void functions, push must not return a value.
+            if declared_return_type == 'shimenet':
+                raise SemanticError("Function with return type 'shimenet' must not return a value")
+            
+            # Mark that a valid return statement has been encountered.
+            func_entry["has_return"] = True
 
-        func_name = self.current_token()[0]
-        self.advance()  # Move past function name
-
-        # Check if function exists
-        if func_name not in self.symbol_table["functions"]:
-            raise SemanticError(f"Function '{func_name}' is not declared")
-        func_entry = self.symbol_table["functions"][func_name]
-        expected_params = func_entry["parameters"]
-
-        self.advance()  # Move past '('
-        args = []
-        while self.current_token() and self.current_token()[1] != ')':
-            # Now evaluate full expressions for arguments
-            arg_type = self.evaluate_expression()
-            args.append(arg_type)
-            # Skip commas if present
-            if self.current_token() and self.current_token()[1] == ',':
-                self.advance()
-
-        # Validate closing parenthesis
-        if not self.current_token() or self.current_token()[1] != ')':
-            raise SemanticError(f"Missing ')' in call to '{func_name}'")
-        self.advance()  # Skip ')'
-
-        # Skip semicolon if present
-        if self.current_token() and self.current_token()[1] == ';':
-            self.advance()
-
-        # Validate argument count
-        if len(args) != len(expected_params):
-            raise SemanticError(f"Function '{func_name}' expects {len(expected_params)} arguments, got {len(args)}")
-
-        # Validate argument types (with implicit conversion for non-chika types)
-        for i, (arg_type, param) in enumerate(zip(args, expected_params)):
-            param_type = param[1]
-            if param_type in ['anda', 'andamhie']:
-                if arg_type not in ['anda', 'andamhie', 'eklabool']:
-                    raise SemanticError(f"Argument {i+1} of '{func_name}' expects a numeric type, got '{arg_type}'")
-            elif param_type == 'eklabool':
-                if arg_type not in ['eklabool', 'anda', 'andamhie']:
-                    raise SemanticError(f"Argument {i+1} of '{func_name}' expects a boolean type, got '{arg_type}'")
-            elif param_type == 'chika':
-                if arg_type != 'chika':
-                    raise SemanticError(f"Argument {i+1} of '{func_name}' expects type 'chika', got '{arg_type}'")
+            # Type compatibility checks similar to function call argument validation.
+            if declared_return_type in ['anda', 'andamhie']:
+                if expr_type not in ['anda', 'andamhie', 'eklabool']:
+                    raise SemanticError(f"Return value type '{expr_type}' is not compatible with function return type '{declared_return_type}'")
+            elif declared_return_type == 'eklabool':
+                if expr_type not in ['eklabool', 'anda', 'andamhie']:
+                    raise SemanticError(f"Return value type '{expr_type}' is not compatible with function return type 'eklabool'")
+            elif declared_return_type == 'chika':
+                if expr_type != 'chika':
+                    raise SemanticError(f"Return value type '{expr_type}' is not compatible with function return type 'chika'")
+        else:
+            # No expression after push.
+            if declared_return_type != 'shimenet':
+                raise SemanticError(f"Function '{self.current_function}' with return type '{declared_return_type}' must return a value")
+            if not self.current_token() or self.current_token()[1] != ';':
+                raise SemanticError("Missing semicolon after 'push'")
+            self.advance()  # Skip ';'
+            # Mark that a (void) return has been encountered.
+            func_entry["has_return"] = True
 
     def finalize_functions(self):
         for func_name, func_entry in self.symbol_table["functions"].items():
@@ -417,6 +415,8 @@ class SemanticAnalyzer:
             self.advance()  # Skip '{'
             self.current_function = func_name
             func_entry["defined"] = True
+            # Initialize a flag to track if a return statement (push) is encountered.
+            func_entry["has_return"] = False
             brace_depth = 1
             while self.current_token() and brace_depth > 0:
                 token = self.current_token()
@@ -430,6 +430,8 @@ class SemanticAnalyzer:
                     self.handle_declaration()
                 elif token[1] == 'serve':  
                     self.process_serve_statement()
+                elif token[1] == 'push':
+                    self.process_push_statement()
                 elif token[1] == 'id':
                     if self.next_token() and self.next_token()[1] == '(':
                         self.process_function_call()
@@ -441,6 +443,9 @@ class SemanticAnalyzer:
                     self.advance()
             if brace_depth != 0:
                 raise SemanticError("Unmatched '{' in function body")
+            # For non-void functions, ensure at least one push statement was encountered.
+            if func_entry["return_type"] != "shimenet" and not func_entry.get("has_return", False):
+                raise SemanticError(f"Function '{func_name}' with return type '{func_entry['return_type']}' must return a value")
             self.current_function = None
         else:
             raise SemanticError("Expected ';' or '{' after function parameter list")

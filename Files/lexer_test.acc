@@ -1,21 +1,7 @@
-anda grade = 95;
-chika func();
-
-shimenet kween () {
-    chika a = grade + "korik";
-    chika func = "1";
-    grade += 5;
-    grade -= 50;
-    grade *= 2;
-    grade /= 1;
-    grade **= 2;
-    grade //= 2;
-    grade %= korik;
-    serve(func());
-    serve("1" + !func);
+anda sum(anda x, anda y) {
+    push x + y;
 }
 
-chika func(){
-
-    
+shimenet kween () {
+    push;
 }
