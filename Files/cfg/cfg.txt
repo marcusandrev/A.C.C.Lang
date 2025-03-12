@@ -62,10 +62,8 @@
  <extra-3d-array-value> -> λ 
  <func-def> -> <return-type> id ( <parameters> ) { <func-body> } <func-def> 
  <func-def> -> λ 
- <func-body> -> <local-dec> <statements> <multi-statements> 
+ <func-body> -> <local-dec> <statements>  
  <func-body> -> λ 
- <multi-statements> -> <statements> <multi-statements> 
- <multi-statements> -> λ 
  <local-dec> -> <local-dec-init> <array-assign> <local-dec> 
  <local-dec> -> λ 
  <local-dec-init> -> <naur-case> <data-type> <var-init> ;  
@@ -111,10 +109,9 @@
  <general-operators> -> <= 
  <general-operators> -> == 
  <general-operators> -> != 
- <general-operators> -> = 
  <general-operators> -> && 
  <general-operators> -> || 
- <statements> -> id <assign-stmts> <statements> 
+ <statements> -> id <assign-call-stmts> <statements> 
  <statements> -> <input-stmts> <statements> 
  <statements> -> <output-stmts> <statements> 
  <statements> -> <conditional-stmts> <statements> 
@@ -123,7 +120,7 @@
  <statements> -> <return-stmts> <statements> 
  <statements> -> <unary-stmts> <statements> 
  <statements> -> λ 
- <loop-body> -> id <assign-stmts> <loop-body> 
+ <loop-body> -> id <assign-call-stmts> <statements> 
  <loop-body> -> <input-stmts> <loop-body> 
  <loop-body> -> <output-stmts> <loop-body> 
  <loop-body> -> <loop-stmts> <loop-body> 
@@ -135,7 +132,8 @@
  <loop-body> -> λ 
  <multi-loop-body> -> <loop-body> <multi-loop-body> 
  <multi-loop-body> -> λ 
- <assign-stmts> -> <func-array> <assignment-operators> <assignment-values> ; 
+ <assign-call-stmts> -> <array-case> <assignment-operators> <assignment-values> ; 
+ <assign-call-stmts> -> ( <arguments> ) ; 
  <assignment-operators> -> = 
  <assignment-operators> -> += 
  <assignment-operators> -> -= 
@@ -153,7 +151,7 @@
  <output-values> -> <expression> 
  <conditional-stmts> -> pak ( <condition> ) { <conditional-body> } <ganern-pak-statement> <ganern-case> 
  <condition> -> <expression> 
- <conditional-body> -> <local-dec> <statements> <multi-statements> 
+ <conditional-body> -> <local-dec> <statements>  
  <conditional-body> -> λ 
  <loop-conditional-stmts> -> pak ( <condition> ) { <loop-conditional-body> } <ganern-pak-statement> <ganern-case> 
  <loop-conditional-body> -> <local-dec> <loop-body> <multi-loop-body> 
@@ -185,7 +183,7 @@
  <multi-cases> -> betsung <switch-values> : <switch-statements> <amaccana-case> <multi-cases> 
  <multi-cases> -> λ 
  <switch-values> -> <expression> 
- <switch-statements> -> <local-dec> <statements> <multi-statements> 
+ <switch-statements> -> <local-dec> <statements>  
  <loop-switch-stmts> -> versa ( <switch-values> ) { betsung <switch-values> : <loop-switch-statements> <loop-multi-cases> <ditech-case> } 
  <loop-multi-cases> -> betsung <switch-values> : <loop-switch-statements> <loop-multi-cases> 
  <loop-multi-cases> -> λ 

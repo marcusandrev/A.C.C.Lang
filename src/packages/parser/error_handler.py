@@ -3,6 +3,14 @@
 def Test3():
     print("Test for Error Handling")
 
+class SemanticError(Exception):
+    def __init__(self, message, line=None, column=None):
+        self.line = line
+        self.column = column
+        location = f" at line {line}, column {column}" if line and column else ""
+        super().__init__(f"{message}{location}")
+
+
 class UnexpectedError():
     def __init__(self, line: str, position: tuple[int, int]):
         self._line = line.replace('\n', '')

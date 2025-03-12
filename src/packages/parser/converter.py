@@ -124,6 +124,40 @@ def convert_to_ebnf(non_terminals, productions):
             ebnf_dict[head].append(temp_body)
     
     tokens = {
+        'naur': 'NAUR',
+        'shimenet': 'SHIMENET',
+        'anda': 'ANDA',
+        'andamhie': 'ANDAMHIE',
+        'chika': 'CHIKA',
+        'eklabool': 'EKLABOOL',
+        'korik': 'KORIK',
+        'eme': 'EME',
+        'givenchy': 'GIVENCHY',
+        'serve': 'SERVE',
+        'pak': 'PAK',
+        'ganern': 'GANERN',
+        'versa': 'VERSA',
+        'betsung': 'BETSUNG',
+        'ditech': 'DITECH',
+        'forda': 'FORDA',
+        'keri': 'KERI',
+        'lang': 'LANG',
+        'amaccana': 'AMACCANA',
+        'gogogo': 'GOGOGO',
+        'kween': 'KWEEN',
+        'push': 'PUSH',
+        'from': 'FROM',
+        'to': 'TO',
+        'step': 'STEP',
+        ':': 'COLON',
+        ',': 'COMMA',
+        ';': 'SEMICOLON',
+        '(': 'LPAR',
+        ')': 'RPAR',
+        '{': 'LBRACE',
+        '}': 'RBRACE',
+        '[': 'LSQB',
+        ']': 'RSQB',
         '+=': 'PLUS_EQUAL',
         '-=': 'MINUS_EQUAL',
         "%=": 'MODULO_EQUAL',
@@ -142,12 +176,28 @@ def convert_to_ebnf(non_terminals, productions):
         '!': 'NOT',
         '--': 'MINUS_MINUS',
         '++': 'PLUS_PLUS',
+        '-': 'MINUS',
+        '+': 'PLUS',
+        '%': 'MODULO',
+        '/': 'DIVIDE',
+        '*': 'TIMES',
+        '>': 'GREATER_THAN',
+        '<': 'LESS_THAN',
+        '=': 'EQUAL',
         'id': 'ID',
         'anda_literal': 'ANDA_LITERAL',
         'andamhie_literal': 'ANDAMHIE_LITERAL',
         'chika_literal':'CHIKA_LITERAL',
     }
     ebnf = '%import common.WS\n%ignore WS\n%ignore "/^" /(.|\\n)*?(?=\^\/)/ "^/" | "/^" /(.|\\n)*/\n\nstart: program\n'
+    for key, value in tokens.items():
+        if key == 'id': ebnf += f'{value}:' + ' /(?!(eklabool|anda|andamhie|chika|givenchy|serve|pak|ganern|versa|betsung|ditech|forda|keri|lang|amaccana|gogogo|kween|shimenet|push|korik|eme|naur|from|to|step))/ /[a-zA-Z][a-zA-Z0-9_]{0,19}/\n'
+        elif key == 'anda_literal': ebnf += f'{value}:' + ' /[0-9]+/\n'
+        elif key == 'andamhie_literal': ebnf += f'{value}:' + ' /[0-9]+\\.[0-9]+/\n'
+        elif key == 'chika_literal': ebnf += f'{value}:' + ' /"([^"\\\\]|\\\\.)*"/\n'
+        else: ebnf += f'{value}: "{key}"\n'
+    # ebnf += f'COMMENT: "/^" /(?s).*?(?:\^/|$)/'
+
     for key, value in ebnf_dict.items():
         ebnf += f'{key}: '
         for val in value:
@@ -157,13 +207,6 @@ def convert_to_ebnf(non_terminals, productions):
                     value = value.replace(f'"{tok}"', tokens[tok])
             ebnf += f'{value} | '
         ebnf = ebnf[:-3] + '\n'
-    for key, value in tokens.items():
-        if key == 'id': ebnf += f'{value}:' + ' /(?!(eklabool|anda|andamhie|chika|givenchy|serve|pak|ganern|versa|betsung|ditech|forda|keri|lang|amaccana|gogogo|kween|shimenet|push|korik|eme|naur|from|to|step))/ /[a-zA-Z][a-zA-Z0-9_]{0,19}/\n'
-        elif key == 'anda_literal': ebnf += f'{value}:' + ' /[0-9]+/\n'
-        elif key == 'andamhie_literal': ebnf += f'{value}:' + ' /[0-9]+\\.[0-9]+/\n'
-        elif key == 'chika_literal': ebnf += f'{value}:' + ' /"([^"\\\\]|\\\\.)*"/\n'
-        else: ebnf += f'{value}: "{key}"\n'
-    # ebnf += f'COMMENT: "/^" /(?s).*?(?:\^/|$)/'
 
     with open("Files/cfg/grammar.lark", "w") as f:
         f.write(ebnf)

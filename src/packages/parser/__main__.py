@@ -8,6 +8,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..','..
 from src.packages.lexer.lexer import Lexer
 from src.packages.parser.parser import Parser
 from src.packages.parser.parse import Parser as parse
+from src.packages.parser.semantic_analyzer import SemanticAnalyzer
 
 if __name__ == '__main__':
     # source_code = open("A.C.C.Lang/Files/lexer_test.acc", "r").read()
@@ -18,6 +19,16 @@ if __name__ == '__main__':
     lexer = Lexer(source_code)
     lexer.start()
 
+    print(lexer.token_stream, end='\n\n')
+
     parser = Parser(source_code, lexer.token_stream)
     # parser = parse(lexer.token_stream)
     parser.start()
+
+    if 0 >= len(parser.log):
+        # Step 2: Perform semantic analysis using Transformer
+        analyzer = SemanticAnalyzer(lexer.token_stream)
+        analyzer.analyze()
+        print(analyzer.symbol_table)
+        if not analyzer.analyze():
+            print("Semantic errors found.")

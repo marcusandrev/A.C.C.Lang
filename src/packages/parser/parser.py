@@ -6,6 +6,7 @@ class Parser:
         self._token_stream = token_stream
         self.log = ''
         self._source_code = source_code
+        self.ast = ''
         # for token in self._token_stream:
         #     if token[1] == 'whitespace': self._source_code += ' '
         #     elif token[1] == 'newline': self._source_code += '\n'
@@ -33,7 +34,7 @@ class Parser:
             elif token == 'floor_equal': token = '//='
             elif token == 'times_equal': token = '*='
             elif token == 'exponentiate_equal': token = '**='
-            elif token == 'star': token = '*'
+            elif token == 'times': token = '*'
             elif token == 'exponentiate': token = '**'
             elif token == 'floor': token = '//'
             elif token == 'greater_equal': token = '>='
@@ -45,12 +46,37 @@ class Parser:
             elif token == 'not': token = '!'
             elif token == 'minus_minus': token = '--'
             elif token == 'plus_plus': token = '++'
-            elif token == 'morethan': token = '>'
-            elif token == 'lessthan': token = '<'
-            elif token == 'slash': token = '/'
+            elif token == 'greater_than': token = '>'
+            elif token == 'less_than': token = '<'
+            elif token == 'divide': token = '/'
             elif token == 'plus': token = '+'
-            elif token == 'percent': token = '%'
+            elif token == 'modulo': token = '%'
             elif token == 'minus': token = '-'
+            elif token == 'naur': token = 'naur'
+            elif token == 'shimenet': token = 'shimenet'
+            elif token == 'anda': token = 'anda'
+            elif token == 'andamhie': token = 'andamhie'
+            elif token == 'chika': token = 'chika'
+            elif token == 'eklabool': token = 'eklabool'
+            elif token == 'korik': token = 'korik'
+            elif token == 'eme': token = 'eme'
+            elif token == 'givenchy': token = 'givenchy'
+            elif token == 'serve': token = 'serve'
+            elif token == 'pak': token = 'pak'
+            elif token == 'ganern': token = 'ganern'
+            elif token == 'versa': token = 'versa'
+            elif token == 'betsung': token = 'betsung'
+            elif token == 'ditech': token = 'anda'
+            elif token == 'forda': token = 'forda'
+            elif token == 'keri': token = 'keri'
+            elif token == 'lang': token = 'lang'
+            elif token == 'amaccana': token = 'amaccana'
+            elif token == 'gogogo': token = 'gogogo'
+            elif token == 'kween': token = 'kween'
+            elif token == 'push': token = 'push'
+            elif token == 'from': token = 'from'
+            elif token == 'to': token = 'to'
+            elif token == 'step': token = 'step'
             if token in temp: continue
             temp.append(token)
         return temp
@@ -64,7 +90,8 @@ class Parser:
 
         try:
             parse_tree = parser.parse(self._source_code)
-            print(parse_tree)
+            # print(parse_tree.pretty())
+            self.ast = parse_tree
         except Exception as e:
             # print(f"Parsing error: {e}")
             source = self._source_code.splitlines('\n')
