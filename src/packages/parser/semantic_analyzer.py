@@ -34,8 +34,8 @@ class SemanticAnalyzer:
                 # Detect function calls: identifier followed by '('
                 elif token[1] == 'id' and self.next_token() and self.next_token()[1] == '(':
                     self.process_function_call()
-                # Process assignment statements: identifier '=' expression ';'
-                elif token[1] == 'id' and self.next_token() and self.next_token()[1] == '=':
+                # Process assignment statements: identifier followed by an assignment operator
+                elif token[1] == 'id' and self.next_token() and self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
                     self.process_assignment_statement()
                 else:
                     self.advance()
@@ -265,17 +265,25 @@ class SemanticAnalyzer:
             self.symbol_table["functions"][self.current_function]["locals"][var_name] = entry
 
     def process_assignment_statement(self):
-        # Process an assignment statement: identifier '=' expression ';'
+        # Process an assignment statement: identifier assignment_operator expression ';'
         ident = self.current_token()[0]
         self.advance()  # Skip identifier
-        if not self.current_token() or self.current_token()[1] != '=':
-            raise SemanticError("Expected '=' in assignment statement")
-        self.advance()  # Skip '='
+
+        # Check for the assignment operator (plain or augmented)
+        if not self.current_token():
+            raise SemanticError("Expected assignment operator after identifier")
+        op_token = self.current_token()
+        op = op_token[1]
+        if op not in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
+            raise SemanticError("Expected an assignment operator")
+        self.advance()  # Skip assignment operator
+
+        # Evaluate the right-hand side expression.
         expr_type = self.evaluate_expression()
         if not self.current_token() or self.current_token()[1] != ';':
             raise SemanticError("Expected ';' at end of assignment statement")
         self.advance()  # Skip ';'
-        
+
         # Check if the identifier was declared.
         declared = False
         entry = None
@@ -297,21 +305,36 @@ class SemanticAnalyzer:
                 raise SemanticError(f"Assignment to undeclared variable '{ident}' in function '{self.current_function}'")
             else:
                 raise SemanticError(f"Assignment to undeclared global variable '{ident}'")
-        
+
         if entry["naur_flag"]:
             raise SemanticError(f"Assignment to constant variable '{ident}' is not allowed")
-        
-        # Check type compatibility for assignments.
+
+        # Check type compatibility.
         var_type = entry["data_type"]
-        if var_type in ['anda', 'andamhie']:
-            if expr_type not in ['anda', 'andamhie', 'eklabool']:
-                raise SemanticError(f"Variable '{ident}' of type '{var_type}' cannot be assigned a value of type '{expr_type}'")
-        elif var_type == 'eklabool':
-            if expr_type not in ['eklabool', 'anda', 'andamhie', 'chika']:
-                raise SemanticError(f"Variable '{ident}' of type 'eklabool' cannot be assigned a value of type '{expr_type}'")
-        elif var_type == 'chika':
-            if expr_type != 'chika':
-                raise SemanticError(f"Variable '{ident}' of type 'chika' cannot be assigned a value of type '{expr_type}'")
+
+        if op == '=':
+            # For simple assignment, use the standard type rules.
+            if var_type in ['anda', 'andamhie']:
+                if expr_type not in ['anda', 'andamhie', 'eklabool']:
+                    raise SemanticError(f"Variable '{ident}' of type '{var_type}' cannot be assigned a value of type '{expr_type}'")
+            elif var_type == 'eklabool':
+                if expr_type not in ['eklabool', 'anda', 'andamhie', 'chika']:
+                    raise SemanticError(f"Variable '{ident}' of type 'eklabool' cannot be assigned a value of type '{expr_type}'")
+            elif var_type == 'chika':
+                if expr_type != 'chika':
+                    raise SemanticError(f"Variable '{ident}' of type 'chika' cannot be assigned a value of type '{expr_type}'")
+        else:
+            # For augmented assignments:
+            if op == '+=' and var_type == 'chika':
+                # For string concatenation, both sides must be of type 'chika'.
+                if expr_type != 'chika':
+                    raise SemanticError(f"Operator '+=' expects type 'chika' for concatenation, got '{expr_type}'")
+            else:
+                # For all augmented assignment operators (and += on non-chika types), only numeric/boolean types are allowed.
+                if var_type not in ['anda', 'andamhie', 'eklabool']:
+                    raise SemanticError(f"Operator '{op}' cannot be applied to type '{var_type}'")
+                if expr_type not in ['anda', 'andamhie', 'eklabool']:
+                    raise SemanticError(f"Operator '{op}' expects a numeric or boolean type for assignment, got '{expr_type}'")
 
     def function_declaration(self, return_type, func_name):
         # Check for previous declarations or definitions.
@@ -395,7 +418,7 @@ class SemanticAnalyzer:
                 elif token[1] == 'id':
                     if self.next_token() and self.next_token()[1] == '(':
                         self.process_function_call()
-                    elif self.next_token() and self.next_token()[1] == '=':
+                    elif self.next_token() and self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
                         self.process_assignment_statement()
                     else:
                         self.advance()

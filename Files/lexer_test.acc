@@ -1,12 +1,11 @@
-chika myChika = "Hello, " + "World!";
-anda grades[5] = {99, 100, 96, 97, 98};
-
-chika myFunc() {
-
-}
+anda grade = 95;
 
 shimenet kween () {
-    chika mymy = myFunc();
-    mymy = myChika;
-    anda myGrade = grades[1];
+    grade += 5;
+    grade -= 50;
+    grade *= 2;
+    grade /= 1;
+    grade **= 2;
+    grade //= 2;
+    grade %= korik;
 }
