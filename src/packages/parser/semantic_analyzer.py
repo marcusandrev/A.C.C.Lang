@@ -82,7 +82,7 @@ class SemanticAnalyzer:
         if len(args) != len(expected_params):
             raise SemanticError(f"Function '{func_name}' expects {len(expected_params)} arguments, got {len(args)}")
 
-        # Validate argument types (with implicit conversion)
+        # Validate argument types (with implicit conversion for non-chika types)
         for i, (arg_type, param) in enumerate(zip(args, expected_params)):
             param_type = param[1]
             if param_type in ['anda', 'andamhie']:
@@ -92,8 +92,8 @@ class SemanticAnalyzer:
                 if arg_type not in ['eklabool', 'anda', 'andamhie']:
                     raise SemanticError(f"Argument {i+1} of '{func_name}' expects a boolean type, got '{arg_type}'")
             elif param_type == 'chika':
-                # Implicit conversion allowed.
-                pass
+                if arg_type != 'chika':
+                    raise SemanticError(f"Argument {i+1} of '{func_name}' expects type 'chika', got '{arg_type}'")
 
     def finalize_functions(self):
         for func_name, func_entry in self.symbol_table["functions"].items():
@@ -108,9 +108,11 @@ class SemanticAnalyzer:
             if value_type not in ['anda', 'andamhie', 'eklabool']:
                 raise SemanticError(f"Variable of type '{var_type}' cannot be assigned a value of type '{value_type}'")
         elif var_type == 'eklabool':
-            if value_type not in ['eklabool', 'anda', 'andamhie']:
+            if value_type not in ['eklabool', 'anda', 'andamhie', 'chika']:
                 raise SemanticError(f"Variable of type 'eklabool' cannot be assigned a value of type '{value_type}'")
-        # For chika, implicit conversion is allowed.
+        elif var_type == 'chika':
+            if value_type != 'chika':
+                raise SemanticError(f"Variable of type 'chika' cannot be assigned a value of type '{value_type}'")
         return value_type
 
     def process_array_dimensions(self):
@@ -156,7 +158,9 @@ class SemanticAnalyzer:
                 elif var_type == 'eklabool':
                     if element_type not in ['eklabool', 'anda', 'andamhie']:
                         raise SemanticError(f"Array of type 'eklabool' cannot have element of type '{element_type}'")
-                # For chika, implicit conversion is allowed.
+                elif var_type == 'chika':
+                    if element_type != 'chika':
+                        raise SemanticError(f"Array of type 'chika' cannot have element of type '{element_type}'")
                 element = element_type
             init_list.append(element)
             if self.current_token() and self.current_token()[1] == ',':
@@ -303,9 +307,11 @@ class SemanticAnalyzer:
             if expr_type not in ['anda', 'andamhie', 'eklabool']:
                 raise SemanticError(f"Variable '{ident}' of type '{var_type}' cannot be assigned a value of type '{expr_type}'")
         elif var_type == 'eklabool':
-            if expr_type not in ['eklabool', 'anda', 'andamhie']:
+            if expr_type not in ['eklabool', 'anda', 'andamhie', 'chika']:
                 raise SemanticError(f"Variable '{ident}' of type 'eklabool' cannot be assigned a value of type '{expr_type}'")
-        # For chika, implicit conversion is allowed.
+        elif var_type == 'chika':
+            if expr_type != 'chika':
+                raise SemanticError(f"Variable '{ident}' of type 'chika' cannot be assigned a value of type '{expr_type}'")
 
     def function_declaration(self, return_type, func_name):
         # Check for previous declarations or definitions.
@@ -558,8 +564,8 @@ class SemanticAnalyzer:
                         if arg_type not in ['eklabool', 'anda', 'andamhie']:
                             raise SemanticError(f"Argument {i+1} of '{var_name}' expects a boolean type, got '{arg_type}'")
                     elif param_type == 'chika':
-                        # Implicit conversion allowed.
-                        pass
+                        if arg_type != 'chika':
+                            raise SemanticError(f"Argument {i+1} of '{var_name}' expects type 'chika', got '{arg_type}'")
                 return func_entry["return_type"]
             # Process array access if present.
             while self.current_token() and self.current_token()[1] == '[':
@@ -580,7 +586,7 @@ class SemanticAnalyzer:
                         if param[0] == var_name:
                             var_entry = {"data_type": param[1]}
                             break
-                    # NEW: Check global variables if not found locally.
+                    # Check global variables if not found locally.
                     if not var_entry and var_name in self.symbol_table["variables"]:
                         var_entry = self.symbol_table["variables"][var_name]
             else:
