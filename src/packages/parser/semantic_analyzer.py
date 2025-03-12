@@ -101,8 +101,11 @@ class SemanticAnalyzer:
                 raise SemanticError(f"Function '{func_name}' declared but not defined")
 
     def process_initializer(self, var_type):
-        # Evaluate the full expression
+        # Evaluate the full expression.
         value_type = self.evaluate_expression()
+        # If the expression is a givenchy call, bypass type checking.
+        if value_type == "givenchy":
+            return value_type
         # Check compatibility based on your rules.
         if var_type in ['anda', 'andamhie']:
             if value_type not in ['anda', 'andamhie', 'eklabool']:
@@ -280,6 +283,14 @@ class SemanticAnalyzer:
 
         # Evaluate the right-hand side expression.
         expr_type = self.evaluate_expression()
+        
+        # If the expression is a givenchy call, bypass type checking.
+        if expr_type == "givenchy":
+            if not self.current_token() or self.current_token()[1] != ';':
+                raise SemanticError("Expected ';' after assignment")
+            self.advance()  # Skip ';'
+            return
+
         if not self.current_token() or self.current_token()[1] != ';':
             raise SemanticError("Expected ';' at end of assignment statement")
         self.advance()  # Skip ';'
@@ -435,7 +446,7 @@ class SemanticAnalyzer:
     def evaluate_expression(self):
         """
         Entry point for expression type-checking.
-        Returns one of: 'anda', 'andamhie', 'chika', 'eklabool'.
+        Returns one of: 'anda', 'andamhie', 'chika', 'eklabool', or 'givenchy'.
         """
         return self.parse_logical_or()
 
@@ -445,7 +456,7 @@ class SemanticAnalyzer:
             self.advance()  # Skip '||'
             right_type = self.parse_logical_and()
             for t in (left_type, right_type):
-                if t not in ['anda', 'andamhie', 'eklabool', 'chika']:
+                if t not in ['anda', 'andamhie', 'eklabool', 'chika', 'givenchy']:
                     raise SemanticError(f"Invalid operand type '{t}' for logical operator '||'")
             left_type = 'eklabool'
         return left_type
@@ -456,7 +467,7 @@ class SemanticAnalyzer:
             self.advance()  # Skip '&&'
             right_type = self.parse_equality()
             for t in (left_type, right_type):
-                if t not in ['anda', 'andamhie', 'eklabool', 'chika']:
+                if t not in ['anda', 'andamhie', 'eklabool', 'chika', 'givenchy']:
                     raise SemanticError(f"Invalid operand type '{t}' for logical operator '&&'")
             left_type = 'eklabool'
         return left_type
@@ -467,7 +478,7 @@ class SemanticAnalyzer:
             op = self.current_token()[1]
             self.advance()
             right_type = self.parse_relational()
-            if left_type not in ['anda', 'andamhie', 'eklabool', 'chika'] or right_type not in ['anda', 'andamhie', 'eklabool', 'chika']:
+            if left_type not in ['anda', 'andamhie', 'eklabool', 'chika', 'givenchy'] or right_type not in ['anda', 'andamhie', 'eklabool', 'chika', 'givenchy']:
                 raise SemanticError("Invalid types for equality operator")
             left_type = 'eklabool'
         return left_type
@@ -478,7 +489,7 @@ class SemanticAnalyzer:
             op = self.current_token()[1]
             self.advance()
             right_type = self.parse_additive()
-            if left_type not in ['anda', 'andamhie', 'eklabool'] or right_type not in ['anda', 'andamhie', 'eklabool']:
+            if left_type not in ['anda', 'andamhie', 'eklabool', 'givenchy'] or right_type not in ['anda', 'andamhie', 'eklabool', 'givenchy']:
                 raise SemanticError("Invalid types for relational operator")
             left_type = 'eklabool'
         return left_type
@@ -492,7 +503,7 @@ class SemanticAnalyzer:
             if op == '+' and ('chika' in [left_type, right_type]):
                 left_type = 'chika'
             else:
-                if left_type not in ['anda', 'andamhie', 'eklabool'] or right_type not in ['anda', 'andamhie', 'eklabool']:
+                if left_type not in ['anda', 'andamhie', 'eklabool', 'givenchy'] or right_type not in ['anda', 'andamhie', 'eklabool', 'givenchy']:
                     raise SemanticError("Invalid types for arithmetic addition/subtraction")
                 left_type = 'andamhie'
         return left_type
@@ -503,7 +514,7 @@ class SemanticAnalyzer:
             op = self.current_token()[1]
             self.advance()
             right_type = self.parse_unary()
-            if left_type not in ['anda', 'andamhie', 'eklabool'] or right_type not in ['anda', 'andamhie', 'eklabool']:
+            if left_type not in ['anda', 'andamhie', 'eklabool', 'givenchy'] or right_type not in ['anda', 'andamhie', 'eklabool', 'givenchy']:
                 raise SemanticError("Invalid types for arithmetic multiplicative operation")
             left_type = 'andamhie'
         return left_type
@@ -535,12 +546,12 @@ class SemanticAnalyzer:
                 return var_entry["data_type"]
             elif op == '-':
                 operand_type = self.parse_unary()
-                if operand_type not in ['anda', 'andamhie', 'eklabool']:
+                if operand_type not in ['anda', 'andamhie', 'eklabool', 'givenchy']:
                     raise SemanticError("Unary minus can only be applied to numeric or boolean types")
                 return 'andamhie'
             elif op == '!':
                 operand_type = self.parse_unary()
-                if operand_type not in ['anda', 'andamhie', 'eklabool', 'chika']:
+                if operand_type not in ['anda', 'andamhie', 'eklabool', 'chika', 'givenchy']:
                     raise SemanticError("Logical not can only be applied to numeric, boolean, or string types")
                 return 'eklabool'
         else:
@@ -550,6 +561,21 @@ class SemanticAnalyzer:
         token = self.current_token()
         if not token:
             raise SemanticError("Unexpected end of expression")
+
+        # Handle givenchy input call.
+        if token[1] == 'givenchy':
+            self.advance()  # Skip 'givenchy'
+            if not self.current_token() or self.current_token()[1] != '(':
+                raise SemanticError("Expected '(' after 'givenchy'")
+            self.advance()  # Skip '('
+            if not self.current_token() or self.current_token()[1] != 'chika_literal':
+                raise SemanticError("Expected string literal as argument for 'givenchy'")
+            self.advance()  # Skip the string literal argument
+            if not self.current_token() or self.current_token()[1] != ')':
+                raise SemanticError("Expected ')' after 'givenchy' argument")
+            self.advance()  # Skip ')'
+            return "givenchy"
+
         if token[1].endswith('_literal'):
             lit_type = token[1].split('_')[0]
             self.advance()
@@ -594,7 +620,7 @@ class SemanticAnalyzer:
             while self.current_token() and self.current_token()[1] == '[':
                 self.advance()  # Skip '['
                 index_type = self.evaluate_expression()
-                if index_type not in ['anda', 'andamhie', 'eklabool']:
+                if index_type not in ['anda', 'andamhie', 'eklabool', 'givenchy']:
                     raise SemanticError("Array index must be numeric")
                 if not self.current_token() or self.current_token()[1] != ']':
                     raise SemanticError("Missing ']' in array access")

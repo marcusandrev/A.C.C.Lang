@@ -1,11 +1,3 @@
-anda grade = 95;
-
 shimenet kween () {
-    grade += 5;
-    grade -= 50;
-    grade *= 2;
-    grade /= 1;
-    grade **= 2;
-    grade //= 2;
-    grade %= korik;
+    chika name = givenchy("Enter your name: ");
 }
