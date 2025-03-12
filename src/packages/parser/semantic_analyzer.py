@@ -37,6 +37,8 @@ class SemanticAnalyzer:
                 # Process assignment statements: identifier followed by an assignment operator
                 elif token[1] == 'id' and self.next_token() and self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
                     self.process_assignment_statement()
+                elif token[1] == 'serve':  
+                    self.process_serve_statement()
                 else:
                     self.advance()
             self.finalize_functions()
@@ -426,6 +428,8 @@ class SemanticAnalyzer:
                     self.advance()
                 elif token[1] in ['naur', 'anda', 'andamhie', 'chika', 'eklabool', 'shimenet']:
                     self.handle_declaration()
+                elif token[1] == 'serve':  
+                    self.process_serve_statement()
                 elif token[1] == 'id':
                     if self.next_token() and self.next_token()[1] == '(':
                         self.process_function_call()
@@ -664,3 +668,33 @@ class SemanticAnalyzer:
             return expr_type
         else:
             raise SemanticError(f"Unexpected token '{token[0]}' in expression")
+
+    def process_serve_statement(self):
+        """Process and validate the 'serve' statement (print statement)."""
+        if self.current_token()[1] != 'serve':
+            raise SemanticError("Expected 'serve' statement")
+
+        self.advance() 
+        
+        if not self.current_token() or self.current_token()[1] != '(':
+            raise SemanticError("Expected '(' after 'serve' statement")
+        
+        self.advance() 
+
+        expr_type = self.evaluate_expression()
+
+        if expr_type == "chika":
+            if self.current_token() and self.current_token()[1] not in [')', ';', '+']:
+                raise SemanticError("Invalid operation: 'chika' type only supports '+' for concatenation")
+
+        if self.current_token() and self.current_token()[1] == ',':
+            raise SemanticError("Multiple arguments in 'serve' statement are not allowed")
+
+        if not self.current_token() or self.current_token()[1] != ')':
+            raise SemanticError("Expected ')' at the end of 'serve' statement")
+        
+        self.advance()  
+        if not self.current_token() or self.current_token()[1] != ';':
+            raise SemanticError("Expected ';' at the end of 'serve' statement")
+        
+        self.advance()
