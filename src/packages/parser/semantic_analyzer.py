@@ -93,7 +93,7 @@ class SemanticAnalyzer:
                 if expr_type not in ['anda', 'andamhie', 'eklabool']:
                     raise SemanticError(f"Return value type '{expr_type}' is not compatible with function return type '{declared_return_type}'")
             elif declared_return_type == 'eklabool':
-                if expr_type not in ['eklabool', 'anda', 'andamhie']:
+                if expr_type not in ['eklabool', 'anda', 'andamhie', 'chika']:
                     raise SemanticError(f"Return value type '{expr_type}' is not compatible with function return type 'eklabool'")
             elif declared_return_type == 'chika':
                 if expr_type != 'chika':
@@ -132,21 +132,28 @@ class SemanticAnalyzer:
         return value_type
 
     def process_array_dimensions(self):
+        """
+        Revised to parse an expression inside [ ] for each dimension
+        rather than expecting a simple integer literal.
+        The dimension's type can be anything except 'chika'.
+        """
         dims = []
         while self.current_token() and self.current_token()[1] == '[':
             self.advance()  # Skip '['
-            if not self.current_token() or not self.current_token()[1].endswith('_literal'):
-                raise SemanticError("Expected literal for array dimension size")
-            dim_str = self.current_token()[0]
-            try:
-                dim = int(dim_str)
-            except ValueError:
-                raise SemanticError("Array dimension must be an integer")
-            dims.append(dim)
-            self.advance()  # Skip literal
+
+            # Evaluate the dimension expression.
+            dim_type = self.evaluate_expression()
+
+            # Dimension cannot be 'chika'.
+            if dim_type == 'chika':
+                raise SemanticError("Array dimension cannot be of type 'chika'")
+
             if not self.current_token() or self.current_token()[1] != ']':
-                raise SemanticError("Expected ']' after array dimension size")
+                raise SemanticError("Expected ']' after array dimension expression")
             self.advance()  # Skip ']'
+
+            dims.append(dim_type)
+
             if len(dims) > 3:
                 raise SemanticError("Arrays cannot have more than 3 dimensions")
         return dims
@@ -155,7 +162,8 @@ class SemanticAnalyzer:
         """
         Recursively processes an array initializer list.
         It collects elements until the matching closing brace is encountered.
-        This method does not enforce that the number of elements exactly matches the declared dimensions.
+        This method does not enforce that the number of elements
+        exactly matches the declared dimensions.
         """
         if not self.current_token() or self.current_token()[1] != '{':
             raise SemanticError("Expected '{' to start array initializer")
@@ -641,7 +649,7 @@ class SemanticAnalyzer:
         """
         Processes a do-while loop in the form:
             keri lang { ... } keri ( condition )
-        Here, 'keri lang' together represent the 'do' keyword. The loop body is processed first (in its own block scope)
+        Here, 'keri lang' together represent the 'do' keyword. The loop body is processed first,
         and then the condition is evaluated.
         """
         # Current token is 'keri' and the next token should be 'lang'
@@ -671,7 +679,7 @@ class SemanticAnalyzer:
             - 'versa' is the switch keyword,
             - each case clause begins with 'betsung' followed by an expression and ':'.
             - the default clause is 'ditech' followed by ':'.
-        Each case clause is processed in its own block scope. The type of the case expression must be compatible with the switch expression.
+        Each case clause is processed in its own block scope.
         """
         # Current token is 'versa'
         self.advance()  # Skip 'versa'
@@ -777,8 +785,9 @@ class SemanticAnalyzer:
     def is_type_compatible(self, switch_type, case_type):
         """
         Checks if the case label type is compatible with the switch expression type.
-        For numeric types (anda and andamhie), we allow either.
-        For other types, they must match exactly.
+        For numeric types (anda and andamhie), we allow either numeric or eklabool.
+        For chika, must match exactly.
+        For eklabool, accept eklabool, anda, or andamhie.
         """
         if switch_type == case_type:
             return True
@@ -793,7 +802,7 @@ class SemanticAnalyzer:
             forda ( [<type>]? <id> from <start_expr> to <end_expr> [step <step_expr>] ) { ... }
         The loop header may optionally declare a new loop variable. In that case, the variable
         must not already be declared in an enclosing scope. Otherwise, the variable must already exist.
-        The expressions for 'from', 'to', and (optionally) 'step' must be numeric (i.e. evaluate to 'anda' or 'andamhie').
+        The expressions for 'from', 'to', and (optionally) 'step' must be numeric (i.e. evaluate to 'anda' or 'andamhie' or eklabool).
         A new block scope is created for the loop header.
         """
         self.advance()  # Skip 'forda'
@@ -808,7 +817,7 @@ class SemanticAnalyzer:
         loop_var_type = None
 
         if self.current_token() and self.current_token()[1] in ['anda', 'andamhie', 'chika', 'eklabool']:
-            # Ensure only numeric types are used for loop variables.
+            # Ensure only numeric types are used for loop variables (per the original design).
             declared_type = self.current_token()[1]
             if declared_type not in ['anda', 'andamhie']:
                 raise SemanticError(f"For loop iteration variable must be numeric, got type '{declared_type}'")
@@ -860,7 +869,7 @@ class SemanticAnalyzer:
         # Evaluate start expression.
         start_expr_type = self.evaluate_expression()
         if start_expr_type not in ['anda', 'andamhie', 'eklabool']:
-            raise SemanticError("For loop 'from' expression must be numeric")
+            raise SemanticError("For loop 'from' expression must be numeric or boolean")
 
         # Expect 'to'
         if not self.current_token() or self.current_token()[1] != 'to':
@@ -870,14 +879,14 @@ class SemanticAnalyzer:
         # Evaluate end expression.
         end_expr_type = self.evaluate_expression()
         if end_expr_type not in ['anda', 'andamhie', 'eklabool']:
-            raise SemanticError("For loop 'to' expression must be numeric")
+            raise SemanticError("For loop 'to' expression must be numeric or boolean")
 
         # Optionally handle 'step'
         if self.current_token() and self.current_token()[1] == 'step':
             self.advance()  # Skip 'step'
             step_expr_type = self.evaluate_expression()
             if step_expr_type not in ['anda', 'andamhie', 'eklabool']:
-                raise SemanticError("For loop 'step' expression must be numeric")
+                raise SemanticError("For loop 'step' expression must be numeric or boolean")
 
         if not self.current_token() or self.current_token()[1] != ')':
             raise SemanticError("Expected ')' after for loop header")
@@ -1093,8 +1102,9 @@ class SemanticAnalyzer:
                 array_accessed = True
                 self.advance()  # Skip '['
                 index_type = self.evaluate_expression()
-                if index_type not in ['anda', 'andamhie', 'eklabool', 'givenchy']:
-                    raise SemanticError("Array index must be numeric")
+                # Index cannot be 'chika'.
+                if index_type == 'chika':
+                    raise SemanticError("Array index cannot be of type 'chika'")
                 if not self.current_token() or self.current_token()[1] != ']':
                     raise SemanticError("Missing ']' in array access")
                 self.advance()  # Skip ']'
@@ -1121,11 +1131,11 @@ class SemanticAnalyzer:
             if not var_entry:
                 raise SemanticError(f"Undeclared variable '{var_name}'")
             
-            # NEW: Disallow direct usage of array variables in expressions.
+            # Disallow direct usage of array variables in expressions if array not accessed:
             if var_entry.get("is_array", False) and not array_accessed:
                 raise SemanticError(f"Array variable '{var_name}' cannot be used directly in expressions; use an element access")
             
-            # --- Added support for postfix operators: ++ and -- 
+            # --- Added support for postfix operators: ++ and --
             while self.current_token() and self.current_token()[1] in ['++', '--']:
                 op = self.current_token()[1]
                 if var_entry.get("naur_flag", False):
