@@ -1,3 +1,8 @@
-shimenet kween () {
+anda sum (anda x) {
+    push 10;
+}
 
+shimenet kween () {
+    anda arr[korik || eme] = {1, 2};
+    sum(arr);
 }
