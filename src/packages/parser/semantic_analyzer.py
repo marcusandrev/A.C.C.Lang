@@ -250,6 +250,9 @@ class SemanticAnalyzer:
             if self.current_token() and self.current_token()[1] == '=':
                 self.advance()  # Skip '='
                 initializer_value = self.process_initializer(data_type)
+        # New check: constants must be initialized.
+        if is_constant and initializer_value is None:
+            raise SemanticError("Constant variable declaration must be assigned an initializer")
         self.register_variable(data_type, var_name, is_constant, initializer_value, is_array, dimensions)
 
     def register_variable(self, var_type, var_name, is_constant, initializer_value, is_array=False, dimensions=None):
