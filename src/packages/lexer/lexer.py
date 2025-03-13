@@ -62,8 +62,9 @@ class Lexer:
             elif self._index[0] > 0: self._index = max(0, self._index[0] - 1), len(self._source[self._index[0] - 1]) - 1
     
     def start(self):
+        metadata = []
         while not self.is_EOF():
-            print(self._index)
+            metadata.append(self._index)
             curr_char = self.curr_char()
             # next_char = self.next_char()
             if curr_char == ' ':
@@ -94,7 +95,7 @@ class Lexer:
                 self.advance(len(''.join(self._source)))
             else: self._lexemes.append(lexeme)
                 
-        self.token_stream = tokenize(self._lexemes)
+        self.token_stream = tokenize(self._lexemes, metadata)
                 
     def lexemize(self, curr_state: int = 0):
         branches = STATES[curr_state].branches

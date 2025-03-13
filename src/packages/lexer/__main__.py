@@ -16,4 +16,5 @@ if __name__ == '__main__':
     lexer = Lexer(source_code)
     lexer.start()
 
+    print(lexer.token_stream)
     print(lexer.log)
