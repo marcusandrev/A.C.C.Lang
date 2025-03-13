@@ -1,5 +1,3 @@
-# semantic_analyzer.py
-
 from .error_handler import SemanticError
 
 class SemanticAnalyzer:
@@ -37,8 +35,6 @@ class SemanticAnalyzer:
                     self.handle_declaration()
                 elif token[1] == 'pak':
                     self.process_conditional_statement()
-                elif token[1] == 'serve':
-                    self.process_serve_statement()
                 elif token[1] == 'push':
                     self.process_push_statement()
                 elif token[1] == 'keri':
@@ -47,12 +43,14 @@ class SemanticAnalyzer:
                         self.process_do_while_loop()
                     else:
                         self.process_while_loop()
-                elif token[1] == 'versa':
-                    self.process_switch_statement()
                 elif token[1] == 'id' and self.next_token() and self.next_token()[1] == '(':
                     self.process_function_call()
                 elif token[1] == 'id' and self.next_token() and self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
                     self.process_assignment_statement()
+                elif token[1] == 'serve':
+                    self.process_serve_statement()
+                elif token[1] == '{':
+                    self.process_block()
                 else:
                     self.advance()
             self.finalize_functions()
@@ -461,7 +459,7 @@ class SemanticAnalyzer:
         else:
             raise SemanticError("Expected ';' or '{' after function parameter list")
 
-    # --- Methods for block scoping and conditionals ---
+    # --- New methods for block scoping and conditionals ---
 
     def enter_block_scope(self):
         self.block_scopes.append({})
@@ -491,8 +489,6 @@ class SemanticAnalyzer:
                     self.process_do_while_loop()
                 else:
                     self.process_while_loop()
-            elif token[1] == 'versa':
-                self.process_switch_statement()
             elif token[1] == 'id' and self.next_token() and self.next_token()[1] == '(':
                 self.process_function_call()
             elif token[1] == 'id' and self.next_token() and self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
@@ -603,127 +599,6 @@ class SemanticAnalyzer:
         if not self.current_token() or self.current_token()[1] != ')':
             raise SemanticError("Expected ')' after do-while loop condition")
         self.advance()  # Skip ')'
-
-    # --- New method for switch statement ---
-
-    def process_switch_statement(self):
-        """
-        Processes a switch statement using:
-            versa ( expression ) { case_clauses }
-        where:
-            - 'versa' is the switch keyword,
-            - each case clause begins with 'betsung' followed by an expression and ':'.
-            - the default clause is 'ditech' followed by ':'.
-        Each case clause is processed in its own block scope. The type of the case expression must be compatible with the switch expression.
-        """
-        # Current token is 'versa'
-        self.advance()  # Skip 'versa'
-        if not self.current_token() or self.current_token()[1] != '(':
-            raise SemanticError("Expected '(' after 'versa'")
-        self.advance()  # Skip '('
-        switch_expr_type = self.evaluate_expression()
-        if not self.current_token() or self.current_token()[1] != ')':
-            raise SemanticError("Expected ')' after switch expression")
-        self.advance()  # Skip ')'
-        if not self.current_token() or self.current_token()[1] != '{':
-            raise SemanticError("Expected '{' to start switch block")
-        self.advance()  # Skip '{'
-        # Enter a new block scope for the entire switch statement.
-        self.enter_block_scope()
-        default_found = False
-        while self.current_token() and self.current_token()[1] != '}':
-            token = self.current_token()
-            if token[1] == 'betsung':
-                self.advance()  # Skip 'betsung'
-                # Evaluate the case label expression.
-                case_expr_type = self.evaluate_expression()
-                if not self.is_type_compatible(switch_expr_type, case_expr_type):
-                    raise SemanticError(f"Case label type '{case_expr_type}' is not compatible with switch expression type '{switch_expr_type}'")
-                if not self.current_token() or self.current_token()[1] != ':':
-                    raise SemanticError("Expected ':' after case label")
-                self.advance()  # Skip ':'
-                # Process statements for this case in a new block scope.
-                self.enter_block_scope()
-                while self.current_token() and self.current_token()[1] not in ['betsung', 'ditech', '}']:
-                    token_inner = self.current_token()
-                    if token_inner[1] == '{':
-                        self.process_block()
-                    elif token_inner[1] in ['naur', 'anda', 'andamhie', 'chika', 'eklabool', 'shimenet']:
-                        self.handle_declaration()
-                    elif token_inner[1] == 'pak':
-                        self.process_conditional_statement()
-                    elif token_inner[1] == 'serve':
-                        self.process_serve_statement()
-                    elif token_inner[1] == 'push':
-                        self.process_push_statement()
-                    elif token_inner[1] == 'keri':
-                        if self.next_token() and self.next_token()[1] == 'lang':
-                            self.process_do_while_loop()
-                        else:
-                            self.process_while_loop()
-                    elif token_inner[1] == 'versa':
-                        self.process_switch_statement()
-                    elif token_inner[1] == 'id' and self.next_token() and self.next_token()[1] == '(':
-                        self.process_function_call()
-                    elif token_inner[1] == 'id' and self.next_token() and self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
-                        self.process_assignment_statement()
-                    else:
-                        self.advance()
-                self.exit_block_scope()  # End of this case clause.
-            elif token[1] == 'ditech':
-                if default_found:
-                    raise SemanticError("Multiple default clauses in switch statement")
-                default_found = True
-                self.advance()  # Skip 'ditech'
-                if not self.current_token() or self.current_token()[1] != ':':
-                    raise SemanticError("Expected ':' after default clause")
-                self.advance()  # Skip ':'
-                # Process default clause statements in a new block scope.
-                self.enter_block_scope()
-                while self.current_token() and self.current_token()[1] not in ['betsung', '}']:
-                    token_inner = self.current_token()
-                    if token_inner[1] == '{':
-                        self.process_block()
-                    elif token_inner[1] in ['naur', 'anda', 'andamhie', 'chika', 'eklabool', 'shimenet']:
-                        self.handle_declaration()
-                    elif token_inner[1] == 'pak':
-                        self.process_conditional_statement()
-                    elif token_inner[1] == 'serve':
-                        self.process_serve_statement()
-                    elif token_inner[1] == 'push':
-                        self.process_push_statement()
-                    elif token_inner[1] == 'keri':
-                        if self.next_token() and self.next_token()[1] == 'lang':
-                            self.process_do_while_loop()
-                        else:
-                            self.process_while_loop()
-                    elif token_inner[1] == 'versa':
-                        self.process_switch_statement()
-                    elif token_inner[1] == 'id' and self.next_token() and self.next_token()[1] == '(':
-                        self.process_function_call()
-                    elif token_inner[1] == 'id' and self.next_token() and self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
-                        self.process_assignment_statement()
-                    else:
-                        self.advance()
-                self.exit_block_scope()  # End of default clause.
-            else:
-                raise SemanticError("Expected 'betsung' or 'ditech' in switch block")
-        if not self.current_token() or self.current_token()[1] != '}':
-            raise SemanticError("Expected '}' to close switch block")
-        self.advance()  # Skip '}'
-        self.exit_block_scope()  # Exit the switch block scope.
-
-    def is_type_compatible(self, switch_type, case_type):
-        """
-        Checks if the case label type is compatible with the switch expression type.
-        For numeric types (anda and andamhie), we allow either.
-        For other types, they must match exactly.
-        """
-        if switch_type == case_type:
-            return True
-        if switch_type in ['anda', 'andamhie', 'eklabool'] and case_type in ['anda', 'andamhie', 'eklabool']:
-            return True
-        return False
 
     # --- Expression Type Checking Methods ---
     def evaluate_expression(self):
@@ -899,7 +774,7 @@ class SemanticAnalyzer:
                         if arg_type not in ['anda', 'andamhie', 'eklabool']:
                             raise SemanticError(f"Argument {i+1} of '{var_name}' expects a numeric type, got '{arg_type}'")
                     elif param_type == 'eklabool':
-                        if arg_type not in ['eklabool', 'anda', 'andamhie', 'chika']:
+                        if arg_type not in ['eklabool', 'anda', 'andamhie']:
                             raise SemanticError(f"Argument {i+1} of '{var_name}' expects a boolean type, got '{arg_type}'")
                     elif param_type == 'chika':
                         if arg_type != 'chika':

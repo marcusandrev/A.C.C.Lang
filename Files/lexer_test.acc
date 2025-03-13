@@ -1,10 +1,13 @@
 shimenet kween () {
-    anda boom = 95;
-    keri (5 > 2) {
-        anda grade = 99;
+    anda a = 5;
+    pak (a) {
+        versa (a) {
+            betsung 23:
+                anda b;
+            betsung 23.5:
+                anda b;
+                amaccana;
+            ditech:
+        }
     }
-
-    keri lang {
-        anda boom = 95;
-    } keri (5 > 2)
 }
