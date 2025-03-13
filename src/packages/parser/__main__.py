@@ -32,5 +32,6 @@ if __name__ == '__main__':
             analyzer = SemanticAnalyzer(lexer.token_stream)
             analyzer.analyze()
             print(analyzer.symbol_table)
+            print(analyzer.log)
             # if not analyzer.analyze():
             #     print("Semantic errors found.")
