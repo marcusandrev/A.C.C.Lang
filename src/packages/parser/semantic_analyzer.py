@@ -386,6 +386,58 @@ class SemanticAnalyzer:
                 if expr_type not in ['anda', 'andamhie', 'eklabool']:
                     raise SemanticError(f"Operator '{op}' expects a numeric or boolean type for assignment, got '{expr_type}'")
 
+    def process_function_call(self):
+        """
+        Processes a standalone function call statement.
+        It checks that the function is declared, validates the arguments against the function's parameter list,
+        and ensures the statement is properly terminated with a semicolon.
+        """
+        # Current token is the function identifier.
+        func_name = self.current_token()[0]
+        self.advance()  # Skip the function identifier
+
+        # Expect '(' after the function name.
+        if not self.current_token() or self.current_token()[1] != '(':
+            raise SemanticError("Expected '(' after function name in function call")
+        self.advance()  # Skip '('
+
+        # Check that the function is declared.
+        if func_name not in self.symbol_table["functions"]:
+            raise SemanticError(f"Function '{func_name}' is not declared")
+        func_entry = self.symbol_table["functions"][func_name]
+        expected_params = func_entry["parameters"]
+
+        arg_types = []
+        # Process arguments (if any).
+        while self.current_token() and self.current_token()[1] != ')':
+            arg_type = self.evaluate_expression()
+            arg_types.append(arg_type)
+            if self.current_token() and self.current_token()[1] == ',':
+                self.advance()  # Skip comma
+
+        if not self.current_token() or self.current_token()[1] != ')':
+            raise SemanticError(f"Missing ')' in function call to '{func_name}'")
+        self.advance()  # Skip ')'
+
+        if len(arg_types) != len(expected_params):
+            raise SemanticError(f"Function '{func_name}' expects {len(expected_params)} arguments, got {len(arg_types)}")
+        for i, (arg_type, param) in enumerate(zip(arg_types, expected_params)):
+            param_type = param[1]
+            if param_type in ['anda', 'andamhie']:
+                if arg_type not in ['anda', 'andamhie', 'eklabool']:
+                    raise SemanticError(f"Argument {i+1} of '{func_name}' expects a numeric type, got '{arg_type}'")
+            elif param_type == 'eklabool':
+                if arg_type not in ['eklabool', 'anda', 'andamhie', 'chika']:
+                    raise SemanticError(f"Argument {i+1} of '{func_name}' expects a boolean type, got '{arg_type}'")
+            elif param_type == 'chika':
+                if arg_type != 'chika':
+                    raise SemanticError(f"Argument {i+1} of '{func_name}' expects type 'chika', got '{arg_type}'")
+
+        # Expect semicolon to end the function call statement.
+        if not self.current_token() or self.current_token()[1] != ';':
+            raise SemanticError("Expected ';' after function call")
+        self.advance()  # Skip ';'
+
     def function_declaration(self, return_type, func_name):
         # Check for previous declarations or definitions.
         if func_name in self.symbol_table["functions"]:

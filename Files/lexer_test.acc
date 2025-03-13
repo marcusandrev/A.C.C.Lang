@@ -1,2 +1,6 @@
+shimenet update() {
+}
+
 shimenet kween () {
+    update();
 }
