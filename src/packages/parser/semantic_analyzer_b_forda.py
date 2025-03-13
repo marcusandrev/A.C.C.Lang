@@ -49,8 +49,6 @@ class SemanticAnalyzer:
                         self.process_while_loop()
                 elif token[1] == 'versa':
                     self.process_switch_statement()
-                elif token[1] == 'forda':
-                    self.process_forda_loop()
                 elif token[1] == 'id' and self.next_token() and self.next_token()[1] == '(':
                     self.process_function_call()
                 elif token[1] == 'id' and self.next_token() and self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
@@ -495,8 +493,6 @@ class SemanticAnalyzer:
                     self.process_while_loop()
             elif token[1] == 'versa':
                 self.process_switch_statement()
-            elif token[1] == 'forda':
-                self.process_forda_loop()
             elif token[1] == 'id' and self.next_token() and self.next_token()[1] == '(':
                 self.process_function_call()
             elif token[1] == 'id' and self.next_token() and self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
@@ -608,6 +604,8 @@ class SemanticAnalyzer:
             raise SemanticError("Expected ')' after do-while loop condition")
         self.advance()  # Skip ')'
 
+    # --- New method for switch statement ---
+
     def process_switch_statement(self):
         """
         Processes a switch statement using:
@@ -665,8 +663,6 @@ class SemanticAnalyzer:
                             self.process_while_loop()
                     elif token_inner[1] == 'versa':
                         self.process_switch_statement()
-                    elif token_inner[1] == 'forda':
-                        self.process_forda_loop()
                     elif token_inner[1] == 'id' and self.next_token() and self.next_token()[1] == '(':
                         self.process_function_call()
                     elif token_inner[1] == 'id' and self.next_token() and self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
@@ -703,8 +699,6 @@ class SemanticAnalyzer:
                             self.process_while_loop()
                     elif token_inner[1] == 'versa':
                         self.process_switch_statement()
-                    elif token_inner[1] == 'forda':
-                        self.process_forda_loop()
                     elif token_inner[1] == 'id' and self.next_token() and self.next_token()[1] == '(':
                         self.process_function_call()
                     elif token_inner[1] == 'id' and self.next_token() and self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
@@ -730,127 +724,6 @@ class SemanticAnalyzer:
         if switch_type in ['anda', 'andamhie', 'eklabool'] and case_type in ['anda', 'andamhie', 'eklabool']:
             return True
         return False
-
-    # --- New method for for loop construct ---
-    def process_forda_loop(self):
-        """
-        Processes a for loop in the form:
-            forda ( [<type>]? <id> from <start_expr> to <end_expr> [step <step_expr>] ) { ... }
-        The loop header may optionally declare a new loop variable. In that case, the variable
-        must not already be declared in an enclosing scope. Otherwise, the variable must already exist.
-        The expressions for 'from', 'to', and (optionally) 'step' must be numeric (i.e. evaluate to 'anda' or 'andamhie').
-        A new block scope is created for the loop header.
-        """
-        self.advance()  # Skip 'forda'
-        if not self.current_token() or self.current_token()[1] != '(':
-            raise SemanticError("Expected '(' after 'forda'")
-        self.advance()  # Skip '('
-
-        # Determine if there is a new declaration in the loop header.
-        new_declaration = False
-        declared_type = None
-        loop_var_name = None
-        loop_var_type = None
-
-        if self.current_token() and self.current_token()[1] in ['anda', 'andamhie', 'chika', 'eklabool']:
-            # Ensure only numeric types are used for loop variables.
-            declared_type = self.current_token()[1]
-            if declared_type not in ['anda', 'andamhie']:
-                raise SemanticError(f"For loop iteration variable must be numeric, got type '{declared_type}'")
-            new_declaration = True
-            self.advance()  # Skip type token
-            if not self.current_token() or self.current_token()[1] != 'id':
-                raise SemanticError("Expected identifier for for loop variable declaration")
-            loop_var_name = self.current_token()[0]
-            loop_var_type = declared_type  # Store type for later validation
-            self.advance()  # Skip identifier
-        else:
-            # Otherwise, expect an identifier.
-            if not self.current_token() or self.current_token()[1] != 'id':
-                raise SemanticError("Expected identifier for for loop variable")
-            loop_var_name = self.current_token()[0]
-            self.advance()  # Skip identifier
-
-            # Validate that the existing variable is already declared and is numeric.
-            var_entry = None
-            if self.current_function:
-                for scope in reversed(self.block_scopes):
-                    if loop_var_name in scope:
-                        var_entry = scope[loop_var_name]
-                        break
-                if not var_entry:
-                    if loop_var_name in self.symbol_table["functions"][self.current_function]["locals"]:
-                        var_entry = self.symbol_table["functions"][self.current_function]["locals"][loop_var_name]
-                    elif any(param[0] == loop_var_name for param in self.symbol_table["functions"][self.current_function]["parameters"]):
-                        raise SemanticError(f"Loop variable '{loop_var_name}' cannot be a function parameter")
-                    elif loop_var_name in self.symbol_table["variables"]:
-                        var_entry = self.symbol_table["variables"][loop_var_name]
-            else:
-                if loop_var_name in self.symbol_table["variables"]:
-                    var_entry = self.symbol_table["variables"][loop_var_name]
-
-            if not var_entry:
-                raise SemanticError(f"For loop variable '{loop_var_name}' is not declared")
-
-            loop_var_type = var_entry["data_type"]
-
-            if loop_var_type not in ['anda', 'andamhie']:
-                raise SemanticError(f"For loop variable '{loop_var_name}' must be numeric, but it is '{loop_var_type}'")
-
-        # Expect 'from'
-        if not self.current_token() or self.current_token()[1] != 'from':
-            raise SemanticError("Expected 'from' in for loop header")
-        self.advance()  # Skip 'from'
-
-        # Evaluate start expression.
-        start_expr_type = self.evaluate_expression()
-        if start_expr_type not in ['anda', 'andamhie', 'eklabool']:
-            raise SemanticError("For loop 'from' expression must be numeric")
-
-        # Expect 'to'
-        if not self.current_token() or self.current_token()[1] != 'to':
-            raise SemanticError("Expected 'to' in for loop header")
-        self.advance()  # Skip 'to'
-
-        # Evaluate end expression.
-        end_expr_type = self.evaluate_expression()
-        if end_expr_type not in ['anda', 'andamhie', 'eklabool']:
-            raise SemanticError("For loop 'to' expression must be numeric")
-
-        # Optionally handle 'step'
-        if self.current_token() and self.current_token()[1] == 'step':
-            self.advance()  # Skip 'step'
-            step_expr_type = self.evaluate_expression()
-            if step_expr_type not in ['anda', 'andamhie', 'eklabool']:
-                raise SemanticError("For loop 'step' expression must be numeric")
-
-        if not self.current_token() or self.current_token()[1] != ')':
-            raise SemanticError("Expected ')' after for loop header")
-        self.advance()  # Skip ')'
-
-        # Enter a new block scope for the for loop header.
-        self.enter_block_scope()
-
-        if new_declaration:
-            # Check that the loop variable is not already declared in any enclosing scope.
-            if self.variable_exists_in_enclosing_scopes(loop_var_name):
-                raise SemanticError(f"Redeclaration of variable '{loop_var_name}' in for loop header is not allowed")
-            # Register the new loop variable in the current (for loop header) block scope.
-            entry = {
-                "data_type": declared_type,
-                "value": None,
-                "naur_flag": False,
-                "is_array": False
-            }
-            self.block_scopes[-1][loop_var_name] = entry
-
-        # Process the loop body.
-        if not self.current_token() or self.current_token()[1] != '{':
-            raise SemanticError("Expected '{' to start for loop block")
-        self.process_block()
-
-        # Exit the for loop header's scope.
-        self.exit_block_scope()
 
     # --- Expression Type Checking Methods ---
     def evaluate_expression(self):
@@ -1064,7 +937,7 @@ class SemanticAnalyzer:
             if not var_entry:
                 raise SemanticError(f"Undeclared variable '{var_name}'")
             
-            # --- Added support for postfix operators: ++ and -- 
+            # --- Added support for postfix operators: ++ and --
             while self.current_token() and self.current_token()[1] in ['++', '--']:
                 op = self.current_token()[1]
                 if var_entry.get("naur_flag", False):
@@ -1097,16 +970,16 @@ class SemanticAnalyzer:
             raise SemanticError("Expected '(' after 'serve' statement")
         
         self.advance() 
-        
+
         expr_type = self.evaluate_expression()
-        
+
         if expr_type == "chika":
             if self.current_token() and self.current_token()[1] not in [')', ';', '+']:
                 raise SemanticError("Invalid operation: 'chika' type only supports '+' for concatenation")
-        
+
         if self.current_token() and self.current_token()[1] == ',':
             raise SemanticError("Multiple arguments in 'serve' statement are not allowed")
-        
+
         if not self.current_token() or self.current_token()[1] != ')':
             raise SemanticError("Expected ')' at the end of 'serve' statement")
         
