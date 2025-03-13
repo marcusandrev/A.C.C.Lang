@@ -108,6 +108,6 @@ class Parser:
                 expected = e.expected
 
             expected = self.clean_expected(expected)
-            print(e)
+            # print(e)
             self.log = f'Unexpected token at line {index[0]} column {index[1]}: {unexpected}\nExpected any: {expected}'
-            print(self.log)
+            # print(self.log)

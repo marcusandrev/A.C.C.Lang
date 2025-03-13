@@ -1,6 +1,8 @@
-shimenet update() {
+anda fun(anda a){
+    push 5;
 }
 
 shimenet kween () {
-    update();
+    anda arr[1] = {1, 2};
+    fun({1, 2});
 }

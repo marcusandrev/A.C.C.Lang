@@ -19,16 +19,18 @@ if __name__ == '__main__':
     lexer = Lexer(source_code)
     lexer.start()
 
+    print(lexer.log)
+
     if len(lexer.log) <= 0:
         print(lexer.token_stream, end='\n\n')
         parser = Parser(source_code, lexer.token_stream)
         # parser = parse(lexer.token_stream)
         parser.start()
+        print(parser.log)
 
-    if len(parser.log) <= 0:
-        # Step 2: Perform semantic analysis using Transformer
-        analyzer = SemanticAnalyzer(lexer.token_stream)
-        analyzer.analyze()
-        print(analyzer.symbol_table)
-        # if not analyzer.analyze():
-        #     print("Semantic errors found.")
+        if len(parser.log) <= 0:
+            analyzer = SemanticAnalyzer(lexer.token_stream)
+            analyzer.analyze()
+            print(analyzer.symbol_table)
+            # if not analyzer.analyze():
+            #     print("Semantic errors found.")
