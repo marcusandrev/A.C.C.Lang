@@ -63,6 +63,7 @@ class Lexer:
     
     def start(self):
         while not self.is_EOF():
+            print(self._index)
             curr_char = self.curr_char()
             # next_char = self.next_char()
             if curr_char == ' ':

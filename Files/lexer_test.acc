@@ -1,8 +1,7 @@
-anda sum (anda x) {
-    push 10;
-}
+anda grades = 99;
 
-shimenet kween () {
-    anda arr[korik || eme] = {1, 2};
-    sum(arr);
+shimenet kween() {
+    pak(korik) {
+        anda grades = 99;
+    }
 }

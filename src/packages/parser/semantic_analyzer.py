@@ -280,12 +280,23 @@ class SemanticAnalyzer:
             self.block_scopes[-1][var_name] = entry
         else:
             if self.current_function is None:
+                # We are in the global scope
                 if var_name in self.symbol_table["variables"]:
                     raise SemanticError(f"Redeclaration of global variable '{var_name}'")
                 self.symbol_table["variables"][var_name] = entry
             else:
+                # We are in a function scope
                 if any(param[0] == var_name for param in self.symbol_table["functions"][self.current_function]["parameters"]):
                     raise SemanticError(f"Local variable '{var_name}' conflicts with a parameter in function '{self.current_function}'")
+                
+                # ---- ADDED CHECK HERE ----
+                # Disallow redeclaring a variable that already exists in the global scope
+                if var_name in self.symbol_table["variables"]:
+                    raise SemanticError(
+                        f"Redeclaration of local variable '{var_name}' in function '{self.current_function}' "
+                    )
+                # --------------------------
+
                 if var_name in self.symbol_table["functions"][self.current_function]["locals"]:
                     raise SemanticError(f"Redeclaration of local variable '{var_name}' in function '{self.current_function}'")
                 self.symbol_table["functions"][self.current_function]["locals"][var_name] = entry
@@ -301,6 +312,9 @@ class SemanticAnalyzer:
                 if param[0] == var_name:
                     return True
             if var_name in self.symbol_table["functions"][self.current_function]["locals"]:
+                return True
+            # Finally, check global variables
+            if var_name in self.symbol_table["variables"]:
                 return True
         else:
             if var_name in self.symbol_table["variables"]:
@@ -388,7 +402,7 @@ class SemanticAnalyzer:
                 if expr_type != 'chika':
                     raise SemanticError(f"Operator '+=' expects type 'chika' for concatenation, got '{expr_type}'")
             else:
-                # For all augmented assignment operators (and += on non-chika types), only numeric/boolean types are allowed.
+                # For all other augmented assignment operators, only numeric/boolean types are allowed.
                 if var_type not in ['anda', 'andamhie', 'eklabool']:
                     raise SemanticError(f"Operator '{op}' cannot be applied to type '{var_type}'")
                 if expr_type not in ['anda', 'andamhie', 'eklabool']:
@@ -803,7 +817,7 @@ class SemanticAnalyzer:
         The loop header may optionally declare a new loop variable. In that case, the variable
         must not already be declared in an enclosing scope. Otherwise, the variable must already exist.
         The expressions for 'from', 'to', and (optionally) 'step' must be numeric (i.e. evaluate to 'anda' or 'andamhie' or eklabool).
-        A new block scope is created for the loop header.
+        A new block scope is created for the loop body.
         """
         self.advance()  # Skip 'forda'
         if not self.current_token() or self.current_token()[1] != '(':
