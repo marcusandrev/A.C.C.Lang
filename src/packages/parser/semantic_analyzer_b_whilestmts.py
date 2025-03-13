@@ -10,7 +10,7 @@ class SemanticAnalyzer:
         # Filter out whitespace, newline, and comment tokens.
         self._token_stream = [t for t in token_stream if t[1] not in ['whitespace', 'newline', 'comment']]
         self.token_index = 0
-        # Stack for block scopes (for conditionals, loops, and other nested blocks)
+        # Stack for block scopes (for conditionals and other nested blocks)
         self.block_scopes = []
 
     def current_token(self):
@@ -37,18 +37,13 @@ class SemanticAnalyzer:
                     self.process_conditional_statement()
                 elif token[1] == 'push':
                     self.process_push_statement()
-                elif token[1] == 'keri':
-                    # Distinguish between while and do-while loops.
-                    if self.next_token() and self.next_token()[1] == 'lang':
-                        self.process_do_while_loop()
-                    else:
-                        self.process_while_loop()
                 elif token[1] == 'id' and self.next_token() and self.next_token()[1] == '(':
                     self.process_function_call()
                 elif token[1] == 'id' and self.next_token() and self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
                     self.process_assignment_statement()
                 elif token[1] == 'serve':
                     self.process_serve_statement()
+                # Allow standalone block statements if needed.
                 elif token[1] == '{':
                     self.process_block()
                 else:
@@ -258,7 +253,7 @@ class SemanticAnalyzer:
         if is_array:
             entry["dimensions"] = dimensions
 
-        # If inside a block (e.g. a conditional or loop block), check the entire chain of enclosing scopes.
+        # If inside a block (e.g. a conditional block), check the entire chain of enclosing scopes.
         if self.block_scopes:
             if self.variable_exists_in_enclosing_scopes(var_name):
                 raise SemanticError(f"Redeclaration of variable '{var_name}' in block scope is not allowed")
@@ -484,11 +479,6 @@ class SemanticAnalyzer:
                 self.process_serve_statement()
             elif token[1] == 'push':
                 self.process_push_statement()
-            elif token[1] == 'keri':
-                if self.next_token() and self.next_token()[1] == 'lang':
-                    self.process_do_while_loop()
-                else:
-                    self.process_while_loop()
             elif token[1] == 'id' and self.next_token() and self.next_token()[1] == '(':
                 self.process_function_call()
             elif token[1] == 'id' and self.next_token() and self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
@@ -551,54 +541,6 @@ class SemanticAnalyzer:
                 # Else branch (no condition).
                 self.process_block()  # Process the else block.
                 break
-
-    # --- New methods for loop constructs ---
-
-    def process_while_loop(self):
-        """
-        Processes a while loop in the form:
-            keri ( condition ) { ... }
-        The condition expression can be of any type. A new block scope is created for the loop body.
-        """
-        # Current token is 'keri'
-        self.advance()  # Skip 'keri'
-        if not self.current_token() or self.current_token()[1] != '(':
-            raise SemanticError("Expected '(' after 'keri' for while loop condition")
-        self.advance()  # Skip '('
-        # Evaluate the condition (any type is allowed)
-        self.evaluate_expression()
-        if not self.current_token() or self.current_token()[1] != ')':
-            raise SemanticError("Expected ')' after while loop condition")
-        self.advance()  # Skip ')'
-        if not self.current_token() or self.current_token()[1] != '{':
-            raise SemanticError("Expected '{' to start while loop block")
-        self.process_block()  # The block creates its own scope
-
-    def process_do_while_loop(self):
-        """
-        Processes a do-while loop in the form:
-            keri lang { ... } keri ( condition )
-        Here, 'keri lang' together represent the 'do' keyword. The loop body is processed first (in its own block scope)
-        and then the condition is evaluated.
-        """
-        # Current token is 'keri' and the next token should be 'lang'
-        self.advance()  # Skip 'keri'
-        if not self.current_token() or self.current_token()[1] != 'lang':
-            raise SemanticError("Expected 'lang' after 'keri' for do-while loop")
-        self.advance()  # Skip 'lang'
-        if not self.current_token() or self.current_token()[1] != '{':
-            raise SemanticError("Expected '{' to start do-while loop block")
-        self.process_block()  # Process the loop body block with its own scope
-        if not self.current_token() or self.current_token()[1] != 'keri':
-            raise SemanticError("Expected 'keri' after do-while loop block for loop condition")
-        self.advance()  # Skip 'keri'
-        if not self.current_token() or self.current_token()[1] != '(':
-            raise SemanticError("Expected '(' after 'keri' in do-while loop condition")
-        self.advance()  # Skip '('
-        self.evaluate_expression()  # Evaluate loop condition
-        if not self.current_token() or self.current_token()[1] != ')':
-            raise SemanticError("Expected ')' after do-while loop condition")
-        self.advance()  # Skip ')'
 
     # --- Expression Type Checking Methods ---
     def evaluate_expression(self):

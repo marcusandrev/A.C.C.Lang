@@ -10,8 +10,6 @@ class SemanticAnalyzer:
         # Filter out whitespace, newline, and comment tokens.
         self._token_stream = [t for t in token_stream if t[1] not in ['whitespace', 'newline', 'comment']]
         self.token_index = 0
-        # Stack for block scopes (for conditionals, loops, and other nested blocks)
-        self.block_scopes = []
 
     def current_token(self):
         if 0 <= self.token_index < len(self._token_stream):
@@ -33,24 +31,17 @@ class SemanticAnalyzer:
                 token = self.current_token()
                 if token[1] in ['naur', 'anda', 'andamhie', 'chika', 'eklabool', 'shimenet']:
                     self.handle_declaration()
-                elif token[1] == 'pak':
-                    self.process_conditional_statement()
                 elif token[1] == 'push':
+                    # push in global scope is not allowed.
                     self.process_push_statement()
-                elif token[1] == 'keri':
-                    # Distinguish between while and do-while loops.
-                    if self.next_token() and self.next_token()[1] == 'lang':
-                        self.process_do_while_loop()
-                    else:
-                        self.process_while_loop()
+                # Detect function calls: identifier followed by '('
                 elif token[1] == 'id' and self.next_token() and self.next_token()[1] == '(':
                     self.process_function_call()
+                # Process assignment statements: identifier followed by an assignment operator
                 elif token[1] == 'id' and self.next_token() and self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
                     self.process_assignment_statement()
-                elif token[1] == 'serve':
+                elif token[1] == 'serve':  
                     self.process_serve_statement()
-                elif token[1] == '{':
-                    self.process_block()
                 else:
                     self.advance()
             self.finalize_functions()
@@ -249,48 +240,32 @@ class SemanticAnalyzer:
         self.register_variable(data_type, var_name, is_constant, initializer_value, is_array, dimensions)
 
     def register_variable(self, var_type, var_name, is_constant, initializer_value, is_array=False, dimensions=None):
-        entry = {
-            "data_type": var_type,
-            "value": initializer_value,
-            "naur_flag": is_constant,
-            "is_array": is_array
-        }
         if is_array:
-            entry["dimensions"] = dimensions
-
-        # If inside a block (e.g. a conditional or loop block), check the entire chain of enclosing scopes.
-        if self.block_scopes:
-            if self.variable_exists_in_enclosing_scopes(var_name):
-                raise SemanticError(f"Redeclaration of variable '{var_name}' in block scope is not allowed")
-            self.block_scopes[-1][var_name] = entry
+            entry = {
+                "data_type": var_type,
+                "value": initializer_value,
+                "naur_flag": is_constant,
+                "is_array": True,
+                "dimensions": dimensions
+            }
         else:
-            if self.current_function is None:
-                if var_name in self.symbol_table["variables"]:
-                    raise SemanticError(f"Redeclaration of global variable '{var_name}'")
-                self.symbol_table["variables"][var_name] = entry
-            else:
-                if any(param[0] == var_name for param in self.symbol_table["functions"][self.current_function]["parameters"]):
-                    raise SemanticError(f"Local variable '{var_name}' conflicts with a parameter in function '{self.current_function}'")
-                if var_name in self.symbol_table["functions"][self.current_function]["locals"]:
-                    raise SemanticError(f"Redeclaration of local variable '{var_name}' in function '{self.current_function}'")
-                self.symbol_table["functions"][self.current_function]["locals"][var_name] = entry
-
-    def variable_exists_in_enclosing_scopes(self, var_name):
-        # Check any active block scopes.
-        for scope in self.block_scopes:
-            if var_name in scope:
-                return True
-        # Check function parameters and locals if in a function.
-        if self.current_function is not None:
-            for param in self.symbol_table["functions"][self.current_function]["parameters"]:
-                if param[0] == var_name:
-                    return True
-            if var_name in self.symbol_table["functions"][self.current_function]["locals"]:
-                return True
-        else:
+            entry = {
+                "data_type": var_type,
+                "value": initializer_value,
+                "naur_flag": is_constant,
+                "is_array": False
+            }
+        if self.current_function is None:
             if var_name in self.symbol_table["variables"]:
-                return True
-        return False
+                raise SemanticError(f"Redeclaration of global variable '{var_name}'")
+            self.symbol_table["variables"][var_name] = entry
+        else:
+            params = self.symbol_table["functions"][self.current_function]["parameters"]
+            if any(param[0] == var_name for param in params):
+                raise SemanticError(f"Local variable '{var_name}' conflicts with a parameter in function '{self.current_function}'")
+            if var_name in self.symbol_table["functions"][self.current_function]["locals"]:
+                raise SemanticError(f"Redeclaration of local variable '{var_name}' in function '{self.current_function}'")
+            self.symbol_table["functions"][self.current_function]["locals"][var_name] = entry
 
     def process_assignment_statement(self):
         # Process an assignment statement: identifier assignment_operator expression ';'
@@ -324,21 +299,14 @@ class SemanticAnalyzer:
         declared = False
         entry = None
         if self.current_function is not None:
-            # Look in the active block scopes (if any) first.
-            for scope in reversed(self.block_scopes):
-                if ident in scope:
-                    declared = True
-                    entry = scope[ident]
-                    break
-            if not declared:
-                if ident in self.symbol_table["functions"][self.current_function]["locals"]:
-                    declared = True
-                    entry = self.symbol_table["functions"][self.current_function]["locals"][ident]
-                elif any(param[0] == ident for param in self.symbol_table["functions"][self.current_function]["parameters"]):
-                    raise SemanticError(f"Assignment to immutable parameter '{ident}' is not allowed")
-                elif ident in self.symbol_table["variables"]:
-                    declared = True
-                    entry = self.symbol_table["variables"][ident]
+            if ident in self.symbol_table["functions"][self.current_function]["locals"]:
+                declared = True
+                entry = self.symbol_table["functions"][self.current_function]["locals"][ident]
+            elif any(param[0] == ident for param in self.symbol_table["functions"][self.current_function]["parameters"]):
+                raise SemanticError(f"Assignment to immutable parameter '{ident}' is not allowed")
+            elif ident in self.symbol_table["variables"]:
+                declared = True
+                entry = self.symbol_table["variables"][ident]
         else:
             if ident in self.symbol_table["variables"]:
                 declared = True
@@ -443,164 +411,47 @@ class SemanticAnalyzer:
                 raise SemanticError(f"Function '{func_name}' already defined, cannot declare as prototype")
             func_entry["defined"] = False
             self.advance()  # Skip ';'
-        elif self.current_token() and self.current_token()[1] == '{':
+        elif self.current_token()[1] == '{':
             self.advance()  # Skip '{'
             self.current_function = func_name
             func_entry["defined"] = True
+            # Initialize a flag to track if a return statement (push) is encountered.
             func_entry["has_return"] = False
-            # Process function body statements until the matching '}'
-            self.process_statements('}')
-            if not self.current_token() or self.current_token()[1] != '}':
-                raise SemanticError("Expected '}' at end of function body")
-            self.advance()  # Skip '}'
+            brace_depth = 1
+            while self.current_token() and brace_depth > 0:
+                token = self.current_token()
+                if token[1] == '{':
+                    brace_depth += 1
+                    self.advance()
+                elif token[1] == '}':
+                    brace_depth -= 1
+                    self.advance()
+                elif token[1] in ['naur', 'anda', 'andamhie', 'chika', 'eklabool', 'shimenet']:
+                    self.handle_declaration()
+                elif token[1] == 'serve':  
+                    self.process_serve_statement()
+                elif token[1] == 'push':
+                    self.process_push_statement()
+                elif token[1] == 'id':
+                    if self.next_token() and self.next_token()[1] == '(':
+                        self.process_function_call()
+                    elif self.next_token() and self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
+                        self.process_assignment_statement()
+                    else:
+                        self.advance()
+                else:
+                    self.advance()
+            if brace_depth != 0:
+                raise SemanticError("Unmatched '{' in function body")
+            # For non-void functions, ensure at least one push statement was encountered.
             if func_entry["return_type"] != "shimenet" and not func_entry.get("has_return", False):
                 raise SemanticError(f"Function '{func_name}' with return type '{func_entry['return_type']}' must return a value")
             self.current_function = None
         else:
             raise SemanticError("Expected ';' or '{' after function parameter list")
 
-    # --- New methods for block scoping and conditionals ---
-
-    def enter_block_scope(self):
-        self.block_scopes.append({})
-
-    def exit_block_scope(self):
-        self.block_scopes.pop()
-
-    def process_statements(self, terminator):
-        """
-        Processes statements until a token with value equal to terminator is encountered.
-        If terminator is None, processes until end of token stream.
-        """
-        while self.current_token() and (terminator is None or self.current_token()[1] != terminator):
-            token = self.current_token()
-            if token[1] == '{':
-                self.process_block()
-            elif token[1] in ['naur', 'anda', 'andamhie', 'chika', 'eklabool', 'shimenet']:
-                self.handle_declaration()
-            elif token[1] == 'pak':
-                self.process_conditional_statement()
-            elif token[1] == 'serve':
-                self.process_serve_statement()
-            elif token[1] == 'push':
-                self.process_push_statement()
-            elif token[1] == 'keri':
-                if self.next_token() and self.next_token()[1] == 'lang':
-                    self.process_do_while_loop()
-                else:
-                    self.process_while_loop()
-            elif token[1] == 'id' and self.next_token() and self.next_token()[1] == '(':
-                self.process_function_call()
-            elif token[1] == 'id' and self.next_token() and self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
-                self.process_assignment_statement()
-            else:
-                self.advance()
-
-    def process_block(self):
-        """
-        Processes a block delimited by '{' and '}'.
-        Pushes a new block scope, processes the statements in the block, and pops the scope.
-        """
-        if not self.current_token() or self.current_token()[1] != '{':
-            raise SemanticError("Expected '{' to start block")
-        self.advance()  # Skip '{'
-        self.enter_block_scope()
-        self.process_statements('}')
-        if not self.current_token() or self.current_token()[1] != '}':
-            raise SemanticError("Expected '}' to end block")
-        self.advance()  # Skip '}'
-        self.exit_block_scope()
-
-    def process_conditional_statement(self):
-        """
-        Processes a conditional statement with support for:
-            - if (pak)
-            - else if (ganern pak)
-            - else (ganern)
-        Each block inside the conditional gets its own scope.
-        The condition expression is evaluated (without enforcing a specific type).
-        """
-        # Process the initial if clause.
-        if not self.current_token() or self.current_token()[1] != 'pak':
-            raise SemanticError("Expected 'pak' for if statement")
-        self.advance()  # Skip 'pak'
-        if not self.current_token() or self.current_token()[1] != '(':
-            raise SemanticError("Expected '(' after 'pak'")
-        self.advance()  # Skip '('
-        self.evaluate_expression()  # Evaluate condition (any type allowed)
-        if not self.current_token() or self.current_token()[1] != ')':
-            raise SemanticError("Expected ')' after condition in 'pak'")
-        self.advance()  # Skip ')'
-        self.process_block()  # Process the if block
-
-        # Process optional else if and else clauses.
-        while self.current_token() and self.current_token()[1] == 'ganern':
-            self.advance()  # Skip 'ganern'
-            if self.current_token() and self.current_token()[1] == 'pak':
-                # Else if branch.
-                self.advance()  # Skip 'pak'
-                if not self.current_token() or self.current_token()[1] != '(':
-                    raise SemanticError("Expected '(' after 'ganern pak'")
-                self.advance()  # Skip '('
-                self.evaluate_expression()  # Evaluate condition
-                if not self.current_token() or self.current_token()[1] != ')':
-                    raise SemanticError("Expected ')' after condition in 'ganern pak'")
-                self.advance()  # Skip ')'
-                self.process_block()  # Process the else-if block.
-            else:
-                # Else branch (no condition).
-                self.process_block()  # Process the else block.
-                break
-
-    # --- New methods for loop constructs ---
-
-    def process_while_loop(self):
-        """
-        Processes a while loop in the form:
-            keri ( condition ) { ... }
-        The condition expression can be of any type. A new block scope is created for the loop body.
-        """
-        # Current token is 'keri'
-        self.advance()  # Skip 'keri'
-        if not self.current_token() or self.current_token()[1] != '(':
-            raise SemanticError("Expected '(' after 'keri' for while loop condition")
-        self.advance()  # Skip '('
-        # Evaluate the condition (any type is allowed)
-        self.evaluate_expression()
-        if not self.current_token() or self.current_token()[1] != ')':
-            raise SemanticError("Expected ')' after while loop condition")
-        self.advance()  # Skip ')'
-        if not self.current_token() or self.current_token()[1] != '{':
-            raise SemanticError("Expected '{' to start while loop block")
-        self.process_block()  # The block creates its own scope
-
-    def process_do_while_loop(self):
-        """
-        Processes a do-while loop in the form:
-            keri lang { ... } keri ( condition )
-        Here, 'keri lang' together represent the 'do' keyword. The loop body is processed first (in its own block scope)
-        and then the condition is evaluated.
-        """
-        # Current token is 'keri' and the next token should be 'lang'
-        self.advance()  # Skip 'keri'
-        if not self.current_token() or self.current_token()[1] != 'lang':
-            raise SemanticError("Expected 'lang' after 'keri' for do-while loop")
-        self.advance()  # Skip 'lang'
-        if not self.current_token() or self.current_token()[1] != '{':
-            raise SemanticError("Expected '{' to start do-while loop block")
-        self.process_block()  # Process the loop body block with its own scope
-        if not self.current_token() or self.current_token()[1] != 'keri':
-            raise SemanticError("Expected 'keri' after do-while loop block for loop condition")
-        self.advance()  # Skip 'keri'
-        if not self.current_token() or self.current_token()[1] != '(':
-            raise SemanticError("Expected '(' after 'keri' in do-while loop condition")
-        self.advance()  # Skip '('
-        self.evaluate_expression()  # Evaluate loop condition
-        if not self.current_token() or self.current_token()[1] != ')':
-            raise SemanticError("Expected ')' after do-while loop condition")
-        self.advance()  # Skip ')'
-
     # --- Expression Type Checking Methods ---
+
     def evaluate_expression(self):
         """
         Entry point for expression type-checking.
@@ -689,16 +540,10 @@ class SemanticAnalyzer:
                 var_name = operand_token[0]
                 var_entry = None
                 if self.current_function:
-                    # Check in block scopes first.
-                    for scope in reversed(self.block_scopes):
-                        if var_name in scope:
-                            var_entry = scope[var_name]
-                            break
-                    if not var_entry:
-                        if var_name in self.symbol_table["functions"][self.current_function]["locals"]:
-                            var_entry = self.symbol_table["functions"][self.current_function]["locals"][var_name]
-                        elif any(param[0] == var_name for param in self.symbol_table["functions"][self.current_function]["parameters"]):
-                            raise SemanticError(f"Operator '{op}' cannot be applied to immutable parameter '{var_name}'")
+                    if var_name in self.symbol_table["functions"][self.current_function]["locals"]:
+                        var_entry = self.symbol_table["functions"][self.current_function]["locals"][var_name]
+                    elif any(param[0] == var_name for param in self.symbol_table["functions"][self.current_function]["parameters"]):
+                        raise SemanticError(f"Operator '{op}' cannot be applied to immutable parameter '{var_name}'")
                 else:
                     if var_name in self.symbol_table["variables"]:
                         var_entry = self.symbol_table["variables"][var_name]
@@ -789,23 +634,18 @@ class SemanticAnalyzer:
                 if not self.current_token() or self.current_token()[1] != ']':
                     raise SemanticError("Missing ']' in array access")
                 self.advance()  # Skip ']'
-            # Lookup variable: check block scopes (if any), then local function scope, then global.
+            # Lookup variable: check local scope, then parameters, then global scope.
             var_entry = None
             if self.current_function:
-                for scope in reversed(self.block_scopes):
-                    if var_name in scope:
-                        var_entry = scope[var_name]
-                        break
-                if not var_entry:
-                    if var_name in self.symbol_table["functions"][self.current_function]["locals"]:
-                        var_entry = self.symbol_table["functions"][self.current_function]["locals"][var_name]
-                    else:
-                        for param in self.symbol_table["functions"][self.current_function]["parameters"]:
-                            if param[0] == var_name:
-                                var_entry = {"data_type": param[1]}
-                                break
-                        if not var_entry and var_name in self.symbol_table["variables"]:
-                            var_entry = self.symbol_table["variables"][var_name]
+                if var_name in self.symbol_table["functions"][self.current_function]["locals"]:
+                    var_entry = self.symbol_table["functions"][self.current_function]["locals"][var_name]
+                else:
+                    for param in self.symbol_table["functions"][self.current_function]["parameters"]:
+                        if param[0] == var_name:
+                            var_entry = {"data_type": param[1]}
+                            break
+                    if not var_entry and var_name in self.symbol_table["variables"]:
+                        var_entry = self.symbol_table["variables"][var_name]
             else:
                 if var_name in self.symbol_table["variables"]:
                     var_entry = self.symbol_table["variables"][var_name]

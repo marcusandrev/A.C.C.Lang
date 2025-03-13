@@ -1,7 +1,10 @@
-anda sum(anda x, anda y) {
-    push x + y;
-}
-
 shimenet kween () {
-    push;
+    anda boom = 95;
+    keri (5 > 2) {
+        anda grade = 99;
+    }
+
+    keri lang {
+        anda boom = 95;
+    } keri (5 > 2)
 }
