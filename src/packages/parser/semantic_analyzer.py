@@ -112,7 +112,7 @@ class SemanticAnalyzer:
     def finalize_functions(self):
         for func_name, func_entry in self.symbol_table["functions"].items():
             if not func_entry.get("defined", False):
-                self.log += str(SemanticError(f"Function '{func_name}' declared but not defined", self._token_stream[self.token_index][1][0])) + '\n'
+                self.log += str(SemanticError(f"Function '{func_name}' declared but not defined")) + '\n'
 
     def process_initializer(self, var_type):
         # Evaluate the full expression.

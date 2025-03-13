@@ -1,12 +1,2 @@
-anda grades;
-
-anda sum (anda x, anda y);
-
-andamhie get_average(andamhie grade1, andamhie grade2) {
-     push "hello";
-}
-
-shimenet kween() {
-     anda grade = get_average("hehe");
-
-}
+anda sum ();
+shimenet kween() {}
