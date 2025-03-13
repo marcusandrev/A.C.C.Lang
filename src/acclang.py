@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, jsonify
 import os
 from src.packages.lexer.lexer import Lexer
 from src.packages.parser.parser import Parser
+from src.packages.parser.semantic_analyzer import SemanticAnalyzer
 
 app = Flask(__name__)
 
@@ -30,7 +31,14 @@ def lex():
     if len(error_log) <= 0: # Only run parser if there is no lexical error
         parser = Parser(source_code, token_stream)
         parser.start()
-        error_log += parser.log
+        error_log = parser.log
+
+        if len(error_log) <= 0: # Only run semantic if there is no syntax error
+            analyzer = SemanticAnalyzer(lex.token_stream)
+            analyzer.analyze()
+            error_log = analyzer.log
+            print(analyzer.symbol_table)
+            print(error_log)
 
     return jsonify({'token_stream': token_stream, 'error_log': error_log})
 

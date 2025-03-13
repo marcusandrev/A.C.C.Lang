@@ -1,7 +1,7 @@
-anda grades = 99;
 shimenet kween() {
-    pak(korik) {
-        anda grades = 99, grades;
-        anda grades = 99, grades;
-    }
+    get_average();
+}
+
+andamhie get_average(andamhie grade1, andamhie grade2) {
+     push "hello";
 }
