@@ -1088,7 +1088,9 @@ class SemanticAnalyzer:
                             raise SemanticError(f"Argument {i+1} of '{var_name}' expects type 'chika', got '{arg_type}'")
                 return func_entry["return_type"]
             # Process array access if present.
+            array_accessed = False
             while self.current_token() and self.current_token()[1] == '[':
+                array_accessed = True
                 self.advance()  # Skip '['
                 index_type = self.evaluate_expression()
                 if index_type not in ['anda', 'andamhie', 'eklabool', 'givenchy']:
@@ -1118,6 +1120,10 @@ class SemanticAnalyzer:
                     var_entry = self.symbol_table["variables"][var_name]
             if not var_entry:
                 raise SemanticError(f"Undeclared variable '{var_name}'")
+            
+            # NEW: Disallow direct usage of array variables in expressions.
+            if var_entry.get("is_array", False) and not array_accessed:
+                raise SemanticError(f"Array variable '{var_name}' cannot be used directly in expressions; use an element access")
             
             # --- Added support for postfix operators: ++ and -- 
             while self.current_token() and self.current_token()[1] in ['++', '--']:
