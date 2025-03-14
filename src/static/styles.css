@@ -8,7 +8,7 @@ body {
   margin: 0;
   padding: 0;
   background: linear-gradient(180deg, #f8f8f8 0%, #e1e1e1 100%);
-  transition: background 0.5s ease; 
+  transition: background 0.5s ease, color 0.5s ease; 
 }
 
 body.dark-mode {
@@ -27,7 +27,7 @@ body.dark-mode .main-right-container {
 body.dark-mode .editor-tab,
 body.dark-mode .compiler-log-tab,
 body.dark-mode .table-tab {
-  background-color: #1B2331;
+  background-color: #282a36; /* Changed from #1B2331 to #282a36 */
   color: white;
   transition: background-color 0.5s ease, color 0.5s ease; 
 }
@@ -36,7 +36,7 @@ body.dark-mode .editor,
 body.dark-mode .line-numbers,
 body.dark-mode .compiler-log,
 body.dark-mode .table-container {
-  background-color: #1B2331;
+  background-color: #282a36; /* Changed from #1B2331 to #282a36 */
   color: white;
   transition: background-color 0.5s ease, color 0.5s ease; 
 }
@@ -511,18 +511,20 @@ body .table-wrapper th {
   border-radius: 10px;
   padding-top: 10px;
   padding-bottom: 20px;
+  padding-left: 20px; /* Add padding to create space */
+  padding-right: 20px; /* Add padding to create space */
   display: flex;
   flex-direction: column;
   box-shadow: 0px 4px 8px white inset, 0px 8px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #ddd;
   height: calc(60vh - 100px); 
   overflow-y: auto; 
-}
+  }
 
 .editor-tab {
   margin-right: 15px;
   background-color: #ffff;
-  margin-left: 25px;
+  margin-left: 0; /* Align to the left side of the editor */
   border-radius: 5px 5px 0 0;
   width: 100px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -675,7 +677,9 @@ body .table-wrapper th {
 
 .table-wrapper tr:nth-child(even) {
   background-color: #f1f0eb;
+  transition: background-color 0.5s ease; 
 }
 .table-wrapper tr:nth-child(odd) {
   background-color: #ffffff;
+  transition: background-color 0.5s ease; 
 }
