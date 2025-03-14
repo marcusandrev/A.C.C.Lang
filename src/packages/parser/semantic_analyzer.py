@@ -65,49 +65,46 @@ class SemanticAnalyzer:
             return False
 
     def process_push_statement(self):
-        # Check that push is inside a function body.
         if self.current_function is None:
-            self.log += str(SemanticError("Return statement 'push' is only allowed inside function bodies", self._token_stream[self.token_index][1][0])) + '\n'
-        
-        # Get the current function's entry to know its return type.
+            error_token = self._token_stream[self.token_index]  # Capture the current token's position
+            self.log += str(SemanticError("Return statement 'push' is only allowed inside function bodies", error_token[1][0])) + '\n'
+
         func_entry = self.symbol_table["functions"][self.current_function]
         declared_return_type = func_entry["return_type"]
         self.advance()  # Skip 'push'
         
-        # Check if there is an expression following push.
+        # Capture token position for error reporting BEFORE advancing further
+        push_token_pos = self._token_stream[self.token_index][1][0] if self.token_index < len(self._token_stream) else -1
+        
         if self.current_token() and self.current_token()[1] != ';':
-            # Evaluate the expression for the returned value.
             expr_type = self.evaluate_expression()
+            
             if not self.current_token() or self.current_token()[1] != ';':
-                self.log += str(SemanticError("Missing semicolon after return expression", self._token_stream[self.token_index][1][0])) + '\n'
-            self.advance()  # Skip ';'
+                self.log += str(SemanticError("Missing semicolon after return expression", push_token_pos)) + '\n'
+            self.advance()
             
-            # For void functions, push must not return a value.
             if declared_return_type == 'shimenet':
-                self.log += str(SemanticError("Function with return type 'shimenet' must not return a value", self._token_stream[self.token_index][1][0])) + '\n'
-            
-            # Mark that a valid return statement has been encountered.
+                self.log += str(SemanticError("Function with return type 'shimenet' must not return a value", push_token_pos)) + '\n'
+
             func_entry["has_return"] = True
 
-            # Type compatibility checks similar to function call argument validation.
             if declared_return_type in ['anda', 'andamhie']:
                 if expr_type not in ['anda', 'andamhie', 'eklabool']:
-                    self.log += str(SemanticError(f"Return value type '{expr_type}' is not compatible with function return type '{declared_return_type}'", self._token_stream[self.token_index][1][0])) + '\n'
+                    self.log += str(SemanticError(f"Return value type '{expr_type}' is not compatible with function return type '{declared_return_type}'", push_token_pos)) + '\n'
             elif declared_return_type == 'eklabool':
                 if expr_type not in ['eklabool', 'anda', 'andamhie', 'chika']:
-                    self.log += str(SemanticError(f"Return value type '{expr_type}' is not compatible with function return type 'eklabool'", self._token_stream[self.token_index][1][0])) + '\n'
+                    self.log += str(SemanticError(f"Return value type '{expr_type}' is not compatible with function return type 'eklabool'", push_token_pos)) + '\n'
             elif declared_return_type == 'chika':
                 if expr_type != 'chika':
-                    self.log += str(SemanticError(f"Return value type '{expr_type}' is not compatible with function return type 'chika'", self._token_stream[self.token_index][1][0])) + '\n'
+                    self.log += str(SemanticError(f"Return value type '{expr_type}' is not compatible with function return type 'chika'", push_token_pos)) + '\n'
         else:
-            # No expression after push.
             if declared_return_type != 'shimenet':
-                self.log += str(SemanticError(f"Function '{self.current_function}' with return type '{declared_return_type}' must return a value", self._token_stream[self.token_index][1][0])) + '\n'
+                self.log += str(SemanticError(f"Function '{self.current_function}' with return type '{declared_return_type}' must return a value", push_token_pos)) + '\n'
             if not self.current_token() or self.current_token()[1] != ';':
-                self.log += str(SemanticError("Missing semicolon after 'push'", self._token_stream[self.token_index][1][0])) + '\n'
-            self.advance()  # Skip ';'
-            # Mark that a (void) return has been encountered.
+                self.log += str(SemanticError("Missing semicolon after 'push'", push_token_pos)) + '\n'
+            self.advance()
             func_entry["has_return"] = True
+
 
     def finalize_functions(self):
         for func_name, func_entry in self.symbol_table["functions"].items():
