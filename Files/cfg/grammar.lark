@@ -1,0 +1,162 @@
+%import common.WS
+%ignore WS
+%ignore "/^" /(.|\n)*?(?=\^\/)/ "^/" | "/^" /(.|\n)*/
+
+start: program
+NAUR: "naur"
+SHIMENET: "shimenet"
+ANDA: "anda"
+ANDAMHIE: "andamhie"
+CHIKA: "chika"
+EKLABOOL: "eklabool"
+KORIK: "korik"
+EME: "eme"
+GIVENCHY: "givenchy"
+SERVE: "serve"
+PAK: "pak"
+GANERN: "ganern"
+VERSA: "versa"
+BETSUNG: "betsung"
+DITECH: "ditech"
+FORDA: "forda"
+KERI: "keri"
+LANG: "lang"
+AMACCANA: "amaccana"
+GOGOGO: "gogogo"
+KWEEN: "kween"
+PUSH: "push"
+FROM: "from"
+TO: "to"
+STEP: "step"
+COLON: ":"
+COMMA: ","
+SEMICOLON: ";"
+LPAR: "("
+RPAR: ")"
+LBRACE: "{"
+RBRACE: "}"
+LSQB: "["
+RSQB: "]"
+PLUS_EQUAL: "+="
+MINUS_EQUAL: "-="
+MODULO_EQUAL: "%="
+DIVIDE_EQUAL: "/="
+FLOOR_EQUAL: "//="
+TIMES_EQUAL: "*="
+EXPONENTIATE_EQUAL: "**="
+EXPONENTIATE: "**"
+FLOOR: "//"
+GREATER_EQUAL: ">="
+LESS_EQUAL: "<="
+EQUAL_EQUAL: "=="
+NOT_EQUAL: "!="
+AND: "&&"
+OR: "||"
+NOT: "!"
+MINUS_MINUS: "--"
+PLUS_PLUS: "++"
+MINUS: "-"
+PLUS: "+"
+MODULO: "%"
+DIVIDE: "/"
+TIMES: "*"
+GREATER_THAN: ">"
+LESS_THAN: "<"
+EQUAL: "="
+ID: /(?!(eklabool|anda|andamhie|chika|givenchy|serve|pak|ganern|versa|betsung|ditech|forda|keri|lang|amaccana|gogogo|kween|shimenet|push|korik|eme|naur|from|to|step))/ /[a-zA-Z][a-zA-Z0-9_]{0,19}/
+ANDA_LITERAL: /[0-9]+/
+ANDAMHIE_LITERAL: /[0-9]+\.[0-9]+/
+CHIKA_LITERAL: /"([^"\\]|\\.)*"/
+program: global_dec func_def SHIMENET KWEEN LPAR RPAR LBRACE kween_body RBRACE func_def 
+global_dec: var_dec_init global_dec  |  
+var_dec_init: naur_case data_type var_init SEMICOLON  | data_type ID func_array_init_tail SEMICOLON  | SHIMENET ID func_case SEMICOLON  |  
+naur_case: NAUR  |  
+return_type: data_type  | SHIMENET 
+data_type: ANDA  | ANDAMHIE  | CHIKA  | EKLABOOL 
+func_array_init_tail: func_case  | array_case array_init 
+func_case: LPAR parameters RPAR 
+parameters: func_parameters multi_parameters  |  
+func_parameters: data_type ID 
+multi_parameters: COMMA func_parameters multi_parameters  |  
+array_case: LSQB array_values RSQB twod_index  |  
+twod_index: LSQB array_values RSQB threed_index  |  
+threed_index: LSQB array_values RSQB  |  
+array_values: expression 
+literals: ANDA_LITERAL  | ANDAMHIE_LITERAL  | CHIKA_LITERAL  | eklabool 
+eklabool: KORIK  | EME 
+func_array: func_array_value  |  
+func_array_value: LPAR arguments RPAR  | array_case 
+var_init: ID var_init_tail multi_init_values 
+var_init_tail: EQUAL init_values  |  
+multi_init_values: COMMA ID multi_init_values_tail multi_init_values  |  
+multi_init_values_tail: EQUAL init_values  |  
+init_values: expression 
+array_init: EQUAL LBRACE array_elements RBRACE  |  
+array_elements: array_values extra_array_value  | LBRACE twod_array_elements RBRACE extra_twod_array_value 
+twod_array_elements: array_values extra_array_value  | LBRACE array_values extra_array_value RBRACE extra_twod_array_value  |  
+extra_array_value: COMMA array_values extra_array_value  |  
+extra_twod_array_value: COMMA LBRACE extra_threed_array_value RBRACE extra_twod_array_value  |  
+extra_threed_array_value: array_values extra_array_value  | LBRACE array_values extra_array_value RBRACE extra_twod_array_value  |  
+func_def: return_type ID LPAR parameters RPAR LBRACE func_body RBRACE func_def  |  
+func_body: local_dec statements  |  
+local_dec: local_dec_init array_assign local_dec  |  
+local_dec_init: naur_case data_type var_init SEMICOLON  | data_type ID array_case array_init SEMICOLON 
+arguments: arguments_value multi_arguments_value  |  
+multi_arguments_value: COMMA arguments_value multi_arguments_value  |  
+arguments_value: expression 
+array_assign: ID array_case EQUAL array_values SEMICOLON  |  
+kween_body: func_body 
+expression: simple_expression  | multi_expression 
+simple_expression: expression_operands expression_tail 
+multi_expression: LPAR expression RPAR expression_tail 
+expression_tail: general_operators expression_operands expression_tail  |  
+expression_operands: negative_not_value expression_value 
+negative_not_value: MINUS  | NOT  |  
+expression_value: unary_operator ID  | ID identifier_tail  | general_operands  | LPAR expression RPAR 
+identifier_tail: func_array  | unary_operator  |  
+unary_operator: MINUS_MINUS  | PLUS_PLUS 
+general_operands: literals 
+general_operators: PLUS  | MINUS  | MODULO  | DIVIDE  | TIMES  | EXPONENTIATE  | FLOOR  | GREATER_THAN  | LESS_THAN  | GREATER_EQUAL  | LESS_EQUAL  | EQUAL_EQUAL  | NOT_EQUAL  | AND  | OR 
+statements: ID assign_call_stmts statements  | input_stmts statements  | output_stmts statements  | conditional_stmts statements  | loop_stmts statements  | switch_stmts statements  | return_stmts statements  | unary_stmts statements  |  
+loop_body: ID assign_call_stmts statements  | input_stmts loop_body  | output_stmts loop_body  | loop_stmts loop_body  | loop_conditional_stmts loop_body  | loop_switch_stmts loop_body  | return_stmts loop_body  | unary_stmts loop_body  | control_flow_stmts loop_body  |  
+multi_loop_body: loop_body multi_loop_body  |  
+assign_call_stmts: array_case assignment_operators assignment_values SEMICOLON  | LPAR arguments RPAR SEMICOLON 
+assignment_operators: EQUAL  | PLUS_EQUAL  | MINUS_EQUAL  | MODULO_EQUAL  | DIVIDE_EQUAL  | FLOOR_EQUAL  | TIMES_EQUAL  | EXPONENTIATE_EQUAL 
+assignment_values: expression 
+input_stmts: input_type ID EQUAL GIVENCHY LPAR givenchy_values RPAR SEMICOLON 
+input_type: data_type  |  
+givenchy_values: expression_operands 
+output_stmts: SERVE LPAR output_values RPAR SEMICOLON 
+output_values: expression 
+conditional_stmts: PAK LPAR condition RPAR LBRACE conditional_body RBRACE ganern_pak_statement ganern_case 
+condition: expression 
+conditional_body: local_dec statements  |  
+loop_conditional_stmts: PAK LPAR condition RPAR LBRACE loop_conditional_body RBRACE ganern_pak_statement ganern_case 
+loop_conditional_body: local_dec loop_body multi_loop_body  |  
+ganern_pak_statement: GANERN PAK LPAR condition RPAR LBRACE conditional_body RBRACE ganern_pak_statement  |  
+ganern_case: GANERN LBRACE conditional_body RBRACE  |  
+loop_stmts: forda_statement  | keri_statement 
+forda_statement: FORDA LPAR loop_type_init ID FROM start_value TO end_value step_case RPAR LBRACE for_loop_body RBRACE 
+loop_type_init: data_type  |  
+start_value: loop_conditions 
+end_value: loop_conditions 
+step_case: STEP update  |  
+update: expression  |  
+loop_conditions: expression 
+for_loop_body: local_dec loop_body multi_loop_body  |  
+keri_statement: KERI keri_case 
+keri_case: LPAR condition RPAR LBRACE while_loop_body RBRACE  | LANG LBRACE while_loop_body RBRACE KERI LPAR condition RPAR 
+while_loop_body: local_dec loop_body multi_loop_body  |  
+switch_stmts: VERSA LPAR switch_values RPAR LBRACE BETSUNG switch_values COLON switch_statements amaccana_case multi_cases ditech_case RBRACE 
+multi_cases: BETSUNG switch_values COLON switch_statements amaccana_case multi_cases  |  
+switch_values: expression 
+switch_statements: local_dec statements 
+loop_switch_stmts: VERSA LPAR switch_values RPAR LBRACE BETSUNG switch_values COLON loop_switch_statements loop_multi_cases ditech_case RBRACE 
+loop_multi_cases: BETSUNG switch_values COLON loop_switch_statements loop_multi_cases  |  
+loop_switch_statements: local_dec loop_body multi_loop_body 
+amaccana_case: AMACCANA SEMICOLON  |  
+ditech_case: DITECH COLON switch_statements  |  
+control_flow_stmts: GOGOGO SEMICOLON  | AMACCANA SEMICOLON  |  
+return_stmts: PUSH push_values SEMICOLON  |  
+unary_stmts: unary_operator ID SEMICOLON  | ID unary_operator SEMICOLON 
+push_values: expression  |  

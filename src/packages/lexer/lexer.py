@@ -62,7 +62,9 @@ class Lexer:
             elif self._index[0] > 0: self._index = max(0, self._index[0] - 1), len(self._source[self._index[0] - 1]) - 1
     
     def start(self):
+        metadata = []
         while not self.is_EOF():
+            metadata.append(self._index)
             curr_char = self.curr_char()
             # next_char = self.next_char()
             if curr_char == ' ':
@@ -93,7 +95,7 @@ class Lexer:
                 self.advance(len(''.join(self._source)))
             else: self._lexemes.append(lexeme)
                 
-        self.token_stream = tokenize(self._lexemes)
+        self.token_stream = tokenize(self._lexemes, metadata)
                 
     def lexemize(self, curr_state: int = 0):
         branches = STATES[curr_state].branches
@@ -107,21 +109,21 @@ class Lexer:
 
                 # For unclosed string, unclosed comment, and unfinished andamhie literal
                 if curr_char == '\0' and not STATES[state].isEnd:
-                    if state >= 259 and state <= 263:
+                    if state >= 261 and state <= 265:
                         return UnclosedString(self._source[self._index[0] - 1], self._index)
                     # if state >= 265 and state <= 269:
                     #     return UnclosedComment(self._source[self._index[0] - 1], self._index)
-                    if state >= 265 and state <= 269: # Unclosed comment will be returned
+                    if state >= 267 and state <= 271: # Unclosed comment will be returned
                         return ''
                     
-                if state == 256 and len(branches) == 1 and not STATES[state].isEnd:
+                if state == 258 and len(branches) == 1 and not STATES[state].isEnd:
                     return UnfinishedAndamhie(self._source[self._index[0]], self._index, STATES[state].chars)
 
                 continue
 
             print(f"{curr_state} -> {state}: {curr_char if len(STATES[state].branches) > 0 else "end state"}")
             if len(STATES[state].branches) == 0: # The lexeme will be returned
-                if state <= 212: return ('','') # For reserved
+                if state <= 214: return ('','') # For reserved
                 return ''  # For others
 
             self.advance()
@@ -144,7 +146,7 @@ class Lexer:
         if curr_state in [191, 194]: 
             self.reverse()
             return UnknownCharError(self._source[self._index[0]], self._index)
-        if curr_state >= 143 and curr_state <= 212: return DelimError(self._source[self._index[0]], self._index, STATES[state].chars)
+        if curr_state >= 143 and curr_state <= 214: return DelimError(self._source[self._index[0]], self._index, STATES[state].chars)
         return None
     
    
