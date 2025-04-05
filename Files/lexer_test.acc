@@ -1,7 +1,3 @@
-anda sum () {
-    push 5;
-}
-
 shimenet kween (){
-    anda x = sum();
+    serve("Hello, World");
 }

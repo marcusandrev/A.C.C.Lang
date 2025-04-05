@@ -1,5 +1,3 @@
-# ast_generator.py
-
 from error_handler import SemanticError
 
 # --- AST Node Classes ---
@@ -396,13 +394,16 @@ class ASTGenerator:
         return AssignmentNode(ident, op, expr)
 
     def parse_function_call_statement(self):
-        node = self.parse_function_call_expr()
+        # For a call as a statement, get the function name from the current token.
+        if not self.current_token() or self.current_token()[1] != 'id':
+            raise SemanticError("Expected function name", self.tokens[self.index][1][0])
+        func_name = self.current_token()[0]
+        self.advance()  # Skip function name
+        node = self.parse_function_call_expr(func_name)
         self.expect(';', "Expected ';' after function call")
         return node
 
-    def parse_function_call_expr(self):
-        func_name = self.current_token()[0]
-        self.advance()  # Skip function name
+    def parse_function_call_expr(self, func_name):
         self.expect('(', "Expected '(' after function name in function call")
         args = []
         while self.current_token() and self.current_token()[1] != ')':
@@ -633,12 +634,14 @@ class ASTGenerator:
             return node
         elif token[1] in ['korik', 'eme']:
             self.advance()
-            return LiteralNode(token[0], 'eklabool')
+            token = True if token[1] == 'korik' else False
+            return LiteralNode(token, 'eklabool')
         elif token[1] == 'id':
             ident_name = token[0]
             self.advance()
+            # If the next token is '(' then this is a function call
             if self.current_token() and self.current_token()[1] == '(':
-                return self.parse_function_call_expr()
+                return self.parse_function_call_expr(ident_name)
             node = IdentifierNode(ident_name)
             while self.current_token() and self.current_token()[1] == '[':
                 self.advance()  # Skip '['

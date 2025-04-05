@@ -1,5 +1,3 @@
-# code_generation.py
-
 class CodeGenerator:
     def __init__(self):
         self.indent_level = 0
@@ -166,7 +164,7 @@ class CodeGenerator:
     def visit_LiteralNode(self, node):
         # For string literals, add quotes.
         if node.literal_type == 'chika':
-            return f'"{node.value}"'
+            return f'{node.value}'
         return str(node.value)
 
     def visit_IdentifierNode(self, node):
