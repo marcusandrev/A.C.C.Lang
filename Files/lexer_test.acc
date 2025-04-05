@@ -1,2 +1,7 @@
-anda sum ();
-shimenet kween() {}
+anda sum () {
+    push 5;
+}
+
+shimenet kween (){
+    anda x = sum();
+}

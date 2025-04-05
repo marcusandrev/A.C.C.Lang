@@ -536,7 +536,7 @@ class SemanticAnalyzer:
                 self.log += str(SemanticError("Expected '}' at end of function body", self._token_stream[self.token_index][1][0])) + '\n'
             self.advance()  # Skip '}'
             if func_entry["return_type"] != "shimenet" and not func_entry.get("has_return", False):
-                self.log += str(SemanticError(f"Function '{func_name}' with return type '{func_entry['return_type']}' must return a value", self._token_stream[self.token_index][1][0])) + '\n'
+                self.log += str(SemanticError(f"Function '{func_name}' with return type '{func_entry['return_type']}' must return a value", self._token_stream[self.token_index-1][1][0])) + '\n'
             self.current_function = None
         else:
             self.log += str(SemanticError("Expected ';' or '{' after function parameter list", self._token_stream[self.token_index][1][0])) + '\n'

@@ -22,7 +22,7 @@ def lex():
     source_code = request.form['source_code']
     lex = Lexer(source_code)
     lex.start()
-    token_stream = lex.token_stream
+    token_stream = [stream[0] for stream in lex.token_stream]
     print(token_stream)
     
     error_log = str(lex.log)
