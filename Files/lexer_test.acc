@@ -1,3 +1,9 @@
 shimenet kween (){
-    serve("Hello, World");
+    anda x;
+    x = givenchy("How old are you? ");
+    pak (x >= 18) {
+        serve("Welcome!");
+    } ganern {
+        serve("You are not allowed.");
+    }
 }

@@ -623,7 +623,7 @@ class ASTGenerator:
             prompt_token = self.current_token()
             if prompt_token[1] != 'chika_literal':
                 raise SemanticError("Expected string literal as argument for 'givenchy'", self.tokens[self.index][1][0])
-            prompt_value = prompt_token[0]
+            prompt_value = prompt_token[0].strip('"')
             self.advance()
             self.expect(')', "Expected ')' after 'givenchy' argument")
             return InputCallNode(prompt_value)

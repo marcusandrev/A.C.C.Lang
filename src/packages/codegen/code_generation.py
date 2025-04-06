@@ -9,7 +9,7 @@ class CodeGenerator:
 
     def generate(self, node):
         self.visit(node)
-        return "\n".join(self.code_lines)
+        return "\n".join(self.code_lines) + "\nif __name__ == '__main__':\n    kween()"
 
     def visit(self, node):
         method_name = "visit_" + node.__class__.__name__
