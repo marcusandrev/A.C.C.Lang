@@ -32,13 +32,8 @@ def check_type_acclang_compiler_specific(expected, value):
             raise TypeError("Type error: expected string value for type 'chika'")
     else:
         return value
-def sum(x, y):
-    return (x + y)
-
 def kween():
-    x = check_type_acclang_compiler_specific('anda', input('Enter 1st no: '))
-    y = check_type_acclang_compiler_specific('anda', input('Enter 2nd no: '))
-    print(sum(x, y))
+    print(((True or False) + 5))
 
 if __name__ == '__main__':
     kween()

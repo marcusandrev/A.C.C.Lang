@@ -258,14 +258,26 @@ class CodeGenerator:
         return node.name
 
     def visit_BinaryOpNode(self, node):
-        left = self.visit(node.left)
-        right = self.visit(node.right)
-        op = node.operator
-        if op == '&&':
-            op = 'and'
-        elif op == '||':
-            op = 'or'
-        return f"({left} {op} {right})"
+        # Special handling for '+' operator to perform typecasting when concatenating chika with other types.
+        if node.operator == '+':
+            left_code = self.visit(node.left)
+            right_code = self.visit(node.right)
+            left_type = self.infer_type(node.left)
+            right_type = self.infer_type(node.right)
+            if left_type == 'chika' and right_type != 'chika':
+                right_code = f"str({right_code})"
+            elif right_type == 'chika' and left_type != 'chika':
+                left_code = f"str({left_code})"
+            return f"({left_code} + {right_code})"
+        else:
+            left = self.visit(node.left)
+            right = self.visit(node.right)
+            op = node.operator
+            if op == '&&':
+                op = 'and'
+            elif op == '||':
+                op = 'or'
+            return f"({left} {op} {right})"
 
     def visit_UnaryOpNode(self, node):
         operand = self.visit(node.operand)
@@ -287,6 +299,41 @@ class CodeGenerator:
 
     def visit_InputCallNode(self, node):
         return f"input({repr(node.prompt)})"
+
+    # --- Helper method to infer expression types ---
+
+    def infer_type(self, node):
+        """
+        Attempt to determine the type of an expression node.
+        Returns 'chika' for string, 'anda' or 'andamhie' for numbers,
+        'eklabool' for booleans, or None if undeterminable.
+        """
+        # Literal nodes: use their literal_type.
+        if hasattr(node, 'literal_type'):
+            return node.literal_type
+        # Identifier nodes: look up the type in the current symbol table.
+        if hasattr(node, 'name'):
+            return self.lookup_variable(node.name)
+        # Binary operations: for '+' operator, if either operand is chika, result is chika.
+        if hasattr(node, 'operator'):
+            if node.operator == '+':
+                left_type = self.infer_type(node.left)
+                right_type = self.infer_type(node.right)
+                if left_type == 'chika' or right_type == 'chika':
+                    return 'chika'
+                if left_type in ['anda', 'andamhie'] and right_type in ['anda', 'andamhie']:
+                    return 'anda'
+            elif node.operator in ['-', '*', '/', '%', '**', '//']:
+                return 'anda'
+            elif node.operator in ['&&', '||']:
+                return 'eklabool'
+        # Unary operations: assume same type as operand (except for '!' which returns eklabool).
+        if hasattr(node, 'operator') and hasattr(node, 'operand'):
+            if node.operator == '!':
+                return 'eklabool'
+            return self.infer_type(node.operand)
+        # Function calls: without a function signature, type is undeterminable.
+        return None
 
 # Helper function to generate code from an AST
 def generate_code(ast):
