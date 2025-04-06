@@ -1,5 +1,5 @@
 # This file is the entry point of the package.
-import sys, os
+import sys, os, subprocess
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..','..','..')))
 
 # from lexer import *
@@ -40,6 +40,15 @@ if __name__ == '__main__':
                 ast_gen = ASTGenerator(lexer.token_stream)
                 ast = ast_gen.generate()
                 print(ast)
-                print(CodeGenerator().generate(ast))
+                target_code = CodeGenerator().generate(ast)
+                print(target_code)
+
+                output_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'Files', 'compiled', 'compiled.py'))
+                with open(output_path, "w") as f:
+                    f.write(target_code)
+
+                # Run as subprocess
+                print("\n=== Running ACCLANG ===\n")
+                subprocess.run(["python", output_path])
             # if not analyzer.analyze():
             #     print("Semantic errors found.")
