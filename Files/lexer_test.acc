@@ -1,9 +1,9 @@
+anda sum(anda x, anda y) {
+    push x + y;
+}
+
 shimenet kween (){
-    anda x;
-    x = givenchy("How old are you? ");
-    pak (x >= 18) {
-        serve("Welcome!");
-    } ganern {
-        serve("You are not allowed.");
-    }
+    anda x = givenchy("Enter 1st no: ");
+    anda y = givenchy("Enter 2nd no: ");
+    serve("The sum of " + x + " and " + y + "is " + sum(x, y));
 }

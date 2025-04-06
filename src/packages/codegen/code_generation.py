@@ -3,13 +3,69 @@ class CodeGenerator:
         self.indent_level = 0
         self.code_lines = []
         self.switch_counter = 0  # Used to generate unique names for switch temp variables
+        self.symbol_stack = [{}]  # Stack to maintain scopes for variable types
 
     def indent(self):
         return "    " * self.indent_level
 
+    def current_scope(self):
+        return self.symbol_stack[-1]
+
+    def push_scope(self):
+        self.symbol_stack.append({})
+
+    def pop_scope(self):
+        self.symbol_stack.pop()
+
+    def lookup_variable(self, var_name):
+        for scope in reversed(self.symbol_stack):
+            if var_name in scope:
+                return scope[var_name]
+        return None
+
+    def emit_helper_functions(self):
+        # Emit the check_type_acclang_compiler_specific function to perform runtime type checks.
+        self.code_lines.append("""def check_type_acclang_compiler_specific(expected, value):
+    if expected == 'anda':
+        try:
+            return int(value)
+        except ValueError:
+            return int(float(value))
+        except ValueError:
+            raise TypeError("Type error: expected numeric value for type 'anda'")
+    elif expected == 'andamhie':
+        try:
+            return float(value)
+        except ValueError:
+            return float(int(value))
+        except ValueError:
+            raise TypeError("Type error: expected numeric value for type 'andamhie'")
+    elif expected == 'eklabool':
+        try:
+            value = int(value)
+            return False if value == 0 else True
+        except ValueError:
+            value = float(value)
+            return False if value == 0.0 else True
+        except ValueError:
+            if isinstance(value, str):
+                return True
+            else:
+                raise TypeError("Type error: expected numeric or string value for type 'eklabool'")
+    elif expected == 'chika':
+        if isinstance(value, str):
+            return value
+        else:
+            raise TypeError("Type error: expected string value for type 'chika'")
+    else:
+        return value""")
+
     def generate(self, node):
+        self.emit_helper_functions()
         self.visit(node)
-        return "\n".join(self.code_lines) + "\nif __name__ == '__main__':\n    kween()"
+        self.code_lines.append("if __name__ == '__main__':")
+        self.code_lines.append("    kween()")
+        return "\n".join(self.code_lines) + "\n"
 
     def visit(self, node):
         method_name = "visit_" + node.__class__.__name__
@@ -30,17 +86,22 @@ class CodeGenerator:
         params = ", ".join([p[0] for p in node.parameters])
         self.code_lines.append(f"def {node.name}({params}):")
         self.indent_level += 1
+        # Push a new scope for the function's local variables.
+        self.push_scope()
+        # Add function parameters to the current scope.
+        for param_name, param_type in node.parameters:
+            self.current_scope()[param_name] = param_type
         if node.body is None or len(node.body) == 0:
             self.code_lines.append(self.indent() + "pass")
         else:
             for stmt in node.body:
                 self.visit(stmt)
+        self.pop_scope()
         self.indent_level -= 1
         self.code_lines.append("")  # Blank line after function
 
     def visit_VarDeclNode(self, node):
-        # In Python, variables are dynamically typed.
-        # But for 'anda' and 'andamhie', we enforce conversion.
+        # Generate code with runtime type-check using check_type_acclang_compiler_specific().
         expr_code = self.visit(node.initializer) if node.initializer is not None else None
         if expr_code is None:
             # If no initializer, assign a default value.
@@ -52,19 +113,24 @@ class CodeGenerator:
                 expr_code = '""'
             else:
                 expr_code = "None"
-        if node.data_type == 'anda':
-            code = f"{node.name} = int({expr_code})"
-        elif node.data_type == 'andamhie':
-            code = f"{node.name} = float({expr_code})"
-        else:
-            code = f"{node.name} = {expr_code}"
+        code = f"{node.name} = check_type_acclang_compiler_specific('{node.data_type}', {expr_code})"
         self.code_lines.append(self.indent() + code)
+        self.current_scope()[node.name] = node.data_type
 
     def visit_AssignmentNode(self, node):
-        left = node.identifier
+        var_type = self.lookup_variable(node.identifier)
         right = self.visit(node.expression)
-        # For augmented assignment, use the same operator.
-        self.code_lines.append(self.indent() + f"{left} {node.operator} {right}")
+        if var_type is None:
+            # If variable was not declared, fall back to a normal assignment.
+            self.code_lines.append(self.indent() + f"{node.identifier} {node.operator} {right}")
+        else:
+            if node.operator == "=":
+                self.code_lines.append(self.indent() + f"{node.identifier} = check_type_acclang_compiler_specific('{var_type}', {right})")
+            else:
+                # For augmented assignments (e.g., +=, -=, etc.), translate them into a binary operation.
+                op_map = {"+=": "+", "-=": "-", "*=": "*", "/=": "/", "%=": "%", "**=": "**", "//=": "//"}
+                bin_op = op_map.get(node.operator, node.operator)
+                self.code_lines.append(self.indent() + f"{node.identifier} = {node.identifier} {bin_op} check_type_acclang_compiler_specific('{var_type}', {right})")
 
     def visit_FunctionCallNode(self, node):
         args = ", ".join([self.visit(arg) for arg in node.arguments])
@@ -85,36 +151,47 @@ class CodeGenerator:
         condition = self.visit(node.condition)
         self.code_lines.append(self.indent() + f"if {condition}:")
         self.indent_level += 1
+        # Optionally push a new scope for the if-block if block scoping is desired.
+        self.push_scope()
         for stmt in node.then_block:
             self.visit(stmt)
+        self.pop_scope()
         self.indent_level -= 1
         for cond, block in node.else_if_blocks:
             cond_code = self.visit(cond)
             self.code_lines.append(self.indent() + f"elif {cond_code}:")
             self.indent_level += 1
+            self.push_scope()
             for stmt in block:
                 self.visit(stmt)
+            self.pop_scope()
             self.indent_level -= 1
         if node.else_block is not None:
             self.code_lines.append(self.indent() + "else:")
             self.indent_level += 1
+            self.push_scope()
             for stmt in node.else_block:
                 self.visit(stmt)
+            self.pop_scope()
             self.indent_level -= 1
 
     def visit_WhileNode(self, node):
         condition = self.visit(node.condition)
         self.code_lines.append(self.indent() + f"while {condition}:")
         self.indent_level += 1
+        self.push_scope()
         for stmt in node.body:
             self.visit(stmt)
+        self.pop_scope()
         self.indent_level -= 1
 
     def visit_DoWhileNode(self, node):
         self.code_lines.append(self.indent() + "while True:")
         self.indent_level += 1
+        self.push_scope()
         for stmt in node.body:
             self.visit(stmt)
+        self.pop_scope()
         cond = self.visit(node.condition)
         self.code_lines.append(self.indent() + f"if not ({cond}):")
         self.indent_level += 1
@@ -128,12 +205,16 @@ class CodeGenerator:
         # Assuming "to" is inclusive; hence, end+1 in range.
         self.code_lines.append(self.indent() + f"for {node.loop_var} in range({start}, ({end})+1, {step}):")
         self.indent_level += 1
+        self.push_scope()
+        # If the loop variable is newly declared, record its type.
+        if node.new_declaration and node.var_type:
+            self.current_scope()[node.loop_var] = node.var_type
         for stmt in node.body:
             self.visit(stmt)
+        self.pop_scope()
         self.indent_level -= 1
 
     def visit_SwitchNode(self, node):
-        # Generate a unique temporary variable name.
         temp_var = f"switch_value_{self.switch_counter}"
         self.switch_counter += 1
         expr = self.visit(node.expression)
@@ -144,25 +225,31 @@ class CodeGenerator:
             case_code = self.visit(case_expr)
             self.code_lines.append(self.indent() + f"{prefix} {temp_var} == {case_code}:")
             self.indent_level += 1
+            self.push_scope()
             for stmt in stmts:
                 self.visit(stmt)
+            self.pop_scope()
             self.indent_level -= 1
             first = False
         if node.default_case is not None:
             self.code_lines.append(self.indent() + "else:")
             self.indent_level += 1
+            self.push_scope()
             for stmt in node.default_case:
                 self.visit(stmt)
+            self.pop_scope()
             self.indent_level -= 1
 
     def visit_BlockNode(self, node):
+        # For block-level scope, push a new scope.
+        self.push_scope()
         for stmt in node.statements:
             self.visit(stmt)
+        self.pop_scope()
 
     # --- Expression Nodes ---
 
     def visit_LiteralNode(self, node):
-        # For string literals, add quotes.
         if node.literal_type == 'chika':
             return f'{node.value}'
         return str(node.value)
@@ -183,36 +270,28 @@ class CodeGenerator:
     def visit_UnaryOpNode(self, node):
         operand = self.visit(node.operand)
         op = node.operator
-        # Handle logical not
         if op == '!':
             return f"(not {operand})"
-        # Handle increment/decrement operators:
-        # Here we simply translate prefix ++/-- to (x + 1) or (x - 1) for simplicity.
         if op == '++':
             return f"({operand} + 1)"
         if op == '--':
             return f"({operand} - 1)"
-        # For postfix, assume similar treatment.
         return f"({op}{operand})"
 
     def visit_ArrayAccessNode(self, node):
         array_code = self.visit(node.array)
-        # For each index expression, add indexing.
         for index_expr in node.index_exprs:
             idx = self.visit(index_expr)
             array_code += f"[{idx}]"
         return array_code
 
     def visit_InputCallNode(self, node):
-        # Transpile to Python's input() function.
         return f"input({repr(node.prompt)})"
-
 
 # Helper function to generate code from an AST
 def generate_code(ast):
     generator = CodeGenerator()
     return generator.generate(ast)
-
 
 # Example usage (commented out):
 # from ast_generator import ASTGenerator
