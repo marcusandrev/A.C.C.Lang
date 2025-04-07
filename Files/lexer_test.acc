@@ -1,2 +1,10 @@
-anda sum ();
-shimenet kween() {}
+anda sum (anda x, anda y) {
+    push x + y;
+}
+
+shimenet kween () {
+    anda x = givenchy("Enter 1st no.: ");
+    anda y = givenchy("Enter 2nd no.: ");
+
+    serve("The sum of " + x + " and " + y + " is " + sum(x, y));
+}
