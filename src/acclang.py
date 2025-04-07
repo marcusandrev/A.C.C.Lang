@@ -4,6 +4,8 @@ import os
 from src.packages.lexer.lexer import Lexer
 from src.packages.parser.parser import Parser
 from src.packages.parser.semantic_analyzer import SemanticAnalyzer
+from src.packages.codegen.ast_generator import ASTGenerator
+from src.packages.codegen.code_generation import CodeGenerator
 
 app = Flask(__name__)
 
@@ -58,7 +60,13 @@ def run_lexer():
             analyzer.analyze()
             error_log = analyzer.log
             print(analyzer.symbol_table)
-            print(error_log)
+
+            if len(error_log) == 0:
+                ast_gen = ASTGenerator(lex.token_stream)
+                ast = ast_gen.generate()
+                print(ast)
+                target_code = CodeGenerator().generate(ast)
+                print(target_code)
 
     print(f"TOKENS: {token_stream}")
     print(f"LOG: {error_log}")

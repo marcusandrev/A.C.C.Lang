@@ -1,4 +1,4 @@
-from error_handler import SemanticError
+from .error_handler import SemanticError
 
 # --- AST Node Classes ---
 
