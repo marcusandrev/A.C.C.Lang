@@ -1,9 +1,11 @@
 # This file is for the implementation of the GUI
 from flask import Flask, render_template, request, jsonify
-import os
+import os, subprocess
 from src.packages.lexer.lexer import Lexer
 from src.packages.parser.parser import Parser
 from src.packages.parser.semantic_analyzer import SemanticAnalyzer
+from src.packages.codegen.ast_generator import ASTGenerator
+from src.packages.codegen.code_generation import CodeGenerator
 
 app = Flask(__name__)
 
@@ -44,7 +46,7 @@ def run_lexer():
     print(token_stream)
     
     error_log = str(lex.log)
-    print(error_log)
+    print(f"TOKENS: {token_stream}")
 
     if len(error_log) == 0: # Only run parser if there is no lexical error
         print("running syntax")
@@ -58,9 +60,23 @@ def run_lexer():
             analyzer.analyze()
             error_log = analyzer.log
             print(analyzer.symbol_table)
-            print(error_log)
 
-    print(f"TOKENS: {token_stream}")
+            if len(error_log) == 0:
+                ast_gen = ASTGenerator(lex.token_stream)
+                ast = ast_gen.generate()
+                print(ast)
+                target_code = CodeGenerator().generate(ast)
+                print(target_code)
+
+                output_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'Files', 'compiled', 'compiled.py'))
+                os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                with open(output_path, "w") as f:
+                    f.write(target_code)
+
+                # Run as subprocess
+                print("\n=== Running ACCLANG ===\n")
+                subprocess.run(["python", output_path])
+
     print(f"LOG: {error_log}")
 
 
