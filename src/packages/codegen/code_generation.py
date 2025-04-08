@@ -70,9 +70,25 @@ class CodeGenerator:
         return "\n".join(self.code_lines) + "\n"
 
     def visit(self, node):
+        # Handle lists (used in array initializers) separately.
+        if isinstance(node, list):
+            return self.visit_list(node)
         method_name = "visit_" + node.__class__.__name__
         visitor = getattr(self, method_name, self.generic_visit)
         return visitor(node)
+
+    def visit_list(self, lst, data_type=None):
+        elements = []
+        for item in lst:
+            if isinstance(item, list):
+                elements.append(self.visit_list(item, data_type))
+            else:
+                expr = self.visit(item)
+                # Wrap each scalar element
+                if data_type:
+                    expr = f"check_type_acclang_compiler_specific('{data_type}', {expr})"
+                elements.append(expr)
+        return "[" + ", ".join(elements) + "]"
 
     def generic_visit(self, node):
         raise Exception(f"No visit_{node.__class__.__name__} method")
@@ -100,17 +116,23 @@ class CodeGenerator:
         self.code_lines.append("")
 
     def visit_VarDeclNode(self, node):
-        expr_code = self.visit(node.initializer) if node.initializer is not None else None
-        if expr_code is None:
-            if node.data_type in ['anda', 'andamhie']:
-                expr_code = "0"
-            elif node.data_type == 'eklabool':
-                expr_code = "False"
-            elif node.data_type == 'chika':
-                expr_code = '""'
-            else:
-                expr_code = "None"
-        code = f"{node.name} = check_type_acclang_compiler_specific('{node.data_type}', {expr_code})"
+        if isinstance(node.initializer, list):
+            # Directly convert list to Python literal without type checking
+            expr_code = self.visit_list(node.initializer, data_type=node.data_type)
+            code = f"{node.name} = {expr_code}"
+        else:
+            expr_code = self.visit(node.initializer) if node.initializer is not None else None
+            if expr_code is None:
+                if node.data_type in ['anda', 'andamhie']:
+                    expr_code = "0"
+                elif node.data_type == 'eklabool':
+                    expr_code = "False"
+                elif node.data_type == 'chika':
+                    expr_code = '""'
+                else:
+                    expr_code = "None"
+            code = f"{node.name} = check_type_acclang_compiler_specific('{node.data_type}', {expr_code})"
+        
         self.code_lines.append(self.indent() + code)
         self.current_scope()[node.name] = node.data_type
 
