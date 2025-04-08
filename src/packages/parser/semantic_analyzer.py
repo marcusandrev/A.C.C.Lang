@@ -163,7 +163,8 @@ class SemanticAnalyzer:
     def process_array_initializer(self, dimensions, var_type, dim_index=0):
         """
         Recursively processes an array initializer list.
-        Validates that the number of elements matches the declared dimensions at each level.
+        Validates that the number of elements matches the declared dimensions at each level
+        and that the dimensions are correct.
         """
         if not self.current_token() or self.current_token()[1] != '{':
             self.log += str(SemanticError("Expected '{' to start array initializer", self._token_stream[self.token_index][1][0])) + '\n'
@@ -173,23 +174,44 @@ class SemanticAnalyzer:
         count_elements = 0
 
         while self.current_token() and self.current_token()[1] != '}':
-            if self.current_token()[1] == '{':
+            # Check if we expect more dimensions
+            is_nested = self.current_token()[1] == '{'
+            
+            # Verify dimension depth is correct
+            if is_nested:
                 if dim_index + 1 >= len(dimensions):
                     self.log += str(SemanticError("Initializer has too many nested levels", self._token_stream[self.token_index][1][0])) + '\n'
+                    # Skip this nested initializer to continue parsing
+                    nested_braces = 1
+                    self.advance()  # Skip '{'
+                    while nested_braces > 0 and self.current_token():
+                        if self.current_token()[1] == '{':
+                            nested_braces += 1
+                        elif self.current_token()[1] == '}':
+                            nested_braces -= 1
+                        self.advance()
+                    continue
                 element = self.process_array_initializer(dimensions, var_type, dim_index + 1)
             else:
+                # If we're not at the deepest level but found a non-array element
+                if dim_index < len(dimensions) - 1:
+                    self.log += str(SemanticError(f"Expected nested array at dimension {dim_index+1}, but got a scalar value", 
+                                            self._token_stream[self.token_index][1][0])) + '\n'
                 element_type = self.evaluate_expression()
 
                 # Type validation
                 if var_type in ['anda', 'andamhie']:
                     if element_type not in ['anda', 'andamhie', 'eklabool']:
-                        self.log += str(SemanticError(f"Array of type '{var_type}' cannot have element of type '{element_type}'", self._token_stream[self.token_index][1][0])) + '\n'
+                        self.log += str(SemanticError(f"Array of type '{var_type}' cannot have element of type '{element_type}'", 
+                                                self._token_stream[self.token_index][1][0])) + '\n'
                 elif var_type == 'eklabool':
                     if element_type not in ['eklabool', 'anda', 'andamhie']:
-                        self.log += str(SemanticError(f"Array of type 'eklabool' cannot have element of type '{element_type}'", self._token_stream[self.token_index][1][0])) + '\n'
+                        self.log += str(SemanticError(f"Array of type 'eklabool' cannot have element of type '{element_type}'", 
+                                                self._token_stream[self.token_index][1][0])) + '\n'
                 elif var_type == 'chika':
                     if element_type != 'chika':
-                        self.log += str(SemanticError(f"Array of type 'chika' cannot have element of type '{element_type}'", self._token_stream[self.token_index][1][0])) + '\n'
+                        self.log += str(SemanticError(f"Array of type 'chika' cannot have element of type '{element_type}'", 
+                                                self._token_stream[self.token_index][1][0])) + '\n'
                 element = element_type
 
             init_list.append(element)
