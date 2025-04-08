@@ -25,7 +25,7 @@ class CodeGenerator:
         return None
 
     def emit_helper_functions(self):
-        self.code_lines.append("""def check_type_acclang_compiler_specific(expected, value):
+        self.code_lines.append("""def check_type_acclang_specific(expected, value):
     if expected == 'anda':
         try:
             return int(value)
@@ -60,6 +60,12 @@ class CodeGenerator:
             raise TypeError("Type error: expected string value for type 'chika'")
     else:
         return value
+
+def check_array_type_acclang_specific(expected, arr):
+    if isinstance(arr, list):
+        return [check_array_type_acclang_specific(expected, x) for x in arr]
+    else:
+        return check_type_acclang_specific(expected, arr)
 """)
 
     def generate(self, node):
@@ -77,17 +83,14 @@ class CodeGenerator:
         visitor = getattr(self, method_name, self.generic_visit)
         return visitor(node)
 
-    def visit_list(self, lst, data_type=None):
+    def visit_list(self, lst):
+        # Recursively process lists to output a Python list literal.
         elements = []
         for item in lst:
             if isinstance(item, list):
-                elements.append(self.visit_list(item, data_type))
+                elements.append(self.visit_list(item))
             else:
-                expr = self.visit(item)
-                # Wrap each scalar element
-                if data_type:
-                    expr = f"check_type_acclang_compiler_specific('{data_type}', {expr})"
-                elements.append(expr)
+                elements.append(self.visit(item))
         return "[" + ", ".join(elements) + "]"
 
     def generic_visit(self, node):
@@ -117,9 +120,10 @@ class CodeGenerator:
 
     def visit_VarDeclNode(self, node):
         if isinstance(node.initializer, list):
-            # Directly convert list to Python literal without type checking
-            expr_code = self.visit_list(node.initializer, data_type=node.data_type)
-            code = f"{node.name} = {expr_code}"
+            # Generate the list literal without wrapping each element inline,
+            # then wrap the entire array with check_array_type_acclang_specific.
+            expr_code = self.visit_list(node.initializer)
+            code = f"{node.name} = check_array_type_acclang_specific('{node.data_type}', {expr_code})"
         else:
             expr_code = self.visit(node.initializer) if node.initializer is not None else None
             if expr_code is None:
@@ -131,8 +135,9 @@ class CodeGenerator:
                     expr_code = '""'
                 else:
                     expr_code = "None"
-            code = f"{node.name} = check_type_acclang_compiler_specific('{node.data_type}', {expr_code})"
-        
+            expr_code = f"check_type_acclang_specific('{node.data_type}', {expr_code})"
+            code = f"{node.name} = {expr_code}"
+    
         self.code_lines.append(self.indent() + code)
         self.current_scope()[node.name] = node.data_type
 
@@ -143,11 +148,11 @@ class CodeGenerator:
             self.code_lines.append(self.indent() + f"{node.identifier} {node.operator} {right}")
         else:
             if node.operator == "=":
-                self.code_lines.append(self.indent() + f"{node.identifier} = check_type_acclang_compiler_specific('{var_type}', {right})")
+                self.code_lines.append(self.indent() + f"{node.identifier} = check_type_acclang_specific('{var_type}', {right})")
             else:
                 op_map = {"+=": "+", "-=": "-", "*=": "*", "/=": "/", "%=": "%", "**=": "**", "//=": "//"}
                 bin_op = op_map.get(node.operator, node.operator)
-                self.code_lines.append(self.indent() + f"{node.identifier} = {node.identifier} {bin_op} check_type_acclang_compiler_specific('{var_type}', {right})")
+                self.code_lines.append(self.indent() + f"{node.identifier} = {node.identifier} {bin_op} check_type_acclang_specific('{var_type}', {right})")
 
     def visit_FunctionCallNode(self, node):
         args = ", ".join([self.visit(arg) for arg in node.arguments])
