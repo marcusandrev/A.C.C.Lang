@@ -3,6 +3,7 @@ class CodeGenerator:
         self.indent_level = 0
         self.code_lines = []
         self.switch_counter = 0  # Used to generate unique names for switch temp variables
+        self.for_counter = 0     # Used to generate unique names for for loop helper variables
         self.symbol_stack = [{}]  # Stack to maintain scopes for variable types
 
     def indent(self):
@@ -192,10 +193,28 @@ class CodeGenerator:
         self.indent_level -= 2
 
     def visit_ForNode(self, node):
-        start = self.visit(node.start_expr)
-        end = self.visit(node.end_expr)
-        step = self.visit(node.step_expr) if node.step_expr is not None else "1"
-        self.code_lines.append(self.indent() + f"for {node.loop_var} in range({start}, ({end})+1, {step}):")
+        # Create unique helper variable names for this for loop
+        for_index = self.for_counter
+        self.for_counter += 1
+        start_expr = self.visit(node.start_expr)
+        end_expr = self.visit(node.end_expr)
+        step_expr = self.visit(node.step_expr) if node.step_expr is not None else "1"
+        start_var = f"start_val_{for_index}"
+        end_var = f"end_val_{for_index}"
+        step_var = f"step_val_{for_index}"
+        bound_var = f"end_bound_{for_index}"
+        self.code_lines.append(self.indent() + f"{start_var} = {start_expr}")
+        self.code_lines.append(self.indent() + f"{end_var} = {end_expr}")
+        self.code_lines.append(self.indent() + f"{step_var} = {step_expr}")
+        self.code_lines.append(self.indent() + f"if {step_var} > 0:")
+        self.indent_level += 1
+        self.code_lines.append(self.indent() + f"{bound_var} = {end_var} + 1")
+        self.indent_level -= 1
+        self.code_lines.append(self.indent() + "else:")
+        self.indent_level += 1
+        self.code_lines.append(self.indent() + f"{bound_var} = {end_var} - 1")
+        self.indent_level -= 1
+        self.code_lines.append(self.indent() + f"for {node.loop_var} in range({start_var}, {bound_var}, {step_var}):")
         self.indent_level += 1
         self.push_scope()
         if node.new_declaration and node.var_type:
