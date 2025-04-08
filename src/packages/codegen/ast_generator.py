@@ -211,7 +211,6 @@ class ASTGenerator:
         while self.current_token():
             stmt = self.parse_statement()
             if stmt is not None:
-                # In case parse_statement returns a list of statements, extend them
                 if isinstance(stmt, list):
                     statements.extend(stmt)
                 else:
@@ -221,22 +220,17 @@ class ASTGenerator:
         func_defs = {}
         for stmt in statements:
             if isinstance(stmt, FunctionDeclNode):
-                # If a definition (body is not None) is encountered, store it.
                 if not stmt.is_prototype:
                     func_defs[stmt.name] = stmt
                 elif stmt.name not in func_defs:
-                    # Only store prototype if a definition hasn't been seen yet.
                     func_defs[stmt.name] = stmt
-        # Now, create a new list of statements where a function declaration that is a prototype
-        # and has a corresponding definition is replaced by that definition.
+        # Replace prototypes with definitions when available.
         final_statements = []
         seen_funcs = set()
         for stmt in statements:
             if isinstance(stmt, FunctionDeclNode):
-                # If we've already added a declaration for this function, skip duplicates.
                 if stmt.name in seen_funcs:
                     continue
-                # If the stored definition is not the current prototype, use the definition.
                 if stmt.is_prototype and func_defs[stmt.name] is not stmt:
                     final_statements.append(func_defs[stmt.name])
                 else:
@@ -270,16 +264,15 @@ class ASTGenerator:
         elif token[1] == '{':
             return self.parse_block()
         elif token[1] == 'id':
-            # Decide between assignment or function call
             if self.next_token() and self.next_token()[1] == '(':
                 return self.parse_function_call_statement()
             elif self.next_token() and self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
                 return self.parse_assignment_statement()
             else:
-                self.advance()  # If ambiguous, skip token
+                self.advance()
                 return None
         else:
-            self.advance()  # Skip unknown tokens
+            self.advance()
             return None
 
     def parse_declaration(self):
@@ -394,7 +387,6 @@ class ASTGenerator:
         return AssignmentNode(ident, op, expr)
 
     def parse_function_call_statement(self):
-        # For a call as a statement, get the function name from the current token.
         if not self.current_token() or self.current_token()[1] != 'id':
             raise SemanticError("Expected function name", self.tokens[self.index][1][0])
         func_name = self.current_token()[0]
@@ -488,7 +480,10 @@ class ASTGenerator:
                 while self.current_token() and self.current_token()[1] not in ['betsung', 'ditech', '}']:
                     stmt = self.parse_statement()
                     if stmt is not None:
-                        case_statements.append(stmt)
+                        if isinstance(stmt, list):
+                            case_statements.extend(stmt)
+                        else:
+                            case_statements.append(stmt)
                 cases.append((case_expr, case_statements))
             elif token[1] == 'ditech':
                 self.advance()  # Skip 'ditech'
@@ -497,7 +492,10 @@ class ASTGenerator:
                 while self.current_token() and self.current_token()[1] not in ['betsung', '}']:
                     stmt = self.parse_statement()
                     if stmt is not None:
-                        default_case.append(stmt)
+                        if isinstance(stmt, list):
+                            default_case.extend(stmt)
+                        else:
+                            default_case.append(stmt)
             else:
                 self.advance()
         self.expect('}', "Expected '}' to close switch block")
@@ -540,7 +538,10 @@ class ASTGenerator:
         while self.current_token() and self.current_token()[1] != '}':
             stmt = self.parse_statement()
             if stmt is not None:
-                statements.append(stmt)
+                if isinstance(stmt, list):
+                    statements.extend(stmt)
+                else:
+                    statements.append(stmt)
         self.expect('}', "Expected '}' to end block")
         return BlockNode(statements)
 
@@ -634,12 +635,11 @@ class ASTGenerator:
             return node
         elif token[1] in ['korik', 'eme']:
             self.advance()
-            token = True if token[1] == 'korik' else False
-            return LiteralNode(token, 'eklabool')
+            token_value = True if token[1] == 'korik' else False
+            return LiteralNode(token_value, 'eklabool')
         elif token[1] == 'id':
             ident_name = token[0]
             self.advance()
-            # If the next token is '(' then this is a function call
             if self.current_token() and self.current_token()[1] == '(':
                 return self.parse_function_call_expr(ident_name)
             node = IdentifierNode(ident_name)

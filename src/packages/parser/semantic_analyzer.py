@@ -139,18 +139,22 @@ class SemanticAnalyzer:
         while self.current_token() and self.current_token()[1] == '[':
             self.advance()  # Skip '['
 
-            # Evaluate the dimension expression.
-            dim_type = self.evaluate_expression()
+            # Require literal size
+            token = self.current_token()
+            if token[1] != 'anda_literal':
+                self.log += str(SemanticError("Array size must be an anda literal", self._token_stream[self.token_index][1][0])) + '\n'
+                self.advance()
+                continue
 
-            # Dimension cannot be 'chika'.
-            if dim_type == 'chika':
-                self.log += str(SemanticError("Array dimension cannot be of type 'chika'", self._token_stream[self.token_index][1][0])) + '\n'
+            size = int(token[0])
+            if size <= 0:
+                self.log += str(SemanticError("Array size must be greater than 0", self._token_stream[self.token_index][1][0])) + '\n'
+            dims.append(size)
+            self.advance()  # Skip the literal
 
             if not self.current_token() or self.current_token()[1] != ']':
-                self.log += str(SemanticError("Expected ']' after array dimension expression", self._token_stream[self.token_index][1][0])) + '\n'
+                self.log += str(SemanticError("Expected ']' after array dimension size", self._token_stream[self.token_index][1][0])) + '\n'
             self.advance()  # Skip ']'
-
-            dims.append(dim_type)
 
             if len(dims) > 3:
                 self.log += str(SemanticError("Arrays cannot have more than 3 dimensions", self._token_stream[self.token_index][1][0])) + '\n'
@@ -159,34 +163,72 @@ class SemanticAnalyzer:
     def process_array_initializer(self, dimensions, var_type, dim_index=0):
         """
         Recursively processes an array initializer list.
-        It collects elements until the matching closing brace is encountered.
-        This method does not enforce that the number of elements
-        exactly matches the declared dimensions.
+        Validates that the number of elements matches the declared dimensions at each level
+        and that the dimensions are correct.
         """
         if not self.current_token() or self.current_token()[1] != '{':
             self.log += str(SemanticError("Expected '{' to start array initializer", self._token_stream[self.token_index][1][0])) + '\n'
         self.advance()  # Skip '{'
+
         init_list = []
+        count_elements = 0
+
         while self.current_token() and self.current_token()[1] != '}':
-            # If a nested initializer list is encountered, recurse.
-            if self.current_token()[1] == '{':
+            # Check if we expect more dimensions
+            is_nested = self.current_token()[1] == '{'
+            
+            # Verify dimension depth is correct
+            if is_nested:
+                if dim_index + 1 >= len(dimensions):
+                    self.log += str(SemanticError("Initializer has too many nested levels", self._token_stream[self.token_index][1][0])) + '\n'
+                    # Skip this nested initializer to continue parsing
+                    nested_braces = 1
+                    self.advance()  # Skip '{'
+                    while nested_braces > 0 and self.current_token():
+                        if self.current_token()[1] == '{':
+                            nested_braces += 1
+                        elif self.current_token()[1] == '}':
+                            nested_braces -= 1
+                        self.advance()
+                    continue
                 element = self.process_array_initializer(dimensions, var_type, dim_index + 1)
             else:
-                # Evaluate full expression for each element.
+                # If we're not at the deepest level but found a non-array element
+                if dim_index < len(dimensions) - 1:
+                    self.log += str(SemanticError(f"Expected nested array at dimension {dim_index+1}, but got a scalar value", 
+                                            self._token_stream[self.token_index][1][0])) + '\n'
                 element_type = self.evaluate_expression()
+
+                # Type validation
                 if var_type in ['anda', 'andamhie']:
                     if element_type not in ['anda', 'andamhie', 'eklabool']:
-                        self.log += str(SemanticError(f"Array of type '{var_type}' cannot have element of type '{element_type}'", self._token_stream[self.token_index][1][0])) + '\n'
+                        self.log += str(SemanticError(f"Array of type '{var_type}' cannot have element of type '{element_type}'", 
+                                                self._token_stream[self.token_index][1][0])) + '\n'
                 elif var_type == 'eklabool':
                     if element_type not in ['eklabool', 'anda', 'andamhie']:
-                        self.log += str(SemanticError(f"Array of type 'eklabool' cannot have element of type '{element_type}'", self._token_stream[self.token_index][1][0])) + '\n'
+                        self.log += str(SemanticError(f"Array of type 'eklabool' cannot have element of type '{element_type}'", 
+                                                self._token_stream[self.token_index][1][0])) + '\n'
                 elif var_type == 'chika':
                     if element_type != 'chika':
-                        self.log += str(SemanticError(f"Array of type 'chika' cannot have element of type '{element_type}'", self._token_stream[self.token_index][1][0])) + '\n'
+                        self.log += str(SemanticError(f"Array of type 'chika' cannot have element of type '{element_type}'", 
+                                                self._token_stream[self.token_index][1][0])) + '\n'
                 element = element_type
+
             init_list.append(element)
+            count_elements += 1
+
             if self.current_token() and self.current_token()[1] == ',':
                 self.advance()
+
+        # Check if element count matches the declared size for this dimension
+        if dim_index < len(dimensions):
+            expected_size = dimensions[dim_index]
+            if expected_size != count_elements:
+                self.log += str(SemanticError(
+                    f"Array initializer at dimension {dim_index+1} expects {expected_size} elements, but got {count_elements}",
+                    self._token_stream[self.token_index][1][0]
+                )) + '\n'
+
         if not self.current_token() or self.current_token()[1] != '}':
             self.log += str(SemanticError("Expected '}' at end of array initializer", self._token_stream[self.token_index][1][0])) + '\n'
         self.advance()  # Skip '}'
