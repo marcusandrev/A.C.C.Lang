@@ -1,4 +1,5 @@
 shimenet kween () {
-    anda arr1[2][2][2] = {{{99, 96}, {99, 96}}, {{99, 96}, {99, 96}}};
-    serve(arr1[0][1][1]);
+    andamhie x = 1.000005623;
+    andamhie y = givenchy("Enter a decimal value: ");
+    serve(x + y);
 }

@@ -62,20 +62,20 @@ def run_lexer():
             print(analyzer.symbol_table)
 
             if len(error_log) == 0:
-                ast_gen = ASTGenerator(lex.token_stream)
-                ast = ast_gen.generate()
+                ast_gen = ASTGenerator(lex.token_stream) 
+                ast = ast_gen.generate() # Convert tokens to AST
                 print(ast)
-                target_code = CodeGenerator().generate(ast)
+                target_code = CodeGenerator().generate(ast) # Convert AST to target code
                 print(target_code)
 
                 output_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'Files', 'compiled', 'compiled.py'))
                 os.makedirs(os.path.dirname(output_path), exist_ok=True)
-                with open(output_path, "w") as f:
+                with open(output_path, "w") as f: # Write target code to a python file
                     f.write(target_code)
 
                 # Run as subprocess
                 print("\n=== Running ACCLANG ===\n")
-                subprocess.run(["python", output_path])
+                subprocess.run(["python", output_path]) # Run the compiled code to a subprocess
 
     print(f"LOG: {error_log}")
 
