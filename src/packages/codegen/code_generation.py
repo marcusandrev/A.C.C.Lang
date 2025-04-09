@@ -25,6 +25,12 @@ class CodeGenerator:
         return None
 
     def emit_helper_functions(self):
+        # Emit a helper to truncate andamhie (float) values to 6 decimals.
+        self.code_lines.append("""def truncate_andamhie_acclang_specific(value):
+    import math
+    return math.trunc(value * 1000000) / 1000000
+""")
+        # Updated type checking function for our custom types.
         self.code_lines.append("""def check_type_acclang_specific(expected, value):
     if expected == 'anda':
         try:
@@ -36,10 +42,14 @@ class CodeGenerator:
                 raise TypeError("Type error: expected numeric value for type 'anda'")
     elif expected == 'andamhie':
         try:
-            return float(value)
+            f = float(value)
+            import math
+            return math.trunc(f * 1000000) / 1000000
         except ValueError:
             try:
-                return float(int(value))
+                f = float(int(value))
+                import math
+                return math.trunc(f * 1000000) / 1000000
             except ValueError:
                 raise TypeError("Type error: expected numeric value for type 'andamhie'")
     elif expected == 'eklabool':
@@ -60,8 +70,8 @@ class CodeGenerator:
             raise TypeError("Type error: expected string value for type 'chika'")
     else:
         return value
-
-def check_array_type_acclang_specific(expected, arr):
+""")
+        self.code_lines.append("""def check_array_type_acclang_specific(expected, arr):
     if isinstance(arr, list):
         return [check_array_type_acclang_specific(expected, x) for x in arr]
     else:
@@ -120,8 +130,6 @@ def check_array_type_acclang_specific(expected, arr):
 
     def visit_VarDeclNode(self, node):
         if isinstance(node.initializer, list):
-            # Generate the list literal without wrapping each element inline,
-            # then wrap the entire array with check_array_type_acclang_specific.
             expr_code = self.visit_list(node.initializer)
             code = f"{node.name} = check_array_type_acclang_specific('{node.data_type}', {expr_code})"
         else:
@@ -220,7 +228,6 @@ def check_array_type_acclang_specific(expected, arr):
         self.indent_level -= 2
 
     def visit_ForNode(self, node):
-        # Create unique helper variable names for this for loop
         for_index = self.for_counter
         self.for_counter += 1
         start_expr = self.visit(node.start_expr)
@@ -286,24 +293,34 @@ def check_array_type_acclang_specific(expected, arr):
     # --- Expression Nodes ---
 
     def visit_LiteralNode(self, node):
+        # For string literals, return as is.
         if node.literal_type == 'chika':
             return f'{node.value}'
+        # For numeric literals, let the type conversion (and possible truncation) occur later.
         return str(node.value)
 
     def visit_IdentifierNode(self, node):
         return node.name
 
     def visit_BinaryOpNode(self, node):
+        # Handle the '+' operator separately to account for potential string concatenation.
         if node.operator == '+':
             left_code = self.visit(node.left)
             right_code = self.visit(node.right)
             left_type = self.infer_type(node.left)
             right_type = self.infer_type(node.right)
-            if left_type == 'chika' and right_type != 'chika':
-                right_code = f"str({right_code})"
-            elif right_type == 'chika' and left_type != 'chika':
-                left_code = f"str({left_code})"
-            return f"({left_code} + {right_code})"
+            if left_type == 'chika' or right_type == 'chika':
+                if left_type == 'chika' and right_type != 'chika':
+                    right_code = f"str({right_code})"
+                elif right_type == 'chika' and left_type != 'chika':
+                    left_code = f"str({left_code})"
+                return f"({left_code} + {right_code})"
+            else:
+                expr = f"({left_code} + {right_code})"
+                result_type = self.infer_type(node)
+                if result_type == 'andamhie':
+                    return f"truncate_andamhie_acclang_specific({expr})"
+                return expr
         else:
             left = self.visit(node.left)
             right = self.visit(node.right)
@@ -312,7 +329,13 @@ def check_array_type_acclang_specific(expected, arr):
                 op = 'and'
             elif op == '||':
                 op = 'or'
-            return f"({left} {op} {right})"
+            expr = f"({left} {op} {right})"
+            # For arithmetic operators, if the inferred type is andamhie, apply truncation.
+            if node.operator in ['-', '*', '/', '%', '**', '//']:
+                result_type = self.infer_type(node)
+                if result_type == 'andamhie':
+                    return f"truncate_andamhie_acclang_specific({expr})"
+            return expr
 
     def visit_UnaryOpNode(self, node):
         operand = self.visit(node.operand)
@@ -341,16 +364,23 @@ def check_array_type_acclang_specific(expected, arr):
         if hasattr(node, 'literal_type'):
             return node.literal_type
         if hasattr(node, 'name'):
-            return self.lookup_variable(node.name)
+            var_type = self.lookup_variable(node.name)
+            if var_type is not None:
+                return var_type
         if hasattr(node, 'operator'):
             if node.operator == '+':
                 left_type = self.infer_type(node.left)
                 right_type = self.infer_type(node.right)
                 if left_type == 'chika' or right_type == 'chika':
                     return 'chika'
-                if left_type in ['anda', 'andamhie'] and right_type in ['anda', 'andamhie']:
-                    return 'anda'
+                if left_type == 'andamhie' or right_type == 'andamhie':
+                    return 'andamhie'
+                return 'anda'
             elif node.operator in ['-', '*', '/', '%', '**', '//']:
+                left_type = self.infer_type(node.left)
+                right_type = self.infer_type(node.right)
+                if left_type == 'andamhie' or right_type == 'andamhie':
+                    return 'andamhie'
                 return 'anda'
             elif node.operator in ['&&', '||']:
                 return 'eklabool'
