@@ -106,11 +106,23 @@ class CodeGenerator:
     def generic_visit(self, node):
         raise Exception(f"No visit_{node.__class__.__name__} method")
 
+    # --- Helper methods for emitting statement nodes ---
+    def emit_statement(self, node):
+        # For statement nodes that do not automatically append code lines,
+        # such as a standalone FunctionCallNode, emit the generated code with proper indent.
+        if node.__class__.__name__ == "FunctionCallNode":
+            self.code_lines.append(self.indent() + self.visit(node))
+        else:
+            self.visit(node)
+
+    def emit_statements(self, statements):
+        for stmt in statements:
+            self.emit_statement(stmt)
+
     # --- Statement Nodes ---
 
     def visit_ProgramNode(self, node):
-        for stmt in node.statements:
-            self.visit(stmt)
+        self.emit_statements(node.statements)
 
     def visit_FunctionDeclNode(self, node):
         params = ", ".join([p[0] for p in node.parameters])
@@ -122,8 +134,7 @@ class CodeGenerator:
         if node.body is None or len(node.body) == 0:
             self.code_lines.append(self.indent() + "pass")
         else:
-            for stmt in node.body:
-                self.visit(stmt)
+            self.emit_statements(node.body)
         self.pop_scope()
         self.indent_level -= 1
         self.code_lines.append("")
@@ -175,15 +186,14 @@ class CodeGenerator:
 
     def visit_PrintNode(self, node):
         expr_code = self.visit(node.expression)
-        self.code_lines.append(self.indent() + f"print({expr_code})")
+        self.code_lines.append(self.indent() + f"print({expr_code}, end='')")
 
     def visit_IfNode(self, node):
         condition = self.visit(node.condition)
         self.code_lines.append(self.indent() + f"if {condition}:")
         self.indent_level += 1
         self.push_scope()
-        for stmt in node.then_block:
-            self.visit(stmt)
+        self.emit_statements(node.then_block)
         self.pop_scope()
         self.indent_level -= 1
         for cond, block in node.else_if_blocks:
@@ -191,16 +201,14 @@ class CodeGenerator:
             self.code_lines.append(self.indent() + f"elif {cond_code}:")
             self.indent_level += 1
             self.push_scope()
-            for stmt in block:
-                self.visit(stmt)
+            self.emit_statements(block)
             self.pop_scope()
             self.indent_level -= 1
         if node.else_block is not None:
             self.code_lines.append(self.indent() + "else:")
             self.indent_level += 1
             self.push_scope()
-            for stmt in node.else_block:
-                self.visit(stmt)
+            self.emit_statements(node.else_block)
             self.pop_scope()
             self.indent_level -= 1
 
@@ -209,8 +217,7 @@ class CodeGenerator:
         self.code_lines.append(self.indent() + f"while {condition}:")
         self.indent_level += 1
         self.push_scope()
-        for stmt in node.body:
-            self.visit(stmt)
+        self.emit_statements(node.body)
         self.pop_scope()
         self.indent_level -= 1
 
@@ -218,8 +225,7 @@ class CodeGenerator:
         self.code_lines.append(self.indent() + "while True:")
         self.indent_level += 1
         self.push_scope()
-        for stmt in node.body:
-            self.visit(stmt)
+        self.emit_statements(node.body)
         self.pop_scope()
         cond = self.visit(node.condition)
         self.code_lines.append(self.indent() + f"if not ({cond}):")
@@ -253,25 +259,21 @@ class CodeGenerator:
         self.push_scope()
         if node.new_declaration and node.var_type:
             self.current_scope()[node.loop_var] = node.var_type
-        for stmt in node.body:
-            self.visit(stmt)
+        self.emit_statements(node.body)
         self.pop_scope()
         self.indent_level -= 1
 
     def visit_SwitchNode(self, node):
-        temp_var = f"switch_value_{self.switch_counter}"
         self.switch_counter += 1
         expr = self.visit(node.expression)
-        self.code_lines.append(self.indent() + f"{temp_var} = {expr}")
         first = True
         for case_expr, stmts in node.cases:
             prefix = "if" if first else "elif"
             case_code = self.visit(case_expr)
-            self.code_lines.append(self.indent() + f"{prefix} {temp_var} == {case_code}:")
+            self.code_lines.append(self.indent() + f"{prefix} {expr} == {case_code}:")
             self.indent_level += 1
             self.push_scope()
-            for stmt in stmts:
-                self.visit(stmt)
+            self.emit_statements(stmts)
             self.pop_scope()
             self.indent_level -= 1
             first = False
@@ -279,15 +281,13 @@ class CodeGenerator:
             self.code_lines.append(self.indent() + "else:")
             self.indent_level += 1
             self.push_scope()
-            for stmt in node.default_case:
-                self.visit(stmt)
+            self.emit_statements(node.default_case)
             self.pop_scope()
             self.indent_level -= 1
 
     def visit_BlockNode(self, node):
         self.push_scope()
-        for stmt in node.statements:
-            self.visit(stmt)
+        self.emit_statements(node.statements)
         self.pop_scope()
 
     # --- Expression Nodes ---
@@ -356,7 +356,7 @@ class CodeGenerator:
         return array_code
 
     def visit_InputCallNode(self, node):
-        return f"input({repr(node.prompt)})"
+        return f"input('{node.prompt}')"
 
     # --- Helper method to infer expression types ---
 
