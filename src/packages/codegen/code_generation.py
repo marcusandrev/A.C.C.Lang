@@ -25,33 +25,41 @@ class CodeGenerator:
         return None
 
     def emit_helper_functions(self):
-        # Emit a helper to truncate andamhie (float) values to 6 decimals.
+        # Helper to truncate floats to 6 decimals (still unused for clamped path).
         self.code_lines.append("""def truncate_andamhie_acclang_specific(value):
     import math
     return math.trunc(value * 1000000) / 1000000
 """)
-        # Updated type checking function for our custom types.
+        # Updated type checking with clamping for anda/andamhie
         self.code_lines.append("""def check_type_acclang_specific(expected, value):
     if expected == 'anda':
         try:
-            return int(value)
+            v = int(value)
         except ValueError:
             try:
-                return int(float(value))
+                v = int(float(value))
             except ValueError:
                 raise TypeError("Type error: expected numeric value for type 'anda'")
+        if v > 9999999999:
+            v = 9999999999
+        if v < -9999999999:
+            v = -9999999999
+        return v
     elif expected == 'andamhie':
         try:
             f = float(value)
-            import math
-            return math.trunc(f * 1000000) / 1000000
         except ValueError:
             try:
                 f = float(int(value))
-                import math
-                return math.trunc(f * 1000000) / 1000000
             except ValueError:
                 raise TypeError("Type error: expected numeric value for type 'andamhie'")
+        import math
+        f = math.trunc(f * 1000000) / 1000000
+        if f > 9999999999.999999:
+            f = 9999999999.999999
+        if f < -9999999999:
+            f = -9999999999.999999
+        return f
     elif expected == 'eklabool':
         try:
             return False if int(value) == 0 else True
@@ -86,7 +94,6 @@ class CodeGenerator:
         return "\n".join(self.code_lines) + "\n"
 
     def visit(self, node):
-        # Handle lists (used in array initializers) separately.
         if isinstance(node, list):
             return self.visit_list(node)
         method_name = "visit_" + node.__class__.__name__
@@ -94,7 +101,6 @@ class CodeGenerator:
         return visitor(node)
 
     def visit_list(self, lst):
-        # Recursively process lists to output a Python list literal.
         elements = []
         for item in lst:
             if isinstance(item, list):
@@ -106,10 +112,7 @@ class CodeGenerator:
     def generic_visit(self, node):
         raise Exception(f"No visit_{node.__class__.__name__} method")
 
-    # --- Helper methods for emitting statement nodes ---
     def emit_statement(self, node):
-        # For statement nodes that do not automatically append code lines,
-        # such as a standalone FunctionCallNode, emit the generated code with proper indent.
         if node.__class__.__name__ == "FunctionCallNode":
             self.code_lines.append(self.indent() + self.visit(node))
         else:
@@ -118,8 +121,6 @@ class CodeGenerator:
     def emit_statements(self, statements):
         for stmt in statements:
             self.emit_statement(stmt)
-
-    # --- Statement Nodes ---
 
     def visit_ProgramNode(self, node):
         self.emit_statements(node.statements)
@@ -131,7 +132,7 @@ class CodeGenerator:
         self.push_scope()
         for param_name, param_type in node.parameters:
             self.current_scope()[param_name] = param_type
-        if node.body is None or len(node.body) == 0:
+        if not node.body:
             self.code_lines.append(self.indent() + "pass")
         else:
             self.emit_statements(node.body)
@@ -144,64 +145,69 @@ class CodeGenerator:
             expr_code = self.visit_list(node.initializer)
             code = f"{node.name} = check_array_type_acclang_specific('{node.data_type}', {expr_code})"
         else:
-            expr_code = self.visit(node.initializer) if node.initializer is not None else None
-            if expr_code is None:
-                if node.data_type in ['anda', 'andamhie']:
-                    expr_code = "0"
-                elif node.data_type == 'eklabool':
-                    expr_code = "False"
-                elif node.data_type == 'chika':
-                    expr_code = '""'
-                else:
-                    expr_code = "None"
-            expr_code = f"check_type_acclang_specific('{node.data_type}', {expr_code})"
-            code = f"{node.name} = {expr_code}"
-    
+            expr = self.visit(node.initializer) if node.initializer is not None else None
+            if expr is None:
+                default = {
+                    'anda': "0",
+                    'andamhie': "0",
+                    'eklabool': "False",
+                    'chika': '""'
+                }.get(node.data_type, "None")
+                expr = default
+            expr = f"check_type_acclang_specific('{node.data_type}', {expr})"
+            code = f"{node.name} = {expr}"
+
         self.code_lines.append(self.indent() + code)
         self.current_scope()[node.name] = node.data_type
 
     def visit_AssignmentNode(self, node):
         var_type = self.lookup_variable(node.identifier)
         right = self.visit(node.expression)
-        if var_type is None:
-            self.code_lines.append(self.indent() + f"{node.identifier} {node.operator} {right}")
-        else:
-            if node.operator == "=":
-                self.code_lines.append(self.indent() + f"{node.identifier} = check_type_acclang_specific('{var_type}', {right})")
+        if var_type is None or node.operator == "=":
+            # plain assignment or undeclared: just clamp on '=' if typed
+            if var_type:
+                self.code_lines.append(
+                    self.indent() +
+                    f"{node.identifier} = check_type_acclang_specific('{var_type}', {right})"
+                )
             else:
-                op_map = {"+=": "+", "-=": "-", "*=": "*", "/=": "/", "%=": "%", "**=": "**", "//=": "//"}
-                bin_op = op_map.get(node.operator, node.operator)
-                self.code_lines.append(self.indent() + f"{node.identifier} = {node.identifier} {bin_op} check_type_acclang_specific('{var_type}', {right})")
+                self.code_lines.append(self.indent() + f"{node.identifier} {node.operator} {right}")
+        else:
+            # compound assignment: compute then clamp
+            op_map = {"+=": "+", "-=": "-", "*=": "*", "/=": "/", "%=": "%", "**=": "**", "//=": "//"}
+            bin_op = op_map.get(node.operator, node.operator)
+            full = (
+                f"check_type_acclang_specific("
+                f"'{var_type}', {node.identifier} {bin_op} check_type_acclang_specific('{var_type}', {right})"
+                f")"
+            )
+            self.code_lines.append(self.indent() + f"{node.identifier} = {full}")
 
     def visit_FunctionCallNode(self, node):
-        args = ", ".join([self.visit(arg) for arg in node.arguments])
+        args = ", ".join(self.visit(arg) for arg in node.arguments)
         return f"{node.name}({args})"
 
     def visit_ReturnNode(self, node):
         if node.expression is not None:
-            expr_code = self.visit(node.expression)
-            self.code_lines.append(self.indent() + f"return {expr_code}")
+            self.code_lines.append(self.indent() + f"return {self.visit(node.expression)}")
         else:
             self.code_lines.append(self.indent() + "return")
 
     def visit_PrintNode(self, node):
-        expr_code = self.visit(node.expression)
-        self.code_lines.append(self.indent() + f"print({expr_code}, end='')")
+        self.code_lines.append(self.indent() + f"print({self.visit(node.expression)}, end='')")
 
     def visit_IfNode(self, node):
-        condition = self.visit(node.condition)
-        self.code_lines.append(self.indent() + f"if {condition}:")
+        self.code_lines.append(self.indent() + f"if {self.visit(node.condition)}:")
         self.indent_level += 1
         self.push_scope()
         self.emit_statements(node.then_block)
         self.pop_scope()
         self.indent_level -= 1
-        for cond, block in node.else_if_blocks:
-            cond_code = self.visit(cond)
-            self.code_lines.append(self.indent() + f"elif {cond_code}:")
+        for cond, blk in node.else_if_blocks:
+            self.code_lines.append(self.indent() + f"elif {self.visit(cond)}:")
             self.indent_level += 1
             self.push_scope()
-            self.emit_statements(block)
+            self.emit_statements(blk)
             self.pop_scope()
             self.indent_level -= 1
         if node.else_block is not None:
@@ -213,8 +219,7 @@ class CodeGenerator:
             self.indent_level -= 1
 
     def visit_WhileNode(self, node):
-        condition = self.visit(node.condition)
-        self.code_lines.append(self.indent() + f"while {condition}:")
+        self.code_lines.append(self.indent() + f"while {self.visit(node.condition)}:")
         self.indent_level += 1
         self.push_scope()
         self.emit_statements(node.body)
@@ -234,27 +239,27 @@ class CodeGenerator:
         self.indent_level -= 2
 
     def visit_ForNode(self, node):
-        for_index = self.for_counter
+        idx = self.for_counter
         self.for_counter += 1
-        start_expr = self.visit(node.start_expr)
-        end_expr = self.visit(node.end_expr)
-        step_expr = self.visit(node.step_expr) if node.step_expr is not None else "1"
-        start_var = f"start_val_{for_index}"
-        end_var = f"end_val_{for_index}"
-        step_var = f"step_val_{for_index}"
-        bound_var = f"end_bound_{for_index}"
-        self.code_lines.append(self.indent() + f"{start_var} = {start_expr}")
-        self.code_lines.append(self.indent() + f"{end_var} = {end_expr}")
-        self.code_lines.append(self.indent() + f"{step_var} = {step_expr}")
-        self.code_lines.append(self.indent() + f"if {step_var} > 0:")
+        s = self.visit(node.start_expr)
+        e = self.visit(node.end_expr)
+        st = self.visit(node.step_expr) if node.step_expr is not None else "1"
+        sv = f"start_val_{idx}"
+        ev = f"end_val_{idx}"
+        tv = f"step_val_{idx}"
+        bv = f"end_bound_{idx}"
+        self.code_lines.append(self.indent() + f"{sv} = {s}")
+        self.code_lines.append(self.indent() + f"{ev} = {e}")
+        self.code_lines.append(self.indent() + f"{tv} = {st}")
+        self.code_lines.append(self.indent() + f"if {tv} > 0:")
         self.indent_level += 1
-        self.code_lines.append(self.indent() + f"{bound_var} = {end_var} + 1")
+        self.code_lines.append(self.indent() + f"{bv} = {ev} + 1")
         self.indent_level -= 1
         self.code_lines.append(self.indent() + "else:")
         self.indent_level += 1
-        self.code_lines.append(self.indent() + f"{bound_var} = {end_var} - 1")
+        self.code_lines.append(self.indent() + f"{bv} = {ev} - 1")
         self.indent_level -= 1
-        self.code_lines.append(self.indent() + f"for {node.loop_var} in range({start_var}, {bound_var}, {step_var}):")
+        self.code_lines.append(self.indent() + f"for {node.loop_var} in range({sv}, {bv}, {tv}):")
         self.indent_level += 1
         self.push_scope()
         if node.new_declaration and node.var_type:
@@ -264,13 +269,11 @@ class CodeGenerator:
         self.indent_level -= 1
 
     def visit_SwitchNode(self, node):
-        self.switch_counter += 1
         expr = self.visit(node.expression)
         first = True
         for case_expr, stmts in node.cases:
             prefix = "if" if first else "elif"
-            case_code = self.visit(case_expr)
-            self.code_lines.append(self.indent() + f"{prefix} {expr} == {case_code}:")
+            self.code_lines.append(self.indent() + f"{prefix} {expr} == {self.visit(case_expr)}:")
             self.indent_level += 1
             self.push_scope()
             self.emit_statements(stmts)
@@ -290,101 +293,94 @@ class CodeGenerator:
         self.emit_statements(node.statements)
         self.pop_scope()
 
-    # --- Expression Nodes ---
-
     def visit_LiteralNode(self, node):
-        # For string literals, return as is.
         if node.literal_type == 'chika':
-            return f'{node.value}'
-        # For numeric literals, let the type conversion (and possible truncation) occur later.
+            return f"{node.value}"
         return str(node.value)
 
     def visit_IdentifierNode(self, node):
         return node.name
 
     def visit_BinaryOpNode(self, node):
-        # Handle the '+' operator separately to account for potential string concatenation.
         if node.operator == '+':
-            left_code = self.visit(node.left)
-            right_code = self.visit(node.right)
-            left_type = self.infer_type(node.left)
-            right_type = self.infer_type(node.right)
-            if left_type == 'chika' or right_type == 'chika':
-                if left_type == 'chika' and right_type != 'chika':
-                    right_code = f"str({right_code})"
-                elif right_type == 'chika' and left_type != 'chika':
-                    left_code = f"str({left_code})"
-                return f"({left_code} + {right_code})"
-            else:
-                expr = f"({left_code} + {right_code})"
-                result_type = self.infer_type(node)
-                if result_type == 'andamhie':
-                    return f"truncate_andamhie_acclang_specific({expr})"
-                return expr
+            L = self.visit(node.left)
+            R = self.visit(node.right)
+            lt = self.infer_type(node.left)
+            rt = self.infer_type(node.right)
+            if lt == 'chika' or rt == 'chika':
+                if lt == 'chika' and rt != 'chika':
+                    R = f"str({R})"
+                elif rt == 'chika' and lt != 'chika':
+                    L = f"str({L})"
+                return f"({L} + {R})"
+            expr = f"({L} + {R})"
+            t = self.infer_type(node)
+            if t in ['anda', 'andamhie']:
+                return f"check_type_acclang_specific('{t}', {expr})"
+            return expr
         else:
-            left = self.visit(node.left)
-            right = self.visit(node.right)
+            L = self.visit(node.left)
+            R = self.visit(node.right)
             op = node.operator
             if op == '&&':
                 op = 'and'
             elif op == '||':
                 op = 'or'
-            expr = f"({left} {op} {right})"
-            # For arithmetic operators, if the inferred type is andamhie, apply truncation.
+            expr = f"({L} {op} {R})"
             if node.operator in ['-', '*', '/', '%', '**', '//']:
-                result_type = self.infer_type(node)
-                if result_type == 'andamhie':
-                    return f"truncate_andamhie_acclang_specific({expr})"
+                t = self.infer_type(node)
+                if t in ['anda', 'andamhie']:
+                    return f"check_type_acclang_specific('{t}', {expr})"
             return expr
 
     def visit_UnaryOpNode(self, node):
-        operand = self.visit(node.operand)
+        val = self.visit(node.operand)
         op = node.operator
         if op == '!':
-            return f"(not {operand})"
-        if op == '++':
-            return f"({operand} + 1)"
-        if op == '--':
-            return f"({operand} - 1)"
-        return f"({op}{operand})"
+            return f"(not {val})"
+        if op in ['++', '--']:
+            ar = '+' if op == '++' else '-'
+            expr = f"({val} {ar} 1)"
+            t = self.infer_type(node.operand)
+            if t in ['anda', 'andamhie']:
+                return f"check_type_acclang_specific('{t}', {expr})"
+            return expr
+        return f"({op}{val})"
 
     def visit_ArrayAccessNode(self, node):
-        array_code = self.visit(node.array)
-        for index_expr in node.index_exprs:
-            idx = self.visit(index_expr)
-            array_code += f"[{idx}]"
-        return array_code
+        code = self.visit(node.array)
+        for idx in node.index_exprs:
+            code += f"[{self.visit(idx)}]"
+        return code
 
     def visit_InputCallNode(self, node):
         return f"input('{node.prompt}')"
-
-    # --- Helper method to infer expression types ---
 
     def infer_type(self, node):
         if hasattr(node, 'literal_type'):
             return node.literal_type
         if hasattr(node, 'name'):
-            var_type = self.lookup_variable(node.name)
-            if var_type is not None:
-                return var_type
+            vt = self.lookup_variable(node.name)
+            if vt:
+                return vt
         if hasattr(node, 'operator'):
             if node.operator == '+':
-                left_type = self.infer_type(node.left)
-                right_type = self.infer_type(node.right)
-                if left_type == 'chika' or right_type == 'chika':
+                lt = self.infer_type(node.left)
+                rt = self.infer_type(node.right)
+                if lt == 'chika' or rt == 'chika':
                     return 'chika'
-                if left_type == 'andamhie' or right_type == 'andamhie':
+                if lt == 'andamhie' or rt == 'andamhie':
                     return 'andamhie'
                 return 'anda'
-            elif node.operator in ['-', '*', '/', '%', '**', '//']:
-                left_type = self.infer_type(node.left)
-                right_type = self.infer_type(node.right)
-                if left_type == 'andamhie' or right_type == 'andamhie':
+            if node.operator in ['-', '*', '/', '%', '**', '//']:
+                lt = self.infer_type(node.left)
+                rt = self.infer_type(node.right)
+                if lt == 'andamhie' or rt == 'andamhie':
                     return 'andamhie'
                 return 'anda'
-            elif node.operator in ['&&', '||']:
+            if node.operator in ['&&', '||']:
                 return 'eklabool'
-        if hasattr(node, 'operator') and hasattr(node, 'operand'):
+        if hasattr(node, 'operand'):
             if node.operator == '!':
                 return 'eklabool'
             return self.infer_type(node.operand)
@@ -393,10 +389,3 @@ class CodeGenerator:
 def generate_code(ast):
     generator = CodeGenerator()
     return generator.generate(ast)
-
-# Example usage (commented out):
-# from ast_generator import ASTGenerator
-# tokens = [ ... ]  # Your token stream here.
-# ast = ASTGenerator(tokens).generate()
-# python_code = generate_code(ast)
-# print(python_code)
