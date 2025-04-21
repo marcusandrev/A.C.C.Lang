@@ -68,7 +68,7 @@ def run_lexer():
                 target_code = CodeGenerator().generate(ast) # Convert AST to target code
                 print(target_code)
 
-                output_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'Files', 'compiled', 'compiled.py'))
+                output_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'Files', 'compiled', 'compiled.py'))
                 os.makedirs(os.path.dirname(output_path), exist_ok=True)
                 with open(output_path, "w") as f: # Write target code to a python file
                     f.write(target_code)
