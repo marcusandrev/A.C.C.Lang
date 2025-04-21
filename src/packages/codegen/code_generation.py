@@ -1,3 +1,5 @@
+# code_generation.py
+
 class CodeGenerator:
     def __init__(self):
         self.indent_level = 0
@@ -25,20 +27,21 @@ class CodeGenerator:
         return None
 
     def emit_helper_functions(self):
-        # Helper to truncate floats to 6 decimals (still unused for clamped path).
-        self.code_lines.append("""def truncate_andamhie_acclang_specific(value):
-    import math
-    return math.trunc(value * 1000000) / 1000000
+        # Helper to catch use-before-init errors
+        self.code_lines.append("""def _cNone_(value, name):
+    if value is None:
+        raise NameError(f"Runtime error: variable '{name}' used before initialization")
+    return value
 """)
         # Updated type checking with clamping for anda/andamhie
-        self.code_lines.append("""def check_type_acclang_specific(expected, value):
+        self.code_lines.append("""def _cType_(expected, value):
     if expected == 'anda':
         try:
             v = int(value)
-        except ValueError:
+        except Exception:
             try:
                 v = int(float(value))
-            except ValueError:
+            except Exception:
                 raise TypeError("Type error: expected numeric value for type 'anda'")
         if v > 9999999999:
             v = 9999999999
@@ -48,10 +51,10 @@ class CodeGenerator:
     elif expected == 'andamhie':
         try:
             f = float(value)
-        except ValueError:
+        except Exception:
             try:
                 f = float(int(value))
-            except ValueError:
+            except Exception:
                 raise TypeError("Type error: expected numeric value for type 'andamhie'")
         import math
         f = math.trunc(f * 1000000) / 1000000
@@ -63,10 +66,10 @@ class CodeGenerator:
     elif expected == 'eklabool':
         try:
             return False if int(value) == 0 else True
-        except ValueError:
+        except Exception:
             try:
                 return False if float(value) == 0.0 else True
-            except ValueError:
+            except Exception:
                 if isinstance(value, str):
                     return True
                 else:
@@ -79,11 +82,12 @@ class CodeGenerator:
     else:
         return value
 """)
-        self.code_lines.append("""def check_array_type_acclang_specific(expected, arr):
+        # Array type checker
+        self.code_lines.append("""def _cArray_(expected, arr):
     if isinstance(arr, list):
-        return [check_array_type_acclang_specific(expected, x) for x in arr]
+        return [_cArray_(expected, x) for x in arr]
     else:
-        return check_type_acclang_specific(expected, arr)
+        return _cType_(expected, arr)
 """)
 
     def generate(self, node):
@@ -141,23 +145,22 @@ class CodeGenerator:
         self.code_lines.append("")
 
     def visit_VarDeclNode(self, node):
-        if isinstance(node.initializer, list):
-            expr_code = self.visit_list(node.initializer)
-            code = f"{node.name} = check_array_type_acclang_specific('{node.data_type}', {expr_code})"
+        # If no initializer, assign Python None
+        if node.initializer is None:
+            code = f"{node.name} = None"
         else:
-            expr = self.visit(node.initializer) if node.initializer is not None else None
-            if expr is None:
-                default = {
-                    'anda': "0",
-                    'andamhie': "0",
-                    'eklabool': "False",
-                    'chika': '""'
-                }.get(node.data_type, "None")
-                expr = default
-            expr = f"check_type_acclang_specific('{node.data_type}', {expr})"
-            code = f"{node.name} = {expr}"
+            # Array initializer
+            if isinstance(node.initializer, list):
+                expr_code = self.visit_list(node.initializer)
+                code = (f"{node.name} = "
+                        f"_cArray_('{node.data_type}', {expr_code})")
+            else:
+                expr = self.visit(node.initializer)
+                expr = f"_cType_('{node.data_type}', {expr})"
+                code = f"{node.name} = {expr}"
 
         self.code_lines.append(self.indent() + code)
+        # Record the declared type (even if None)
         self.current_scope()[node.name] = node.data_type
 
     def visit_AssignmentNode(self, node):
@@ -168,17 +171,18 @@ class CodeGenerator:
             if var_type:
                 self.code_lines.append(
                     self.indent() +
-                    f"{node.identifier} = check_type_acclang_specific('{var_type}', {right})"
+                    f"{node.identifier} = _cType_('{var_type}', {right})"
                 )
             else:
+                # undeclared fallback, keep operator literal
                 self.code_lines.append(self.indent() + f"{node.identifier} {node.operator} {right}")
         else:
             # compound assignment: compute then clamp
             op_map = {"+=": "+", "-=": "-", "*=": "*", "/=": "/", "%=": "%", "**=": "**", "//=": "//"}
             bin_op = op_map.get(node.operator, node.operator)
             full = (
-                f"check_type_acclang_specific("
-                f"'{var_type}', {node.identifier} {bin_op} check_type_acclang_specific('{var_type}', {right})"
+                f"_cType_("
+                f"'{var_type}', {node.identifier} {bin_op} _cType_('{var_type}', {right})"
                 f")"
             )
             self.code_lines.append(self.indent() + f"{node.identifier} = {full}")
@@ -194,7 +198,9 @@ class CodeGenerator:
             self.code_lines.append(self.indent() + "return")
 
     def visit_PrintNode(self, node):
-        self.code_lines.append(self.indent() + f"print({self.visit(node.expression)}, end='')")
+        # Wrap the expression use with check_none
+        expr = self.visit(node.expression)
+        self.code_lines.append(self.indent() + f"print({expr}, end='')")
 
     def visit_IfNode(self, node):
         self.code_lines.append(self.indent() + f"if {self.visit(node.condition)}:")
@@ -299,7 +305,8 @@ class CodeGenerator:
         return str(node.value)
 
     def visit_IdentifierNode(self, node):
-        return node.name
+        # Wrap every use in a runtime check
+        return f"_cNone_({node.name}, '{node.name}')"
 
     def visit_BinaryOpNode(self, node):
         if node.operator == '+':
@@ -316,7 +323,7 @@ class CodeGenerator:
             expr = f"({L} + {R})"
             t = self.infer_type(node)
             if t in ['anda', 'andamhie']:
-                return f"check_type_acclang_specific('{t}', {expr})"
+                return f"_cType_('{t}', {expr})"
             return expr
         else:
             L = self.visit(node.left)
@@ -330,7 +337,7 @@ class CodeGenerator:
             if node.operator in ['-', '*', '/', '%', '**', '//']:
                 t = self.infer_type(node)
                 if t in ['anda', 'andamhie']:
-                    return f"check_type_acclang_specific('{t}', {expr})"
+                    return f"_cType_('{t}', {expr})"
             return expr
 
     def visit_UnaryOpNode(self, node):
@@ -343,7 +350,7 @@ class CodeGenerator:
             expr = f"({val} {ar} 1)"
             t = self.infer_type(node.operand)
             if t in ['anda', 'andamhie']:
-                return f"check_type_acclang_specific('{t}', {expr})"
+                return f"_cType_('{t}', {expr})"
             return expr
         return f"({op}{val})"
 
