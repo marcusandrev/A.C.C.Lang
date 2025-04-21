@@ -85,8 +85,12 @@
               <div class="compiler-log-tab">
                 <text class="tab-text-compiler-log"> Compiler Logs </text>
               </div>
-              <pre class="compiler-log" id="compiler-log"></pre>
-            </div>
+              <!-- new wrapper -->
+              <div class="compiler-output">
+                <pre class="compiler-log" id="compiler-log"></pre>
+                <div id="terminal"></div>
+              </div>
+            </div>      
           </div>
 
           <div class="main-right-container">
@@ -115,5 +119,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/clike/clike.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/lint/lint.min.js"></script>
     <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+    <link rel="stylesheet" href="https://unpkg.com/xterm/css/xterm.css" />
+    <script src="https://unpkg.com/xterm/lib/xterm.js"></script>
+    <script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
   </body>
 </html>
