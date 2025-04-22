@@ -59,6 +59,7 @@ def handle_compile_and_run(data):
     # 4) Otherwise generate + write compiled.py
     ast = ASTGenerator(lex.token_stream).generate()
     target_code = CodeGenerator().generate(ast)
+    print(ast)
     out_path = os.path.abspath(os.path.join(
         os.path.dirname(__file__), '..', 'Files', 'compiled', 'compiled.py'))
     os.makedirs(os.path.dirname(out_path), exist_ok=True)

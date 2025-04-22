@@ -1,3 +1,5 @@
+from .ast_generator import UnaryOpNode, IdentifierNode
+
 # code_generation.py
 
 class CodeGenerator:
@@ -145,11 +147,55 @@ class CodeGenerator:
         self.code_lines.append("")
 
     def visit_VarDeclNode(self, node):
-        # If no initializer, assign Python None
+        # Handle pre-/post-increment/decrement in initializer
+        init = node.initializer
+        if hasattr(init, 'operator') and init.operator in ['++', '--']:
+            op_symbol = '+' if init.operator == '++' else '-'
+            # operand may be IdentifierNode or expression
+            operand = init.operand
+            if isinstance(operand, IdentifierNode):
+                var = operand.name
+            else:
+                var = self.visit(operand)
+            # determine type for operand update
+            update_type = self.lookup_variable(var)
+            # prefix: update then assign
+            if not getattr(init, 'is_postfix', False):
+                if update_type:
+                    self.code_lines.append(
+                        self.indent() +
+                        f"{var} = _cType_('{update_type}', {var} {op_symbol} 1)"
+                    )
+                else:
+                    self.code_lines.append(
+                        self.indent() + f"{var} = {var} {op_symbol} 1"
+                    )
+                # assign to new var
+                self.code_lines.append(
+                    self.indent() + f"{node.name} = _cType_('{node.data_type}', {var})"
+                )
+            else:
+                # postfix: assign original, then update
+                self.code_lines.append(
+                    self.indent() + f"{node.name} = _cType_('{node.data_type}', {var})"
+                )
+                if update_type:
+                    self.code_lines.append(
+                        self.indent() +
+                        f"{var} = _cType_('{update_type}', {var} {op_symbol} 1)"
+                    )
+                else:
+                    self.code_lines.append(
+                        self.indent() + f"{var} = {var} {op_symbol} 1"
+                    )
+            # record the declared type
+            self.current_scope()[node.name] = node.data_type
+            return
+
+        # Original variable declaration handling
         if node.initializer is None:
             code = f"{node.name} = None"
         else:
-            # Array initializer
             if isinstance(node.initializer, list):
                 expr_code = self.visit_list(node.initializer)
                 code = (f"{node.name} = "
@@ -158,26 +204,61 @@ class CodeGenerator:
                 expr = self.visit(node.initializer)
                 expr = f"_cType_('{node.data_type}', {expr})"
                 code = f"{node.name} = {expr}"
-
         self.code_lines.append(self.indent() + code)
-        # Record the declared type (even if None)
         self.current_scope()[node.name] = node.data_type
 
     def visit_AssignmentNode(self, node):
+        # Handle pre-/post-increment/decrement in assignment expression
+        expr = node.expression
+        if node.operator == '=' and hasattr(expr, 'operator') and expr.operator in ['++', '--']:
+            op_symbol = '+' if expr.operator == '++' else '-'
+            operand = expr.operand
+            if isinstance(operand, IdentifierNode):
+                var = operand.name
+            else:
+                var = self.visit(operand)
+            update_type = self.lookup_variable(var)
+            # prefix
+            if not getattr(expr, 'is_postfix', False):
+                if update_type:
+                    self.code_lines.append(
+                        self.indent() +
+                        f"{var} = _cType_('{update_type}', {var} {op_symbol} 1)"
+                    )
+                else:
+                    self.code_lines.append(
+                        self.indent() + f"{var} = {var} {op_symbol} 1"
+                    )
+                self.code_lines.append(
+                    self.indent() + f"{node.identifier} = _cType_('{update_type}', {var})"
+                )
+            else:
+                # postfix
+                self.code_lines.append(
+                    self.indent() + f"{node.identifier} = _cType_('{update_type}', {var})"
+                )
+                if update_type:
+                    self.code_lines.append(
+                        self.indent() +
+                        f"{var} = _cType_('{update_type}', {var} {op_symbol} 1)"
+                    )
+                else:
+                    self.code_lines.append(
+                        self.indent() + f"{var} = {var} {op_symbol} 1"
+                    )
+            return
+
         var_type = self.lookup_variable(node.identifier)
         right = self.visit(node.expression)
         if var_type is None or node.operator == "=":
-            # plain assignment or undeclared: just clamp on '=' if typed
             if var_type:
                 self.code_lines.append(
                     self.indent() +
                     f"{node.identifier} = _cType_('{var_type}', {right})"
                 )
             else:
-                # undeclared fallback, keep operator literal
                 self.code_lines.append(self.indent() + f"{node.identifier} {node.operator} {right}")
         else:
-            # compound assignment: compute then clamp
             op_map = {"+=": "+", "-=": "-", "*=": "*", "/=": "/", "%=": "%", "**=": "**", "//=": "//"}
             bin_op = op_map.get(node.operator, node.operator)
             full = (
