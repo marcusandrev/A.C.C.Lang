@@ -96,7 +96,7 @@ class CodeGenerator:
         self.emit_helper_functions()
         self.visit(node)
         self.code_lines.append("if __name__ == '__main__':")
-        self.code_lines.append("    kween()")
+        self.code_lines.append("    _kween()")
         return "\n".join(self.code_lines) + "\n"
 
     def visit(self, node):
@@ -133,7 +133,7 @@ class CodeGenerator:
 
     def visit_FunctionDeclNode(self, node):
         params = ", ".join([p[0] for p in node.parameters])
-        self.code_lines.append(f"def {node.name}({params}):")
+        self.code_lines.append(f"def _{node.name}({params}):")
         self.indent_level += 1
         self.push_scope()
         for param_name, param_type in node.parameters:
@@ -164,29 +164,29 @@ class CodeGenerator:
                 if update_type:
                     self.code_lines.append(
                         self.indent() +
-                        f"{var} = _cType_('{update_type}', {var} {op_symbol} 1)"
+                        f"_{var} = _cType_('{update_type}', _{var} {op_symbol} 1)"
                     )
                 else:
                     self.code_lines.append(
-                        self.indent() + f"{var} = {var} {op_symbol} 1"
+                        self.indent() + f"_{var} = _{var} {op_symbol} 1"
                     )
                 # assign to new var
                 self.code_lines.append(
-                    self.indent() + f"{node.name} = _cType_('{node.data_type}', {var})"
+                    self.indent() + f"_{node.name} = _cType_('{node.data_type}', _{var})"
                 )
             else:
                 # postfix: assign original, then update
                 self.code_lines.append(
-                    self.indent() + f"{node.name} = _cType_('{node.data_type}', {var})"
+                    self.indent() + f"_{node.name} = _cType_('{node.data_type}', _{var})"
                 )
                 if update_type:
                     self.code_lines.append(
                         self.indent() +
-                        f"{var} = _cType_('{update_type}', {var} {op_symbol} 1)"
+                        f"_{var} = _cType_('{update_type}', _{var} {op_symbol} 1)"
                     )
                 else:
                     self.code_lines.append(
-                        self.indent() + f"{var} = {var} {op_symbol} 1"
+                        self.indent() + f"_{var} = _{var} {op_symbol} 1"
                     )
             # record the declared type
             self.current_scope()[node.name] = node.data_type
@@ -194,16 +194,16 @@ class CodeGenerator:
 
         # Original variable declaration handling
         if node.initializer is None:
-            code = f"{node.name} = None"
+            code = f"_{node.name} = None"
         else:
             if isinstance(node.initializer, list):
                 expr_code = self.visit_list(node.initializer)
-                code = (f"{node.name} = "
+                code = (f"_{node.name} = "
                         f"_cArray_('{node.data_type}', {expr_code})")
             else:
                 expr = self.visit(node.initializer)
                 expr = f"_cType_('{node.data_type}', {expr})"
-                code = f"{node.name} = {expr}"
+                code = f"_{node.name} = {expr}"
         self.code_lines.append(self.indent() + code)
         self.current_scope()[node.name] = node.data_type
 
@@ -223,28 +223,28 @@ class CodeGenerator:
                 if update_type:
                     self.code_lines.append(
                         self.indent() +
-                        f"{var} = _cType_('{update_type}', {var} {op_symbol} 1)"
+                        f"_{var} = _cType_('{update_type}', _{var} {op_symbol} 1)"
                     )
                 else:
                     self.code_lines.append(
-                        self.indent() + f"{var} = {var} {op_symbol} 1"
+                        self.indent() + f"_{var} = _{var} {op_symbol} 1"
                     )
                 self.code_lines.append(
-                    self.indent() + f"{node.identifier} = _cType_('{update_type}', {var})"
+                    self.indent() + f"_{node.identifier} = _cType_('{update_type}', _{var})"
                 )
             else:
                 # postfix
                 self.code_lines.append(
-                    self.indent() + f"{node.identifier} = _cType_('{update_type}', {var})"
+                    self.indent() + f"_{node.identifier} = _cType_('{update_type}', _{var})"
                 )
                 if update_type:
                     self.code_lines.append(
                         self.indent() +
-                        f"{var} = _cType_('{update_type}', {var} {op_symbol} 1)"
+                        f"_{var} = _cType_('{update_type}', _{var} {op_symbol} 1)"
                     )
                 else:
                     self.code_lines.append(
-                        self.indent() + f"{var} = {var} {op_symbol} 1"
+                        self.indent() + f"_{var} = _{var} {op_symbol} 1"
                     )
             return
 
@@ -254,23 +254,23 @@ class CodeGenerator:
             if var_type:
                 self.code_lines.append(
                     self.indent() +
-                    f"{node.identifier} = _cType_('{var_type}', {right})"
+                    f"_{node.identifier} = _cType_('{var_type}', {right})"
                 )
             else:
-                self.code_lines.append(self.indent() + f"{node.identifier} {node.operator} {right}")
+                self.code_lines.append(self.indent() + f"_{node.identifier} {node.operator} {right}")
         else:
             op_map = {"+=": "+", "-=": "-", "*=": "*", "/=": "/", "%=": "%", "**=": "**", "//=": "//"}
             bin_op = op_map.get(node.operator, node.operator)
             full = (
                 f"_cType_("
-                f"'{var_type}', {node.identifier} {bin_op} _cType_('{var_type}', {right})"
+                f"'{var_type}', _{node.identifier} {bin_op} _cType_('{var_type}', {right})"
                 f")"
             )
-            self.code_lines.append(self.indent() + f"{node.identifier} = {full}")
+            self.code_lines.append(self.indent() + f"_{node.identifier} = {full}")
 
     def visit_FunctionCallNode(self, node):
         args = ", ".join(self.visit(arg) for arg in node.arguments)
-        return f"{node.name}({args})"
+        return f"_{node.name}({args})"
 
     def visit_ReturnNode(self, node):
         if node.expression is not None:
@@ -331,10 +331,10 @@ class CodeGenerator:
         s = self.visit(node.start_expr)
         e = self.visit(node.end_expr)
         st = self.visit(node.step_expr) if node.step_expr is not None else "1"
-        sv = f"start_val_{idx}"
-        ev = f"end_val_{idx}"
-        tv = f"step_val_{idx}"
-        bv = f"end_bound_{idx}"
+        sv = f"_start_val_{idx}"
+        ev = f"_end_val_{idx}"
+        tv = f"_step_val_{idx}"
+        bv = f"_end_bound_{idx}"
         self.code_lines.append(self.indent() + f"{sv} = {s}")
         self.code_lines.append(self.indent() + f"{ev} = {e}")
         self.code_lines.append(self.indent() + f"{tv} = {st}")
@@ -346,7 +346,7 @@ class CodeGenerator:
         self.indent_level += 1
         self.code_lines.append(self.indent() + f"{bv} = {ev} - 1")
         self.indent_level -= 1
-        self.code_lines.append(self.indent() + f"for {node.loop_var} in range({sv}, {bv}, {tv}):")
+        self.code_lines.append(self.indent() + f"for _{node.loop_var} in range({sv}, {bv}, {tv}):")
         self.indent_level += 1
         self.push_scope()
         if node.new_declaration and node.var_type:
@@ -387,7 +387,7 @@ class CodeGenerator:
 
     def visit_IdentifierNode(self, node):
         # Wrap every use in a runtime check
-        return f"_cNone_({node.name}, '{node.name}')"
+        return f"_cNone_(_{node.name}, '{node.name}')"
 
     def visit_BinaryOpNode(self, node):
         if node.operator == '+':
