@@ -84,7 +84,7 @@ def handle_compile_and_run(data):
         )
 
         socketio.start_background_task(stream_output, _process)
-        emit('output', f"[+] Running program.\n")
+        emit('output', f"[+] Running program.\n\n")
 
 def stream_output(proc):
     """Emit every character so prompts without newline show up immediately."""
@@ -102,7 +102,7 @@ def stream_output(proc):
         with _process_lock:
             if _process is proc:
                 _process = None
-        socketio.emit('output', "\n[+] Program finished.\n")
+        socketio.emit('output', "\n\n[+] Program finished.\n")
 
 @socketio.on('user_input')
 def handle_user_input(data):
