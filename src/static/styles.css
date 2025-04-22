@@ -719,7 +719,7 @@ body .table-wrapper th {
   height: 100% !important; 
   z-index: 2;         /* in front */
   display: none;      /* you already toggle this in JS */
-  overflow-y: auto;
+  overflow-y: hidden;
 }
 
 /* Override default xterm-viewport styles and integrate light/dark mode themes */
