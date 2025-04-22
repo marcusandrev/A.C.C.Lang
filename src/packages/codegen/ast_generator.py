@@ -175,6 +175,16 @@ class InputCallNode(ASTNode):
     def __repr__(self):
         return f"InputCallNode({self.prompt})"
 
+class UnaryOpStatementNode(ASTNode):
+    def __init__(self, operator, operand, is_postfix=False):
+        self.operator = operator
+        self.operand = operand
+        self.is_postfix = is_postfix
+
+    def __repr__(self):
+        pos = " (postfix)" if self.is_postfix else ""
+        return f"UnaryOpStatementNode({self.operator}{pos} {self.operand})"
+
 
 # --- AST Generator Class ---
 
@@ -268,12 +278,33 @@ class ASTGenerator:
                 return self.parse_function_call_statement()
             elif self.next_token() and self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
                 return self.parse_assignment_statement()
+            elif self.next_token() and self.next_token()[1] in ['++', '--']:
+                # Handle postfix ++i; or i--;
+                return self.parse_unary_statement(postfix=True)
             else:
                 self.advance()
                 return None
+        elif token[1] in ['++', '--']:
+            return self.parse_unary_statement(postfix=False)
         else:
             self.advance()
             return None
+
+    def parse_unary_statement(self, postfix=False):
+        if postfix:
+            operand = IdentifierNode(self.current_token()[0])
+            self.advance()
+            op = self.current_token()[1]
+            self.advance()
+            self.expect(';', "Expected ';' after unary expression")
+            return UnaryOpStatementNode(op, operand, is_postfix=True)
+        else:
+            op = self.current_token()[1]
+            self.advance()
+            operand = IdentifierNode(self.current_token()[0])
+            self.advance()
+            self.expect(';', "Expected ';' after unary expression")
+            return UnaryOpStatementNode(op, operand, is_postfix=False)
 
     def parse_declaration(self):
         is_constant = False

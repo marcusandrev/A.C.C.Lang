@@ -474,6 +474,16 @@ class CodeGenerator:
             return self.infer_type(node.operand)
         return None
 
+    def visit_UnaryOpStatementNode(self, node):
+        val = self.visit(node.operand)
+        op = node.operator
+        ar = '+' if op == '++' else '-'
+        t = self.infer_type(node.operand)
+        expr = f"{val} {ar} 1"
+        if t in ['anda', 'andamhie']:
+            expr = f"_cType_('{t}', {expr})"
+        self.code_lines.append(self.indent() + f"{val.split('(')[-1].split(',')[0]} = {expr}")
+
 def generate_code(ast):
     generator = CodeGenerator()
     return generator.generate(ast)
