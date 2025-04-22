@@ -14,10 +14,12 @@ document.addEventListener('DOMContentLoaded', function () {
     ).join('<br>');
   }
 
-  editor.addEventListener('input', updateLineNumbers);
-  editor.addEventListener('scroll', () => {
-    lineNumbers.scrollTop = editor.scrollTop;
-  });
+  if (editor) {
+    editor.addEventListener('input', updateLineNumbers);
+    editor.addEventListener('scroll', () => {
+      lineNumbers.scrollTop = editor.scrollTop;
+    });
+  }
 
   // Theme switch
   themeSwitch.addEventListener('change', () => {
@@ -33,21 +35,22 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // Tab key
-  editor.addEventListener('keydown', function (event) {
-    if (event.key === 'Tab') {
-      event.preventDefault();
-      const start = this.selectionStart;
-      const end = this.selectionEnd;
-      const spaces = '     ';
-      this.value =
-        this.value.substring(0, start) + spaces + this.value.substring(end);
-      this.selectionStart = this.selectionEnd = start + spaces.length;
-    }
-  });
+  if (editor) {
+    editor.addEventListener('keydown', function (event) {
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        const start = this.selectionStart;
+        const end = this.selectionEnd;
+        const spaces = '     ';
+        this.value =
+          this.value.substring(0, start) + spaces + this.value.substring(end);
+        this.selectionStart = this.selectionEnd = start + spaces.length;
+      }
+    });
 
-  updateLineNumbers();
+    updateLineNumbers();
+  }
 });
-
 
 CodeMirror.defineMode('acclang', function (config, parserConfig) {
   var keywords = new Set([
@@ -213,7 +216,7 @@ CodeMirror.registerHelper('hint', 'acclang', function (editor) {
 editor.on('beforeChange', function (cm, change) {
   if (change.origin !== 'setValue') {
     let text = change.text.map((line) =>
-      line.replace(/[“”]/g, '"').replace(/[‘’]/g, "'")
+      line.replace(/[""]/g, '"').replace(/['']/g, "'")
     );
     change.update(change.from, change.to, text);
   }
@@ -225,49 +228,101 @@ editor.on('inputRead', function (cm, event) {
   }
 });
 
-function runLexer() {
-  const sourceCode = editor.getValue();
-  const formData = new FormData();
-  formData.append('source_code', sourceCode);
+// Terminal and Socket Handling
+let socket = null;
+let term = null;
+let terminalInitialized = false;
+let inputBuffer = '';
 
-  fetch('/run_lexer', {
-    method: 'POST',
-    body: formData,
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.error) {
-        document.getElementById('compiler-log').innerText = data.error;
-        return;
+function initializeTerminal() {
+  if (!terminalInitialized) {
+    term = new Terminal({
+      cursorBlink: true,
+      fontFamily: 'monospace',
+      fontSize: 14,
+    });
+
+    term.open(document.getElementById('terminal'));
+    terminalInitialized = true;
+
+    term.onData(e => {
+      if (e === '\r') {
+        term.write('\r\n');
+        socket.emit('user_input', inputBuffer);
+        inputBuffer = '';
+      } else if (e === '\u007F') {
+        if (inputBuffer.length > 0) {
+          inputBuffer = inputBuffer.slice(0, -1);
+          term.write('\b \b');
+        }
+      } else {
+        inputBuffer += e;
+        term.write(e);
       }
+    });
+  }
+  
+  // Reset the terminal when it's initialized or reused
+  inputBuffer = '';
+  if (term) {
+    term.clear();
+  }
+}
 
-      // Clear existing table rows
-      const tableBody = document.getElementById('token-stream');
-      tableBody.innerHTML = '';
+function runLexer() {
+  // Always reset the logs and token display
+  document.getElementById('token-stream').innerHTML = '';
+  document.getElementById('compiler-log').innerText = '';
+  
+  // Hide the terminal initially
+  document.getElementById('terminal').style.display = 'none';
 
-      // Populate the table with lexer output
-      data.tokens.forEach((token) => {
+  // If socket doesn't exist yet, create it
+  if (!socket) {
+    socket = io();
+
+    // Set up listeners for terminal output
+    socket.on('output', data => {
+      if (terminalInitialized && term) {
+        term.write(data.replace(/\n/g, '\r\n'));
+      }
+    });
+
+    // Set up the compile_result handler
+    socket.on('compile_result', data => {
+      const tb = document.getElementById('token-stream');
+      tb.innerHTML = '';
+      data.tokens.forEach(tok => {
         const row = document.createElement('tr');
-
-        const lexemeCell = document.createElement('td');
-        lexemeCell.innerText = token[0]; // Lexeme
-
-        const tokenCell = document.createElement('td');
-        tokenCell.innerText = token[1]; // Token
-
-        row.appendChild(lexemeCell);
-        row.appendChild(tokenCell);
-        tableBody.appendChild(row);
+        row.innerHTML = `<td>${tok[0]}</td><td>${tok[1]}</td>`;
+        tb.appendChild(row);
       });
 
-      // Show compiler logs
-      const compilerLog = document.getElementById('compiler-log');
-      compilerLog.innerText = data.log && data.log.trim() !== '' ? data.log : 'No Errors';
-    })
-    .catch((error) => {
-      console.error('Error:', error);
-      document.getElementById('compiler-log').innerText = 'Error Running Lexer or No Input on Text Area.';
+      const logEl = document.getElementById('compiler-log');
+      logEl.innerText = data.log.trim() || 'No Errors';
+
+      // Only initialize terminal if there are no errors
+      if (!data.log.trim()) {
+        document.getElementById('terminal').style.display = 'block';
+        initializeTerminal();
+      }
     });
+  }
+
+  const source = editor.getValue();
+  socket.emit('compile_and_run', { source_code: source });
+}
+
+function loadFile(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      editor.setValue(e.target.result);
+      document.getElementById('file-name').textContent = file.name;
+    };
+    reader.readAsText(file);
+  }
 }
 
 document.getElementById('theme-switch').addEventListener('change', function () {
@@ -302,3 +357,30 @@ function updateEditorTheme(isDarkMode) {
     `;
   }
 }
+
+// Add some CSS to the page to handle terminal visibility
+const terminalStyle = document.createElement('style');
+terminalStyle.textContent = `
+  #terminal {
+    display: none;
+    flex: 1;
+    height: 200px;
+    background: #000;
+  }
+`;
+document.head.appendChild(terminalStyle);
+
+// Add default code to the editor when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+  const defaultCode = `/^ Welcome to A.C.C. Lang.^/
+/^ Write your code below ^/
+
+shimenet kween () {
+    /^An A.C.C. Lang. program starts here^/
+    serve("Hello, World!");
+}`;
+
+  if (editor.getValue().trim() === '') {
+    editor.setValue(defaultCode);
+  }
+});
