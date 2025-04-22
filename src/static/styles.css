@@ -766,3 +766,22 @@ body.dark-mode .xterm-viewport {
 body.dark-mode .xterm-dom-renderer-owner-1 .xterm-rows span{
   color: #ffffff !important; 
 }
+
+
+.xterm-dom-renderer-owner-1 .xterm-rows .xterm-cursor.xterm-cursor-outline {
+  outline: 1px solid #000000 !important;
+  outline-offset: -1px;
+}
+
+.xterm-dom-renderer-owner-1 .xterm-rows .xterm-cursor.xterm-cursor-blink.xterm-cursor-block {
+background-color: #000000 !important;
+}
+
+body.dark-mode .xterm-dom-renderer-owner-1 .xterm-rows .xterm-cursor.xterm-cursor-outline {
+  outline: 1px solid #ffffff !important;
+  outline-offset: -1px;
+}
+
+body.dark-mode .xterm-dom-renderer-owner-1 .xterm-rows .xterm-cursor.xterm-cursor-blink.xterm-cursor-block {
+background-color: #ffffff !important;
+}
