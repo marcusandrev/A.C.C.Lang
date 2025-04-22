@@ -117,6 +117,14 @@ class SwitchNode(ASTNode):
     def __repr__(self):
         return f"SwitchNode({self.expression}, cases={self.cases}, default={self.default_case})"
 
+class BreakNode(ASTNode):
+    def __repr__(self):
+        return "BreakNode()"
+
+class ContinueNode(ASTNode):
+    def __repr__(self):
+        return "ContinueNode()"
+
 class BlockNode(ASTNode):
     def __init__(self, statements):
         self.statements = statements
@@ -271,6 +279,14 @@ class ASTGenerator:
             return self.parse_switch_statement()
         elif token[1] == 'forda':
             return self.parse_for_loop()
+        elif token[1] == 'amaccana':
+            self.advance()
+            self.expect(';', "Expected ';' after 'amaccana'")
+            return BreakNode()
+        elif token[1] == 'gogogo':
+            self.advance()
+            self.expect(';', "Expected ';' after 'gogogo'")
+            return ContinueNode()
         elif token[1] == '{':
             return self.parse_block()
         elif token[1] == 'id':

@@ -375,6 +375,12 @@ class CodeGenerator:
             self.pop_scope()
             self.indent_level -= 1
 
+    def visit_BreakNode(self, node):
+        self.code_lines.append(self.indent() + "break")
+
+    def visit_ContinueNode(self, node):
+        self.code_lines.append(self.indent() + "continue")
+
     def visit_BlockNode(self, node):
         self.push_scope()
         self.emit_statements(node.statements)
