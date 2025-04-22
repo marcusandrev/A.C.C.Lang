@@ -715,11 +715,36 @@ body .table-wrapper th {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
+  width: calc(100% - 10px) !important;
   height: 100% !important; 
   z-index: 2;         /* in front */
   display: none;      /* you already toggle this in JS */
-  overflow-y: hidden;
+  overflow: hidden;
+  border-radius: 0 10px 10px 10px !important;
+  padding: 10px 0px 10px 10px !important;
+  overflow-wrap: break-word !important;
+  height: calc(100% - 20px) !important;
+  background-color: #ffffff !important;
+  transition: background-color 0.5s ease; 
+  padding-right: 0px !important; /* Add padding to create space */
+}
+
+body.dark-mode #terminal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(100% - 10px) !important;
+  height: 100% !important; 
+  z-index: 2;         /* in front */
+  display: none;      /* you already toggle this in JS */
+  overflow: hidden;
+  border-radius: 0 10px 10px 10px !important;
+  padding: 10px 0px 10px 10px !important;
+  overflow-wrap: break-word !important;
+  height: calc(100% - 20px) !important;
+  background-color:#282a36 !important;
+  transition: background-color 0.5s ease; 
+  padding-right: 0px !important; /* Add padding to create space */
 }
 
 /* Override default xterm-viewport styles and integrate light/dark mode themes */
@@ -784,4 +809,27 @@ body.dark-mode .xterm-dom-renderer-owner-1 .xterm-rows .xterm-cursor.xterm-curso
 
 body.dark-mode .xterm-dom-renderer-owner-1 .xterm-rows .xterm-cursor.xterm-cursor-blink.xterm-cursor-block {
 background-color: #ffffff !important;
+}
+
+.xterm {
+    cursor: text;
+    position: relative;
+    user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
+    height: 100% !important;
+}
+
+.xterm-screen {
+  height: 100% !important;
+}
+
+.xterm-dom-renderer-owner-1 .xterm-rows {
+  height: 100% !important; 
+}
+
+/* Ensure a minimum of 13 rows are displayed in the xterm */
+.xterm-rows {
+  min-height: calc(13 * 1em) !important; /* Assuming each row is approximately 1em in height */
+  overflow-y: hidden; /* Prevent overflow */
 }
