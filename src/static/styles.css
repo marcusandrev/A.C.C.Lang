@@ -716,8 +716,53 @@ body .table-wrapper th {
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: 100% !important; 
   z-index: 2;         /* in front */
   display: none;      /* you already toggle this in JS */
   overflow-y: auto;
+}
+
+/* Override default xterm-viewport styles and integrate light/dark mode themes */
+.xterm-viewport {
+  background-color: var(--xterm-bg, #ffffff);
+  color: var(--xterm-color, #000000);
+  transition: background-color 0.5s ease, color 0.5s ease;
+  color: #000000 !important; /* Ensure text is black in light mode */
+  font-family: monospace !important; /* Match compiler log font */
+  font-size: 14px !important; /* Match compiler log font size */
+}
+
+/* Light mode variables */
+body.light-mode .xterm-viewport .xterm-dom-renderer-owner-1 .xterm-rows{
+  --xterm-bg: #ffffff;
+}
+
+/* Dark mode variables */
+body.dark-mode .xterm-viewport {
+  --xterm-bg: #282a36;
+  --xterm-color: #ffffff;
+  --padding-right: 0px; 
+}
+
+.xterm-viewport {
+  background-color: var(--xterm-bg, #ffffff) !important;
+  transition: background-color 0.5s ease, color 0.5s ease !important;
+}
+
+body.light-mode .xterm-viewport {
+  --xterm-bg: #ffffff;
+}
+
+body.dark-mode .xterm-viewport {
+  --xterm-bg: #282a36;
+  --xterm-color: #ffffff;
+  --padding-right: 0px; 
+}
+
+.xterm-dom-renderer-owner-1 .xterm-rows span{
+  color: #000000 !important; 
+}
+
+body.dark-mode .xterm-dom-renderer-owner-1 .xterm-rows span{
+  color: #ffffff !important; 
 }

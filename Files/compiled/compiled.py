@@ -1,35 +1,44 @@
-def truncate_andamhie(value):
-    import math
-    return math.trunc(value * 1000000) / 1000000
+def _cNone_(value, name):
+    if value is None:
+        raise NameError(f"Runtime error: variable '{name}' used before initialization")
+    return value
 
-def check_type_acclang_specific(expected, value):
+def _cType_(expected, value):
     if expected == 'anda':
         try:
-            return int(value)
-        except ValueError:
+            v = int(value)
+        except Exception:
             try:
-                return int(float(value))
-            except ValueError:
+                v = int(float(value))
+            except Exception:
                 raise TypeError("Type error: expected numeric value for type 'anda'")
+        if v > 9999999999:
+            v = 9999999999
+        if v < -9999999999:
+            v = -9999999999
+        return v
     elif expected == 'andamhie':
         try:
             f = float(value)
-            import math
-            return math.trunc(f * 1000000) / 1000000
-        except ValueError:
+        except Exception:
             try:
                 f = float(int(value))
-                import math
-                return math.trunc(f * 1000000) / 1000000
-            except ValueError:
+            except Exception:
                 raise TypeError("Type error: expected numeric value for type 'andamhie'")
+        import math
+        f = math.trunc(f * 1000000) / 1000000
+        if f > 9999999999.999999:
+            f = 9999999999.999999
+        if f < -9999999999:
+            f = -9999999999.999999
+        return f
     elif expected == 'eklabool':
         try:
             return False if int(value) == 0 else True
-        except ValueError:
+        except Exception:
             try:
                 return False if float(value) == 0.0 else True
-            except ValueError:
+            except Exception:
                 if isinstance(value, str):
                     return True
                 else:
@@ -42,16 +51,14 @@ def check_type_acclang_specific(expected, value):
     else:
         return value
 
-def check_array_type_acclang_specific(expected, arr):
+def _cArray_(expected, arr):
     if isinstance(arr, list):
-        return [check_array_type_acclang_specific(expected, x) for x in arr]
+        return [_cArray_(expected, x) for x in arr]
     else:
-        return check_type_acclang_specific(expected, arr)
+        return _cType_(expected, arr)
 
 def kween():
-    x = check_type_acclang_specific('andamhie', 1.000005)
-    y = check_type_acclang_specific('andamhie', input('Enter a decimal value: '))
-    print(truncate_andamhie((x + y)))
+    print("Hello, World!", end='')
 
 if __name__ == '__main__':
     kween()

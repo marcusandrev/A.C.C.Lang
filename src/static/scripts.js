@@ -369,3 +369,18 @@ terminalStyle.textContent = `
   }
 `;
 document.head.appendChild(terminalStyle);
+
+// Add default code to the editor when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+  const defaultCode = `/^ Welcome to A.C.C. Lang.^/
+/^ Write your code below ^/
+
+shimenet kween () {
+    /^An A.C.C. Lang. program starts here^/
+    serve("Hello, World!");
+}`;
+
+  if (editor.getValue().trim() === '') {
+    editor.setValue(defaultCode);
+  }
+});
