@@ -117,6 +117,14 @@ class SwitchNode(ASTNode):
     def __repr__(self):
         return f"SwitchNode({self.expression}, cases={self.cases}, default={self.default_case})"
 
+class BreakNode(ASTNode):
+    def __repr__(self):
+        return "BreakNode()"
+
+class ContinueNode(ASTNode):
+    def __repr__(self):
+        return "ContinueNode()"
+
 class BlockNode(ASTNode):
     def __init__(self, statements):
         self.statements = statements
@@ -174,6 +182,16 @@ class InputCallNode(ASTNode):
 
     def __repr__(self):
         return f"InputCallNode({self.prompt})"
+
+class UnaryOpStatementNode(ASTNode):
+    def __init__(self, operator, operand, is_postfix=False):
+        self.operator = operator
+        self.operand = operand
+        self.is_postfix = is_postfix
+
+    def __repr__(self):
+        pos = " (postfix)" if self.is_postfix else ""
+        return f"UnaryOpStatementNode({self.operator}{pos} {self.operand})"
 
 
 # --- AST Generator Class ---
@@ -261,6 +279,14 @@ class ASTGenerator:
             return self.parse_switch_statement()
         elif token[1] == 'forda':
             return self.parse_for_loop()
+        elif token[1] == 'amaccana':
+            self.advance()
+            self.expect(';', "Expected ';' after 'amaccana'")
+            return BreakNode()
+        elif token[1] == 'gogogo':
+            self.advance()
+            self.expect(';', "Expected ';' after 'gogogo'")
+            return ContinueNode()
         elif token[1] == '{':
             return self.parse_block()
         elif token[1] == 'id':
@@ -268,12 +294,33 @@ class ASTGenerator:
                 return self.parse_function_call_statement()
             elif self.next_token() and self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
                 return self.parse_assignment_statement()
+            elif self.next_token() and self.next_token()[1] in ['++', '--']:
+                # Handle postfix ++i; or i--;
+                return self.parse_unary_statement(postfix=True)
             else:
                 self.advance()
                 return None
+        elif token[1] in ['++', '--']:
+            return self.parse_unary_statement(postfix=False)
         else:
             self.advance()
             return None
+
+    def parse_unary_statement(self, postfix=False):
+        if postfix:
+            operand = IdentifierNode(self.current_token()[0])
+            self.advance()
+            op = self.current_token()[1]
+            self.advance()
+            self.expect(';', "Expected ';' after unary expression")
+            return UnaryOpStatementNode(op, operand, is_postfix=True)
+        else:
+            op = self.current_token()[1]
+            self.advance()
+            operand = IdentifierNode(self.current_token()[0])
+            self.advance()
+            self.expect(';', "Expected ';' after unary expression")
+            return UnaryOpStatementNode(op, operand, is_postfix=False)
 
     def parse_declaration(self):
         is_constant = False
