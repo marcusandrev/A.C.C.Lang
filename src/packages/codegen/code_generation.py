@@ -132,7 +132,7 @@ class CodeGenerator:
         self.emit_statements(node.statements)
 
     def visit_FunctionDeclNode(self, node):
-        params = ", ".join([p[0] for p in node.parameters])
+        params = ", ".join("_"+[p[0] for p in node.parameters])
         self.code_lines.append(f"def _{node.name}({params}):")
         self.indent_level += 1
         self.push_scope()
