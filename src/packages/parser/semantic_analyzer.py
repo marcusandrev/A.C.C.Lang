@@ -420,25 +420,41 @@ class SemanticAnalyzer:
         return False
 
     def process_assignment_statement(self):
-        # Process an assignment statement: identifier assignment_operator expression ';'
-        ident = self.current_token()[0]
+        # Process an assignment statement: identifier (with optional indexing) assignment_operator expression ';'
+
+        ident = self.current_token()[0]  # Variable name
         self.advance()  # Skip identifier
 
-        # Check for the assignment operator (plain or augmented)
+        is_indexed = False
+        index_type = None
+
+        # Handle optional indexing (e.g., x[0])
+        if self.current_token() and self.current_token()[1] == '[':
+            is_indexed = True
+            self.advance()  # Skip '['
+            index_type = self.evaluate_expression()
+            if index_type not in ['anda', 'andamhie']:
+                self.log += str(SemanticError(f"Array index must be numeric", self._token_stream[self.token_index][1][0])) + '\n'
+            if not self.current_token() or self.current_token()[1] != ']':
+                self.log += str(SemanticError("Expected ']' after array index", self._token_stream[self.token_index][1][0])) + '\n'
+            self.advance()  # Skip ']'
+
+        # Check assignment operator
         if not self.current_token():
             self.log += str(SemanticError("Expected assignment operator after identifier", self._token_stream[self.token_index - 1][1][0])) + '\n'
             return
+
         op_token = self.current_token()
         op = op_token[1]
         if op not in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
             self.log += str(SemanticError("Expected an assignment operator", self._token_stream[self.token_index][1][0])) + '\n'
         self.advance()  # Skip assignment operator
 
-        # Check if the identifier was declared BEFORE evaluating the expression
+        # Lookup variable entry
         declared = False
         entry = None
         if self.current_function is not None:
-            # Check block scopes first
+            # Search in block scopes
             for scope in reversed(self.block_scopes):
                 if ident in scope:
                     declared = True
@@ -450,10 +466,7 @@ class SemanticAnalyzer:
                     entry = self.symbol_table["functions"][self.current_function]["locals"][ident]
                 elif any(param[0] == ident for param in self.symbol_table["functions"][self.current_function]["parameters"]):
                     self.log += str(SemanticError(f"Assignment to immutable parameter '{ident}' is not allowed", self._token_stream[self.token_index - 1][1][0])) + '\n'
-                    declared = True  # Even if invalid assignment, parameter exists
-                elif ident in self.symbol_table["variables"]:
                     declared = True
-                    entry = self.symbol_table["variables"][ident]
         else:
             if ident in self.symbol_table["variables"]:
                 declared = True
@@ -461,49 +474,67 @@ class SemanticAnalyzer:
 
         if not declared:
             self.log += str(SemanticError(f"Assignment to undeclared variable '{ident}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
-            # Allow processing to continue (optional), otherwise you can add "return" here if you want
+            # Allow processing to continue for recovery
 
-        # Evaluate the right-hand side expression.
-        expr_type = self.evaluate_expression()
+        # Determine if right-hand side is an array literal or an expression
+        rhs_is_array = False
+        rhs_value = None
 
-        if expr_type == "givenchy":
-            if not self.current_token() or self.current_token()[1] != ';':
-                self.log += str(SemanticError("Expected ';' after assignment", self._token_stream[self.token_index][1][0])) + '\n'
-            self.advance()
-            return
+        if self.current_token() and self.current_token()[1] == '{':
+            rhs_is_array = True
+            rhs_value = self.process_array_initializer_dynamic(var_type=entry["data_type"] if entry else None)
+        else:
+            rhs_value = self.evaluate_expression()
 
+        # Expect semicolon
         if not self.current_token() or self.current_token()[1] != ';':
             self.log += str(SemanticError("Expected ';' at end of assignment statement", self._token_stream[self.token_index][1][0])) + '\n'
         self.advance()
 
-        # If declared, proceed with type checking
-        if declared and entry is not None:
+        # Now perform type checks
+        if declared and entry:
             if entry["naur_flag"]:
                 self.log += str(SemanticError(f"Assignment to constant variable '{ident}' is not allowed", self._token_stream[self.token_index - 1][1][0])) + '\n'
 
             var_type = entry["data_type"]
 
-            if op == '=':
-                # Simple assignment
-                if var_type in ['anda', 'andamhie']:
-                    if expr_type not in ['anda', 'andamhie', 'eklabool']:
-                        self.log += str(SemanticError(f"Variable '{ident}' of type '{var_type}' cannot be assigned a value of type '{expr_type}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
-                elif var_type == 'eklabool':
-                    if expr_type not in ['eklabool', 'anda', 'andamhie', 'chika']:
-                        self.log += str(SemanticError(f"Variable '{ident}' of type '{var_type}' cannot be assigned a value of type '{expr_type}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
-                elif var_type == 'chika':
-                    if expr_type != 'chika':
-                        self.log += str(SemanticError(f"Variable '{ident}' of type '{var_type}' cannot be assigned a value of type '{expr_type}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
-            else:
-                # Augmented assignment
-                if op == '+=' and var_type == 'chika':
-                    if expr_type != 'chika':
-                        self.log += str(SemanticError(f"Operator '+=' expects type 'chika' for concatenation, got '{expr_type}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
+            if is_indexed:
+                # LHS is array element
+                if rhs_is_array:
+                    self.log += str(SemanticError(f"Cannot assign an array literal to an array element '{ident}[...]'", self._token_stream[self.token_index - 1][1][0])) + '\n'
                 else:
-                    if var_type not in ['anda', 'andamhie', 'eklabool']:
-                        self.log += str(SemanticError(f"Operator '{op}' cannot be applied to type '{var_type}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
-                    if expr_type not in ['anda', 'andamhie', 'eklabool']:
-                        self.log += str(SemanticError(f"Operator '{op}' expects a numeric or boolean type for assignment, got '{expr_type}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
+                    # Check that the value assigned matches the base type
+                    if var_type in ['anda', 'andamhie']:
+                        if rhs_value not in ['anda', 'andamhie', 'eklabool']:
+                            self.log += str(SemanticError(f"Array element of type '{var_type}' cannot be assigned a value of type '{rhs_value}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
+                    elif var_type == 'eklabool':
+                        if rhs_value not in ['anda', 'andamhie', 'eklabool', 'chika']:
+                            self.log += str(SemanticError(f"Array element of type 'eklabool' cannot be assigned a value of type '{rhs_value}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
+                    elif var_type == 'chika':
+                        if rhs_value != 'chika':
+                            self.log += str(SemanticError(f"Array element of type 'chika' must be assigned a 'chika', got '{rhs_value}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
+
+            else:
+                # LHS is full variable
+                if entry.get("is_array", False):
+                    # Variable is an array
+                    if not rhs_is_array:
+                        self.log += str(SemanticError(f"Array variable '{ident}' must be assigned an array, not a scalar value", self._token_stream[self.token_index - 1][1][0])) + '\n'
+                else:
+                    # Variable is scalar
+                    if rhs_is_array:
+                        self.log += str(SemanticError(f"Scalar variable '{ident}' cannot be assigned an array", self._token_stream[self.token_index - 1][1][0])) + '\n'
+                    else:
+                        # Normal scalar assignment
+                        if var_type in ['anda', 'andamhie']:
+                            if rhs_value not in ['anda', 'andamhie', 'eklabool']:
+                                self.log += str(SemanticError(f"Variable '{ident}' of type '{var_type}' cannot be assigned a value of type '{rhs_value}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
+                        elif var_type == 'eklabool':
+                            if rhs_value not in ['anda', 'andamhie', 'eklabool', 'chika']:
+                                self.log += str(SemanticError(f"Variable '{ident}' of type '{var_type}' cannot be assigned a value of type '{rhs_value}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
+                        elif var_type == 'chika':
+                            if rhs_value != 'chika':
+                                self.log += str(SemanticError(f"Variable '{ident}' of type '{var_type}' must be assigned a 'chika'", self._token_stream[self.token_index - 1][1][0])) + '\n'
 
     def process_function_call(self):
         """

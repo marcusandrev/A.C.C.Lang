@@ -140,6 +140,7 @@
  <assignment-operators> -> *= 
  <assignment-operators> -> **= 
  <assignment-values> -> <expression> 
+ <assignment-values> -> { <array-elements> } 
  <input-stmts> -> <input-type> id = givenchy ( <givenchy-values> ) ; 
  <input-type> -> <data-type> 
  <input-type> -> λ 

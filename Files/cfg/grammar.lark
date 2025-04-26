@@ -120,7 +120,7 @@ loop_body: ID assign_call_stmts statements  | input_stmts loop_body  | output_st
 multi_loop_body: loop_body multi_loop_body  |  
 assign_call_stmts: array_indexing assignment_operators assignment_values SEMICOLON  | LPAR arguments RPAR SEMICOLON 
 assignment_operators: EQUAL  | PLUS_EQUAL  | MINUS_EQUAL  | MODULO_EQUAL  | DIVIDE_EQUAL  | FLOOR_EQUAL  | TIMES_EQUAL  | EXPONENTIATE_EQUAL 
-assignment_values: expression 
+assignment_values: expression  | LBRACE array_elements RBRACE 
 input_stmts: input_type ID EQUAL GIVENCHY LPAR givenchy_values RPAR SEMICOLON 
 input_type: data_type  |  
 givenchy_values: expression_operands 

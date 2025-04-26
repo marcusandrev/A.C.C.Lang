@@ -144,6 +144,7 @@
 | 143 | \<assignment-operators\> | → | \*= |
 | 144 | \<assignment-operators\> | → | \*\*= |
 | 145 | \<assignment-values\> | → | \<expression\> |
+|  | \<assignment-values\> | → | { \<array-elements\> } |
 | 146 | \<input-stmts\> | → | \<input-type\> id \= givenchy ( \<givenchy-values\> ) ; |
 | 147 | \<input-type\> | → | \<data-type\> |
 | 148 | \<input-type\> | → | λ |
