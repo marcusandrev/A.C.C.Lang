@@ -51,17 +51,10 @@
  <array-init> -> = { <array-elements> } 
  <array-init> -> λ 
  <array-elements> -> <array-values> <extra-array-value> 
- <array-elements> -> { <2d-array-elements> } <extra-2d-array-value>  
- <2d-array-elements> -> <array-values> <extra-array-value> 
- <2d-array-elements> -> { <array-values> <extra-array-value> } <extra-2d-array-value> 
- <2d-array-elements> -> λ 
+ <array-elements> -> { <array-elements> } <extra-array-value> 
  <extra-array-value> -> , <array-values> <extra-array-value> 
+ <extra-array-value> -> , { <array-elements> } <extra-array-value> 
  <extra-array-value> -> λ 
- <extra-2d-array-value> -> , { <extra-3d-array-value> } <extra-2d-array-value> 
- <extra-2d-array-value> -> λ 
- <extra-3d-array-value> -> <array-values> <extra-array-value> 
- <extra-3d-array-value> -> { <array-values> <extra-array-value> } <extra-2d-array-value> 
- <extra-3d-array-value> -> λ 
  <func-def> -> <return-type> id ( <parameters> ) { <func-body> } <func-def> 
  <func-def> -> λ 
  <func-body> -> <statements>  

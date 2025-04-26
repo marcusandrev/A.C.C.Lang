@@ -55,17 +55,10 @@
 | 49 | \<array-init\> | → | \= { \<array-elements\> } |
 | 50 | \<array-init\> | → | λ |
 | 51 | \<array-elements\> | → | \<array-values\> \<extra-array-value\> |
-| 52 | \<array-elements\> | → | { \<2d-array-elements\> } \<extra-2d-array-value\>  |
-| 53 | \<2d-array-elements\> | → | \<array-values\> \<extra-array-value\> |
-| 54 | \<2d-array-elements\> | → | { \<array-values\> \<extra-array-value\> } \<extra-2d-array-value\> |
-| 55 | \<2d-array-elements\> | → | λ |
+|  | \<array-elements\> | → | { \<array-elements\> } \<extra-array-value\> |
 | 56 | \<extra-array-value\> | → | , \<array-values\> \<extra-array-value\> |
+|  | \<extra-array-value\> | → | , { \<array-elements\> } \<extra-array-value\> |
 | 57 | \<extra-array-value\> | → | λ |
-| 58 | \<extra-2d-array-value\> | → | , { \<extra-3d-array-value\> } \<extra-2d-array-value\> |
-| 59 | \<extra-2d-array-value\> | → | λ |
-| 60 | \<extra-3d-array-value\> | → | \<array-values\> \<extra-array-value\> |
-| 61 | \<extra-3d-array-value\> | → | { \<array-values\> \<extra-array-value\> } \<extra-2d-array-value\> |
-| 62 | \<extra-3d-array-value\> | → | λ |
 | 63 | \<func-def\> | → | \<return-type\> id ( \<parameters\> ) { \<func-body\> } \<func-def\> |
 | 64 | \<func-def\> | → | λ |
 | 65 | \<func-body\> | → | \<statements\>  |
