@@ -15,6 +15,7 @@ class SemanticAnalyzer:
         # Stack for block scopes (for conditionals, loops, and other nested blocks)
         self.block_scopes = []
         self.log = ''
+        self.allow_unindexed_array_usage = False
 
     def current_token(self):
         if 0 <= self.token_index < len(self._token_stream):
@@ -1120,13 +1121,26 @@ class SemanticAnalyzer:
         while self.current_token() and self.current_token()[1] in ['+', '-']:
             op = self.current_token()[1]
             self.advance()
+
+            # ✨ Save the original allow_unindexed_array_usage state
+            original_flag = self.allow_unindexed_array_usage
+            
+            # ✨ If this is string addition, allow array printing
+            if op == '+' and ('chika' in [left_type]):
+                self.allow_unindexed_array_usage = True
+
             right_type = self.parse_multiplicative()
+
             if op == '+' and ('chika' in [left_type, right_type]):
                 left_type = 'chika'
             else:
                 if left_type not in ['anda', 'andamhie', 'eklabool', 'givenchy'] or right_type not in ['anda', 'andamhie', 'eklabool', 'givenchy']:
                     self.log += str(SemanticError("Invalid types for arithmetic addition/subtraction", self._token_stream[self.token_index][1][0])) + '\n'
                 left_type = 'andamhie'
+
+            # ✨ Restore the original state
+            self.allow_unindexed_array_usage = original_flag
+
         return left_type
 
     def parse_multiplicative(self):
@@ -1293,7 +1307,10 @@ class SemanticAnalyzer:
             
             # Disallow direct usage of array variables in expressions if array not accessed:
             if var_entry and var_entry.get("is_array", False) and not array_accessed:
-                self.log += str(SemanticError(f"Array variable '{var_name}' cannot be used directly in expressions; use an element access", self._token_stream[self.token_index][1][0])) + '\n'
+                if not self.allow_unindexed_array_usage:
+                    self.log += str(SemanticError(f"Array variable '{var_name}' cannot be used directly in expressions; use an element access", self._token_stream[self.token_index][1][0])) + '\n'
+
+
             
             # --- Added support for postfix operators: ++ and --
             while self.current_token() and self.current_token()[1] in ['++', '--']:
@@ -1322,7 +1339,9 @@ class SemanticAnalyzer:
         if self.current_token()[1] != 'serve':
             self.log += str(SemanticError("Expected 'serve' statement", self._token_stream[self.token_index][1][0])) + '\n'
 
-        self.advance() 
+        self.advance()
+
+        self.allow_unindexed_array_usage = True
         
         if not self.current_token() or self.current_token()[1] != '(':
             self.log += str(SemanticError("Expected '(' after 'serve' statement", self._token_stream[self.token_index][1][0])) + '\n'
@@ -1346,3 +1365,4 @@ class SemanticAnalyzer:
             self.log += str(SemanticError("Expected ';' at the end of 'serve' statement", self._token_stream[self.token_index][1][0])) + '\n'
         
         self.advance()
+        self.allow_unindexed_array_usage = False

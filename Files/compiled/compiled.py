@@ -58,8 +58,10 @@ def _cArray_(expected, arr):
         return _cType_(expected, arr)
 
 def _kween():
-    _x = _cType_('chika', "hello")
+    _x = _cArray_('anda', [1, 2])
     print(_cNone_(_x, 'x'), end='')
+    _msg = _cType_('chika', ("The array is: " + str(_cNone_(_x, 'x'))))
+    print(_cNone_(_msg, 'msg'), end='')
 
 if __name__ == '__main__':
     _kween()
