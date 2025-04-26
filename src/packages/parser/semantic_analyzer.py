@@ -286,59 +286,95 @@ class SemanticAnalyzer:
 
     def process_variable_declaration(self, data_type, var_name, is_constant):
         is_array = False
-        dimensions = None
         initializer_value = None
+
         if self.current_token() and self.current_token()[1] == '[':
             is_array = True
-            dimensions = self.process_array_dimensions()
-            if self.current_token() and self.current_token()[1] == '=':
-                self.advance()  # Skip '='
-                initializer_value = self.process_array_initializer(dimensions, data_type)
-        else:
-            if self.current_token() and self.current_token()[1] == '=':
-                self.advance()  # Skip '='
-                initializer_value = self.process_initializer(data_type)
-        # New check: constants must be initialized.
+            self.advance()
+            if not self.current_token() or self.current_token()[1] != ']':
+                self.log += str(SemanticError("Expected ']' after '[' in array declaration", self._token_stream[self.token_index][1][0])) + '\n'
+            else:
+                self.advance()  # skip ']'
+
+        if self.current_token() and self.current_token()[1] == '=':
+            self.advance()
+            if self.current_token() and self.current_token()[1] == '{':
+                if is_array:
+                    initializer_value = self.process_array_initializer_dynamic()
+                else:
+                    initializer_value = self.evaluate_expression()
+            else:
+                initializer_value = self.evaluate_expression()
+
         if is_constant and initializer_value is None:
             self.log += str(SemanticError("Constant variable declaration must be assigned an initializer", self._token_stream[self.token_index][1][0])) + '\n'
-        self.register_variable(data_type, var_name, is_constant, initializer_value, is_array, dimensions)
 
-    def register_variable(self, var_type, var_name, is_constant, initializer_value, is_array=False, dimensions=None):
+        self.register_variable(data_type, var_name, is_constant, initializer_value, is_array)
+
+    def process_array_initializer_dynamic(self):
+        if not self.current_token() or self.current_token()[1] != '{':
+            self.log += str(SemanticError("Expected '{' to start array initializer", self._token_stream[self.token_index][1][0])) + '\n'
+            return []
+
+        self.advance()  # skip '{'
+        elements = []
+
+        while self.current_token() and self.current_token()[1] != '}':
+            if self.current_token()[1] == '{':
+                sub_array = self.process_array_initializer_dynamic()
+                elements.append(sub_array)
+            else:
+                element_type = self.evaluate_expression()
+                elements.append(element_type)
+
+            if self.current_token() and self.current_token()[1] == ',':
+                self.advance()
+
+        if not self.current_token() or self.current_token()[1] != '}':
+            self.log += str(SemanticError("Expected '}' at end of array initializer", self._token_stream[self.token_index][1][0])) + '\n'
+        else:
+            self.advance()  # skip '}'
+
+        return elements
+
+    def register_variable(self, var_type, var_name, is_constant, initializer_value, is_array=False):
         entry = {
             "data_type": var_type,
             "value": initializer_value,
             "naur_flag": is_constant,
             "is_array": is_array
         }
-        if is_array:
-            entry["dimensions"] = dimensions
+        if is_array and initializer_value is not None:
+            if isinstance(initializer_value, list):
+                entry["dimensions"] = self.calculate_array_shape(initializer_value)
+            else:
+                entry["dimensions"] = []  # Empty array case
+        elif is_array:
+            entry["dimensions"] = []  # No initializer case
 
-        # If inside a block (e.g. a conditional or loop block), check the entire chain of enclosing scopes.
         if self.block_scopes:
             if self.variable_exists_in_enclosing_scopes(var_name):
                 self.log += str(SemanticError(f"Redeclaration of variable '{var_name}' in block scope is not allowed", self._token_stream[self.token_index][1][0])) + '\n'
             self.block_scopes[-1][var_name] = entry
         else:
             if self.current_function is None:
-                # We are in the global scope
                 if var_name in self.symbol_table["variables"]:
                     self.log += str(SemanticError(f"Redeclaration of global variable '{var_name}'", self._token_stream[self.token_index][1][0])) + '\n'
                 self.symbol_table["variables"][var_name] = entry
             else:
-                # We are in a function scope
                 if any(param[0] == var_name for param in self.symbol_table["functions"][self.current_function]["parameters"]):
                     self.log += str(SemanticError(f"Local variable '{var_name}' conflicts with a parameter in function '{self.current_function}'", self._token_stream[self.token_index][1][0])) + '\n'
-                
-                # ---- ADDED CHECK HERE ----
-                # Disallow redeclaring a variable that already exists in the global scope
-                if var_name in self.symbol_table["variables"]:
-                    self.log += str(SemanticError(
-                        f"Redeclaration of local variable '{var_name}' in function '{self.current_function}'", self._token_stream[self.token_index][1][0]
-                    ))
-                # --------------------------
                 if var_name in self.symbol_table["functions"][self.current_function]["locals"]:
                     self.log += str(SemanticError(f"Redeclaration of local variable '{var_name}' in function '{self.current_function}'", self._token_stream[self.token_index][1][0])) + '\n'
                 self.symbol_table["functions"][self.current_function]["locals"][var_name] = entry
+
+    def calculate_array_shape(self, initializer):
+        if not isinstance(initializer, list):
+            return []
+        dims = [len(initializer)]
+        if len(initializer) > 0 and isinstance(initializer[0], list):
+            dims += self.calculate_array_shape(initializer[0])
+        return dims
 
     def variable_exists_in_enclosing_scopes(self, var_name):
         # Check any active block scopes.

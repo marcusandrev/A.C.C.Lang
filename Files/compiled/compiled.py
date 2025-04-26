@@ -57,8 +57,9 @@ def _cArray_(expected, arr):
     else:
         return _cType_(expected, arr)
 
-def kween():
-    print("Hello, World!", end='')
+def _kween():
+    _x = _cType_('chika', "hello")
+    print(_cNone_(_x, 'x'), end='')
 
 if __name__ == '__main__':
-    kween()
+    _kween()

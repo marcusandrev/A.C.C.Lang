@@ -18,15 +18,17 @@
 | 14 | \<data-type\>  | → | chika |
 | 15 | \<data-type\>  | → | eklabool |
 | 16 | \<func-array-init-tail\> | → | \<func-case\> |
-| 17 | \<func-array-init-tail\> | → | \<array-case\> \<array-init\> |
+| 17 | \<func-array-init-tail\> | → | \<array-dec\> \<array-init\> |
 | 18 | \<func-case\> | → | ( \<parameters\> ) |
 | 19 | \<parameters\> | → | \<func-parameters\> \<multi-parameters\> |
 | 20 | \<parameters\> | → | λ  |
 | 21 | \<func-parameters\> | → | \<data-type\> id  |
 | 22 | \<multi-parameters\> | → | , \<func-parameters\> \<multi-parameters\> |
 | 23 | \<multi-parameters\> | → | λ |
-| 24 | \<array-case\> | → | \[ \<array-values\> \] \<2d-index\>  |
-| 25 | \<array-case\> | → | λ |
+| 24 | \<array-dec\> | → | \[ \] |
+| 25 | \<array-dec\> | → | λ |
+|  | \<array-indexing\> | → | \[ \<array-values\> \] \<2d-index\>  |
+|  | \<array-indexing\> | → | λ |
 | 26 | \<2d-index\> | → | \[ \<array-values\> \] \<3d-index\> |
 | 27 | \<2d-index\> | → | λ |
 | 28 | \<3d-index\>  | → | \[ \<array-values\> \] |
@@ -34,14 +36,14 @@
 | 30 | \<array-values\> | → | \<expression\> |
 | 31 | \<literals\> | → | anda\_literal |
 | 32 | \<literals\> | → | andamhie\_literal |
-| 33 | \<literals\> | → | chika\_literal \<array-case\> |
+| 33 | \<literals\> | → | chika\_literal \<array-indexing\> |
 | 34 | \<literals\> | → | \<eklabool\> |
 | 35 | \<eklabool\> | → | korik |
 | 36 | \<eklabool\> | → | eme |
 | 37 | \<func-array\>  | → | \<func-array-value\> |
 | 38 | \<func-array\>   | → | λ |
 | 39 | \<func-array-value\> | → | ( \<arguments\> ) |
-| 40 | \<func-array-value\> | → | \<array-case\> |
+| 40 | \<func-array-value\> | → | \<array-indexing\> |
 | 41 | \<var-init\>  | → | id \<var-init-tail\> \<multi-init-values\> |
 | 42 | \<var-init-tail\>  | → | \= \<init-values\> |
 | 43 | \<var-init-tail\>  | → | λ |
@@ -71,13 +73,13 @@
 | 67 | \<local-dec\> | → | \<local-dec-init\> \<array-assign\> \<local-dec\> |
 | 68 | \<local-dec\> | → | λ |
 | 69 | \<local-dec-init\> | → | \<naur-case\> \<data-type\> \<var-init\> ;  |
-| 70 | \<local-dec-init\> | → | \<data-type\> id \<array-case\> \<array-init\> ;  |
+| 70 | \<local-dec-init\> | → | \<data-type\> id \<array-dec\> \<array-init\> ;  |
 | 71 | \<arguments\> | → | \<arguments-value\> \<multi-arguments-value\> |
 | 72 | \<arguments\> | → | λ |
 | 73 | \<multi-arguments-value\> | → | , \<arguments-value\> \<multi-arguments-value\> |
 | 74 | \<multi-arguments-value\> | → | λ |
 | 75 | \<arguments-value\> | → | \<expression\> |
-| 76 | \<array-assign\> | → | id \<array-case\> \= \<array-values\> ; |
+| 76 | \<array-assign\> | → | id \<array-indexing\> \= \<array-values\> ; |
 | 77 | \<array-assign\> | → | λ |
 | 78 | \<kween-body\> | → | \<func-body\> |
 | 79 | \<expression\> | → | \<simple-expression\> |
@@ -138,7 +140,7 @@
 | 132 | \<loop-body\> | → | λ |
 | 133 | \<multi-loop-body\> | → | \<loop-body\> \<multi-loop-body\> |
 | 134 | \<multi-loop-body\> | → | λ |
-| 135 | \<assign-call-stmts\> | → | \<array-case\> \<assignment-operators\> \<assignment-values\> ; |
+| 135 | \<assign-call-stmts\> | → | \<array-indexing\> \<assignment-operators\> \<assignment-values\> ; |
 | 136 | \<assign-call-stmts\> | → | ( \<arguments\> ) ; |
 | 137 | \<assignment-operators\> | → | \= |
 | 138 | \<assignment-operators\> | → | \+= |

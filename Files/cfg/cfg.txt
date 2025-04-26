@@ -14,15 +14,17 @@
  <data-type>  -> chika 
  <data-type>  -> eklabool 
  <func-array-init-tail> -> <func-case> 
- <func-array-init-tail> -> <array-case> <array-init> 
+ <func-array-init-tail> -> <array-dec> <array-init> 
  <func-case> -> ( <parameters> ) 
  <parameters> -> <func-parameters> <multi-parameters> 
  <parameters> -> λ  
  <func-parameters> -> <data-type> id  
  <multi-parameters> -> , <func-parameters> <multi-parameters> 
  <multi-parameters> -> λ 
- <array-case> -> [ <array-values> ] <2d-index>  
- <array-case> -> λ 
+ <array-dec> -> [ ] 
+ <array-dec> -> λ 
+ <array-indexing> -> [ <array-values> ] <2d-index>  
+ <array-indexing> -> λ 
  <2d-index> -> [ <array-values> ] <3d-index> 
  <2d-index> -> λ 
  <3d-index>  -> [ <array-values> ] 
@@ -30,14 +32,14 @@
  <array-values> -> <expression> 
  <literals> -> anda_literal 
  <literals> -> andamhie_literal 
- <literals> -> chika_literal <array-case> 
+ <literals> -> chika_literal <array-indexing> 
  <literals> -> <eklabool> 
  <eklabool> -> korik 
  <eklabool> -> eme 
  <func-array>  -> <func-array-value> 
  <func-array>   -> λ 
  <func-array-value> -> ( <arguments> ) 
- <func-array-value> -> <array-case> 
+ <func-array-value> -> <array-indexing> 
  <var-init>  -> id <var-init-tail> <multi-init-values> 
  <var-init-tail>  -> = <init-values> 
  <var-init-tail>  -> λ 
@@ -67,13 +69,13 @@
  <local-dec> -> <local-dec-init> <array-assign> <local-dec> 
  <local-dec> -> λ 
  <local-dec-init> -> <naur-case> <data-type> <var-init> ;  
- <local-dec-init> -> <data-type> id <array-case> <array-init> ;  
+ <local-dec-init> -> <data-type> id <array-dec> <array-init> ;  
  <arguments> -> <arguments-value> <multi-arguments-value> 
  <arguments> -> λ 
  <multi-arguments-value> -> , <arguments-value> <multi-arguments-value> 
  <multi-arguments-value> -> λ 
  <arguments-value> -> <expression> 
- <array-assign> -> id <array-case> = <array-values> ; 
+ <array-assign> -> id <array-indexing> = <array-values> ; 
  <array-assign> -> λ 
  <kween-body> -> <func-body> 
  <expression> -> <simple-expression> 
@@ -134,7 +136,7 @@
  <loop-body> -> λ 
  <multi-loop-body> -> <loop-body> <multi-loop-body> 
  <multi-loop-body> -> λ 
- <assign-call-stmts> -> <array-case> <assignment-operators> <assignment-values> ; 
+ <assign-call-stmts> -> <array-indexing> <assignment-operators> <assignment-values> ; 
  <assign-call-stmts> -> ( <arguments> ) ; 
  <assignment-operators> -> = 
  <assignment-operators> -> += 
