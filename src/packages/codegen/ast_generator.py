@@ -694,6 +694,11 @@ class ASTGenerator:
             lit_type = token[1].split('_')[0]
             node = LiteralNode(token[0], lit_type)
             self.advance()
+            while self.current_token() and self.current_token()[1] == '[':
+                self.advance()  # Skip '['
+                index_expr = self.parse_expression()
+                self.expect(']', "Missing ']' in string or array access")
+                node = ArrayAccessNode(node, [index_expr])
             return node
         elif token[1] in ['korik', 'eme']:
             self.advance()

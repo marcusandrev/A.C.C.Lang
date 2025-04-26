@@ -1,4 +1,4 @@
-from .ast_generator import UnaryOpNode, IdentifierNode, ArrayAccessNode
+from .ast_generator import UnaryOpNode, IdentifierNode, ArrayAccessNode, LiteralNode
 
 
 # code_generation.py
@@ -430,10 +430,14 @@ class CodeGenerator:
         return f"({op}{val})"
 
     def visit_ArrayAccessNode(self, node):
-        code = self.visit(node.array)
+        base = self.visit(node.array)
         for idx in node.index_exprs:
-            code += f"[{self.visit(idx)}]"
-        return code
+            # If base is a string literal, don't wrap it with _cNone_
+            if isinstance(node.array, LiteralNode):
+                base = f"({base})[{self.visit(idx)}]"
+            else:
+                base = f"{base}[{self.visit(idx)}]"
+        return base
 
     def visit_InputCallNode(self, node):
         return f"input('{node.prompt}')"
