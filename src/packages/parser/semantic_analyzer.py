@@ -563,10 +563,18 @@ class SemanticAnalyzer:
         expected_params = func_entry["parameters"]
 
         arg_types = []
-        # Process arguments (if any).
+        # Process arguments (if any).  Allow array variables un-indexed here:
         while self.current_token() and self.current_token()[1] != ')':
+            # temporarily allow using arrays without [ ] during evaluate_expression()
+            original_flag = self.allow_unindexed_array_usage
+            self.allow_unindexed_array_usage = True
+
             arg_type = self.evaluate_expression()
             arg_types.append(arg_type)
+
+            # restore the flag
+            self.allow_unindexed_array_usage = original_flag
+
             if self.current_token() and self.current_token()[1] == ',':
                 self.advance()  # Skip comma
 
@@ -577,7 +585,7 @@ class SemanticAnalyzer:
         if len(arg_types) != len(expected_params):
             self.log += str(SemanticError(f"Function '{func_name}' expects {len(expected_params)} arguments, got {len(arg_types)}", self._token_stream[self.token_index][1][0])) + '\n'
         for i, (arg_type, param) in enumerate(zip(arg_types, expected_params)):
-            param_type = param[1]
+            param_type = param[1]  # 1 = type
             if param_type in ['anda', 'andamhie']:
                 if arg_type not in ['anda', 'andamhie', 'eklabool']:
                     self.log += str(SemanticError(f"Argument {i+1} of '{func_name}' expects a numeric type, got '{arg_type}'", self._token_stream[self.token_index][1][0])) + '\n'
@@ -623,8 +631,18 @@ class SemanticAnalyzer:
                 if not self.current_token() or self.current_token()[1] != 'id':
                     self.log += str(SemanticError("Expected parameter name in function declaration", self._token_stream[self.token_index][1][0])) + '\n'
                 param_name = self.current_token()[0]
-                parameters.append((param_name, param_type))
+                # Check if parameter is an array (by seeing if next token is '[' ']')
                 self.advance()  # Skip parameter name
+                is_array_param = False
+                if self.current_token() and self.current_token()[1] == '[':
+                    self.advance()
+                    if not self.current_token() or self.current_token()[1] != ']':
+                        self.log += str(SemanticError("Expected ']' after '[' in parameter array declaration", self._token_stream[self.token_index][1][0])) + '\n'
+                    else:
+                        self.advance()  # Skip ']'
+                    is_array_param = True
+
+                parameters.append((param_name, param_type, is_array_param))
                 if self.current_token() and self.current_token()[1] == ',':
                     self.advance()  # Skip comma
                 elif self.current_token() and self.current_token()[1] != ')':
@@ -1308,7 +1326,15 @@ class SemanticAnalyzer:
             # Disallow direct usage of array variables in expressions if array not accessed:
             if var_entry and var_entry.get("is_array", False) and not array_accessed:
                 if not self.allow_unindexed_array_usage:
-                    self.log += str(SemanticError(f"Array variable '{var_name}' cannot be used directly in expressions; use an element access", self._token_stream[self.token_index][1][0])) + '\n'
+                    # Check if it's an array parameter — allow usage if it's a function parameter that is an array
+                    is_function_param_array = False
+                    if self.current_function:
+                        for param in self.symbol_table["functions"][self.current_function]["parameters"]:
+                            if param[0] == var_name and len(param) > 2 and param[2]:  # param[2] = is_array
+                                is_function_param_array = True
+                                break
+                    if not is_function_param_array:
+                        self.log += str(SemanticError(f"Array variable '{var_name}' cannot be used directly in expressions; use an element access", self._token_stream[self.token_index][1][0])) + '\n'
 
 
             
