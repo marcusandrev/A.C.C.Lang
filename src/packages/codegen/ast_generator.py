@@ -406,8 +406,16 @@ class ASTGenerator:
                 if not self.current_token() or self.current_token()[1] != 'id':
                     raise SemanticError("Expected parameter name in function declaration", self.tokens[self.index][1][0])
                 param_name = self.current_token()[0]
-                parameters.append((param_name, param_type))
                 self.advance()
+
+                is_array = False
+                if self.current_token() and self.current_token()[1] == '[':
+                    self.advance()
+                    self.expect(']', "Expected ']' after '[' in array parameter")
+                    is_array = True
+
+                parameters.append((param_name, param_type, is_array))
+
                 if self.current_token() and self.current_token()[1] == ',':
                     self.advance()
                 elif self.current_token() and self.current_token()[1] != ')':

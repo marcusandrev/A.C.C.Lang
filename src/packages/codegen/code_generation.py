@@ -26,7 +26,11 @@ class CodeGenerator:
     def lookup_variable(self, var_name):
         for scope in reversed(self.symbol_stack):
             if var_name in scope:
-                return scope[var_name]
+                entry = scope[var_name]
+                if isinstance(entry, tuple):
+                    return entry  # (type, is_array)
+                else:
+                    return (entry, False)  # backward compatibility
         return None
 
     def emit_helper_functions(self):
@@ -137,8 +141,14 @@ class CodeGenerator:
         self.code_lines.append(f"def _{node.name}({params}):")
         self.indent_level += 1
         self.push_scope()
-        for param_name, param_type in node.parameters:
-            self.current_scope()[param_name] = param_type
+        for param_info in node.parameters:
+            if len(param_info) == 2:
+                param_name, param_type = param_info
+                is_array = False
+            else:
+                param_name, param_type, is_array = param_info
+            self.current_scope()[param_name] = (param_type, is_array)
+
         if not node.body:
             self.code_lines.append(self.indent() + "pass")
         else:
