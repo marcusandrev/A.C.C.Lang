@@ -300,7 +300,7 @@ class SemanticAnalyzer:
             self.advance()
             if self.current_token() and self.current_token()[1] == '{':
                 if is_array:
-                    initializer_value = self.process_array_initializer_dynamic()
+                    initializer_value = self.process_array_initializer_dynamic(data_type)
                 else:
                     initializer_value = self.evaluate_expression()
             else:
@@ -311,21 +311,44 @@ class SemanticAnalyzer:
 
         self.register_variable(data_type, var_name, is_constant, initializer_value, is_array)
 
-    def process_array_initializer_dynamic(self):
+    def process_array_initializer_dynamic(self, var_type=None, dim_index=0):
         if not self.current_token() or self.current_token()[1] != '{':
             self.log += str(SemanticError("Expected '{' to start array initializer", self._token_stream[self.token_index][1][0])) + '\n'
             return []
 
         self.advance()  # skip '{'
         elements = []
+        count_elements = 0
 
         while self.current_token() and self.current_token()[1] != '}':
             if self.current_token()[1] == '{':
-                sub_array = self.process_array_initializer_dynamic()
+                sub_array = self.process_array_initializer_dynamic(var_type, dim_index + 1)
                 elements.append(sub_array)
             else:
                 element_type = self.evaluate_expression()
+                # Now validate type matching
+                if var_type:
+                    if var_type in ['anda', 'andamhie']:
+                        if element_type not in ['anda', 'andamhie', 'eklabool']:
+                            self.log += str(SemanticError(
+                                f"Array of type '{var_type}' cannot have element of type '{element_type}'",
+                                self._token_stream[self.token_index][1][0]
+                            )) + '\n'
+                    elif var_type == 'eklabool':
+                        if element_type not in ['eklabool', 'anda', 'andamhie']:
+                            self.log += str(SemanticError(
+                                f"Array of type 'eklabool' cannot have element of type '{element_type}'",
+                                self._token_stream[self.token_index][1][0]
+                            )) + '\n'
+                    elif var_type == 'chika':
+                        if element_type != 'chika':
+                            self.log += str(SemanticError(
+                                f"Array of type 'chika' cannot have element of type '{element_type}'",
+                                self._token_stream[self.token_index][1][0]
+                            )) + '\n'
                 elements.append(element_type)
+
+            count_elements += 1
 
             if self.current_token() and self.current_token()[1] == ',':
                 self.advance()
