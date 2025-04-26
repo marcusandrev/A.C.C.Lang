@@ -367,27 +367,28 @@ class ASTGenerator:
         is_array = False
         dimensions = []
         initializer = None
-        while self.current_token() and self.current_token()[1] == '[':
+        # MODIFIED: No dimension parsing anymore, just allow [] without initializer
+        if self.current_token() and self.current_token()[1] == '[':
             is_array = True
-            self.advance()  # Skip '['
-            dim_expr = self.parse_expression()
-            dimensions.append(dim_expr)
-            self.expect(']', "Expected ']' after array dimension")
+            self.advance()
+            self.expect(']', "Expected ']' after '[]' in array declaration")
         if self.current_token() and self.current_token()[1] == '=':
             self.advance()  # Skip '='
             if is_array:
-                initializer = self.parse_array_initializer(dimensions, data_type)
+                initializer = self.parse_array_initializer(data_type)
             else:
                 initializer = self.parse_expression()
         return VarDeclNode(data_type, var_name, initializer, is_constant, is_array, dimensions if is_array else None)
 
-    def parse_array_initializer(self, dimensions, data_type):
+    def parse_array_initializer(self, data_type):
         self.expect('{', "Expected '{' to start array initializer")
         elements = []
         while self.current_token() and self.current_token()[1] != '}':
             if self.current_token()[1] == '{':
-                element = self.parse_array_initializer(dimensions, data_type)
+                # Recursive parsing for nested array
+                element = self.parse_array_initializer(data_type)
             else:
+                # Must be an expression node (scalar value)
                 element = self.parse_expression()
             elements.append(element)
             if self.current_token() and self.current_token()[1] == ',':
