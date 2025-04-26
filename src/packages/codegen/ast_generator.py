@@ -681,6 +681,8 @@ class ASTGenerator:
         token = self.current_token()
         if not token:
             raise SemanticError("Unexpected end of expression", self.tokens[self.index-1][1][0])
+        if token[1] == '{':
+            return self.parse_array_initializer(None)  # Allow parsing {...} in expressions directly
         if token[1] == 'givenchy':
             self.advance()  # Skip 'givenchy'
             self.expect('(', "Expected '(' after 'givenchy'")

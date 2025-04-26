@@ -1,5 +1,4 @@
 shimenet kween () {
-    anda x[];
-    x = {1, 2};
-    x[0] = {5, 4};
+    anda x[] = {1, 2};
+    serve(x);
 }

@@ -211,15 +211,22 @@ class CodeGenerator:
     def visit_AssignmentNode(self, node):
         # --- ARRAY ELEMENT ASSIGNMENT ---
         if isinstance(node.identifier, ArrayAccessNode):
-            # generate the left‐hand side code, e.g. "_cNone_(_grades,'grades')[4]"
+            # generate the left-hand side code, e.g., "_cNone_(_grades,'grades')[4]"
             lhs_code = self.visit(node.identifier)
 
-            # generate the right‐hand side and clamp/convert its type
-            rhs_code = self.visit(node.expression)
-            base_name = node.identifier.array.name  # e.g. "grades"
-            base_type = self.lookup_variable(base_name)
-            if base_type:
-                rhs_code = f"_cType_('{base_type}', {rhs_code})"
+            # check if RHS is an array initializer
+            if isinstance(node.expression, list):
+                rhs_code = self.visit_list(node.expression)
+                base_name = node.identifier.array.name  # e.g., "grades"
+                base_type = self.lookup_variable(base_name)
+                if base_type:
+                    rhs_code = f"_cArray_('{base_type}', {rhs_code})"
+            else:
+                rhs_code = self.visit(node.expression)
+                base_name = node.identifier.array.name
+                base_type = self.lookup_variable(base_name)
+                if base_type:
+                    rhs_code = f"_cType_('{base_type}', {rhs_code})"
 
             self.code_lines.append(self.indent() + f"{lhs_code} = {rhs_code}")
             return
@@ -228,31 +235,33 @@ class CodeGenerator:
         if isinstance(node.identifier, IdentifierNode):
             var = node.identifier.name
             var_type = self.lookup_variable(var)
-            rhs = self.visit(node.expression)
 
-            # compound assignments like "+="
-            if node.operator != "=":
-                op_map = {
-                    "+=": "+", "-=": "-", "*=": "*", "/=": "/",
-                    "%=": "%", "**=": "**", "//=": "//"
-                }
-                bin_op = op_map[node.operator]
+            # check if RHS is an array initializer
+            if isinstance(node.expression, list):
+                rhs = self.visit_list(node.expression)
                 if var_type:
-                    # e.g. _x = _cType_('anda', _x + _cType_('anda', expr))
-                    expr = f"_cType_('{var_type}', {rhs})"
-                    full = f"_cType_('{var_type}', _{var} {bin_op} {expr})"
-                    self.code_lines.append(self.indent() + f"_{var} = {full}")
-                else:
-                    self.code_lines.append(self.indent() + f"_{var} {node.operator} {rhs}")
-            else:
-                # simple "="
-                if var_type:
-                    rhs = f"_cType_('{var_type}', {rhs})"
+                    rhs = f"_cArray_('{var_type}', {rhs})"
                 self.code_lines.append(self.indent() + f"_{var} = {rhs}")
+            else:
+                rhs = self.visit(node.expression)
+                if node.operator != "=":
+                    op_map = {
+                        "+=": "+", "-=": "-", "*=": "*", "/=": "/",
+                        "%=": "%", "**=": "**", "//=": "//"
+                    }
+                    bin_op = op_map[node.operator]
+                    if var_type:
+                        expr = f"_cType_('{var_type}', {rhs})"
+                        full = f"_cType_('{var_type}', _{var} {bin_op} {expr})"
+                        self.code_lines.append(self.indent() + f"_{var} = {full}")
+                    else:
+                        self.code_lines.append(self.indent() + f"_{var} {node.operator} {rhs}")
+                else:
+                    if var_type:
+                        rhs = f"_cType_('{var_type}', {rhs})"
+                    self.code_lines.append(self.indent() + f"_{var} = {rhs}")
             return
 
-        # fallback: (for backwards compatibility)
-        # you could raise an error here if you prefer
         raise Exception("Unsupported assignment target: " + repr(node.identifier))
 
 
