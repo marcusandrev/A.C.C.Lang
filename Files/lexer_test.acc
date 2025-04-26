@@ -4,5 +4,6 @@ shimenet printArray(chika myArray[]){
 
 shimenet kween () {
     chika arr[] = {"Hello", "World!"};
-    printArray(arr);
+    printArray(arr + 5);
+    serve(arr + 2);
 }
