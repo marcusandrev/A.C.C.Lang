@@ -367,32 +367,19 @@ class SemanticAnalyzer:
 
         # Check for the assignment operator (plain or augmented)
         if not self.current_token():
-            self.log += str(SemanticError("Expected assignment operator after identifier", self._token_stream[self.token_index][1][0])) + '\n'
+            self.log += str(SemanticError("Expected assignment operator after identifier", self._token_stream[self.token_index - 1][1][0])) + '\n'
+            return
         op_token = self.current_token()
         op = op_token[1]
         if op not in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
             self.log += str(SemanticError("Expected an assignment operator", self._token_stream[self.token_index][1][0])) + '\n'
         self.advance()  # Skip assignment operator
 
-        # Evaluate the right-hand side expression.
-        expr_type = self.evaluate_expression()
-        
-        # If the expression is a givenchy call, bypass type checking.
-        if expr_type == "givenchy":
-            if not self.current_token() or self.current_token()[1] != ';':
-                self.log += str(SemanticError("Expected ';' after assignment", self._token_stream[self.token_index][1][0])) + '\n'
-            self.advance()  # Skip ';'
-            return
-
-        if not self.current_token() or self.current_token()[1] != ';':
-            self.log += str(SemanticError("Expected ';' at end of assignment statement", self._token_stream[self.token_index][1][0])) + '\n'
-        self.advance()  # Skip ';'
-
-        # Check if the identifier was declared.
+        # Check if the identifier was declared BEFORE evaluating the expression
         declared = False
         entry = None
         if self.current_function is not None:
-            # Look in the active block scopes (if any) first.
+            # Check block scopes first
             for scope in reversed(self.block_scopes):
                 if ident in scope:
                     declared = True
@@ -403,7 +390,8 @@ class SemanticAnalyzer:
                     declared = True
                     entry = self.symbol_table["functions"][self.current_function]["locals"][ident]
                 elif any(param[0] == ident for param in self.symbol_table["functions"][self.current_function]["parameters"]):
-                    self.log += str(SemanticError(f"Assignment to immutable parameter '{ident}' is not allowed", self._token_stream[self.token_index][1][0])) + '\n'
+                    self.log += str(SemanticError(f"Assignment to immutable parameter '{ident}' is not allowed", self._token_stream[self.token_index - 1][1][0])) + '\n'
+                    declared = True  # Even if invalid assignment, parameter exists
                 elif ident in self.symbol_table["variables"]:
                     declared = True
                     entry = self.symbol_table["variables"][ident]
@@ -411,41 +399,52 @@ class SemanticAnalyzer:
             if ident in self.symbol_table["variables"]:
                 declared = True
                 entry = self.symbol_table["variables"][ident]
+
         if not declared:
-            if self.current_function is not None:
-                self.log += str(SemanticError(f"Assignment to undeclared variable '{ident}' in function '{self.current_function}'", self._token_stream[self.token_index][1][0])) + '\n'
+            self.log += str(SemanticError(f"Assignment to undeclared variable '{ident}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
+            # Allow processing to continue (optional), otherwise you can add "return" here if you want
+
+        # Evaluate the right-hand side expression.
+        expr_type = self.evaluate_expression()
+
+        if expr_type == "givenchy":
+            if not self.current_token() or self.current_token()[1] != ';':
+                self.log += str(SemanticError("Expected ';' after assignment", self._token_stream[self.token_index][1][0])) + '\n'
+            self.advance()
+            return
+
+        if not self.current_token() or self.current_token()[1] != ';':
+            self.log += str(SemanticError("Expected ';' at end of assignment statement", self._token_stream[self.token_index][1][0])) + '\n'
+        self.advance()
+
+        # If declared, proceed with type checking
+        if declared and entry is not None:
+            if entry["naur_flag"]:
+                self.log += str(SemanticError(f"Assignment to constant variable '{ident}' is not allowed", self._token_stream[self.token_index - 1][1][0])) + '\n'
+
+            var_type = entry["data_type"]
+
+            if op == '=':
+                # Simple assignment
+                if var_type in ['anda', 'andamhie']:
+                    if expr_type not in ['anda', 'andamhie', 'eklabool']:
+                        self.log += str(SemanticError(f"Variable '{ident}' of type '{var_type}' cannot be assigned a value of type '{expr_type}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
+                elif var_type == 'eklabool':
+                    if expr_type not in ['eklabool', 'anda', 'andamhie', 'chika']:
+                        self.log += str(SemanticError(f"Variable '{ident}' of type '{var_type}' cannot be assigned a value of type '{expr_type}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
+                elif var_type == 'chika':
+                    if expr_type != 'chika':
+                        self.log += str(SemanticError(f"Variable '{ident}' of type '{var_type}' cannot be assigned a value of type '{expr_type}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
             else:
-                self.log += str(SemanticError(f"Assignment to undeclared global variable '{ident}'", self._token_stream[self.token_index][1][0])) + '\n'
-
-        if entry["naur_flag"]:
-            self.log += str(SemanticError(f"Assignment to constant variable '{ident}' is not allowed", self._token_stream[self.token_index][1][0])) + '\n'
-
-        # Check type compatibility.
-        var_type = entry["data_type"]
-
-        if op == '=':
-            # For simple assignment, use the standard type rules.
-            if var_type in ['anda', 'andamhie']:
-                if expr_type not in ['anda', 'andamhie', 'eklabool']:
-                    self.log += str(SemanticError(f"Variable '{ident}' of type '{var_type}' cannot be assigned a value of type '{expr_type}'", self._token_stream[self.token_index][1][0])) + '\n'
-            elif var_type == 'eklabool':
-                if expr_type not in ['eklabool', 'anda', 'andamhie', 'chika']:
-                    self.log += str(SemanticError(f"Variable '{ident}' of type 'eklabool' cannot be assigned a value of type '{expr_type}'", self._token_stream[self.token_index][1][0])) + '\n'
-            elif var_type == 'chika':
-                if expr_type != 'chika':
-                    self.log += str(SemanticError(f"Variable '{ident}' of type 'chika' cannot be assigned a value of type '{expr_type}'", self._token_stream[self.token_index][1][0])) + '\n'
-        else:
-            # For augmented assignments:
-            if op == '+=' and var_type == 'chika':
-                # For string concatenation, both sides must be of type 'chika'.
-                if expr_type != 'chika':
-                    self.log += str(SemanticError(f"Operator '+=' expects type 'chika' for concatenation, got '{expr_type}'", self._token_stream[self.token_index][1][0])) + '\n'
-            else:
-                # For all other augmented assignment operators, only numeric/boolean types are allowed.
-                if var_type not in ['anda', 'andamhie', 'eklabool']:
-                    self.log += str(SemanticError(f"Operator '{op}' cannot be applied to type '{var_type}'", self._token_stream[self.token_index][1][0])) + '\n'
-                if expr_type not in ['anda', 'andamhie', 'eklabool']:
-                    self.log += str(SemanticError(f"Operator '{op}' expects a numeric or boolean type for assignment, got '{expr_type}'", self._token_stream[self.token_index][1][0])) + '\n'
+                # Augmented assignment
+                if op == '+=' and var_type == 'chika':
+                    if expr_type != 'chika':
+                        self.log += str(SemanticError(f"Operator '+=' expects type 'chika' for concatenation, got '{expr_type}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
+                else:
+                    if var_type not in ['anda', 'andamhie', 'eklabool']:
+                        self.log += str(SemanticError(f"Operator '{op}' cannot be applied to type '{var_type}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
+                    if expr_type not in ['anda', 'andamhie', 'eklabool']:
+                        self.log += str(SemanticError(f"Operator '{op}' expects a numeric or boolean type for assignment, got '{expr_type}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
 
     def process_function_call(self):
         """
