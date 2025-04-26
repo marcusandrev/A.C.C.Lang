@@ -76,7 +76,7 @@ data_type: ANDA  | ANDAMHIE  | CHIKA  | EKLABOOL
 func_array_init_tail: func_case  | array_dec array_init 
 func_case: LPAR parameters RPAR 
 parameters: func_parameters multi_parameters  |  
-func_parameters: data_type ID 
+func_parameters: data_type ID array_dec 
 multi_parameters: COMMA func_parameters multi_parameters  |  
 array_dec: LSQB RSQB  |  
 array_indexing: LSQB array_values RSQB twod_index  |  

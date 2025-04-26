@@ -18,7 +18,7 @@
  <func-case> -> ( <parameters> ) 
  <parameters> -> <func-parameters> <multi-parameters> 
  <parameters> -> λ  
- <func-parameters> -> <data-type> id  
+ <func-parameters> -> <data-type> id <array-dec> 
  <multi-parameters> -> , <func-parameters> <multi-parameters> 
  <multi-parameters> -> λ 
  <array-dec> -> [ ] 

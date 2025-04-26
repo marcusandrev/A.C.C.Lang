@@ -22,7 +22,7 @@
 | 18 | \<func-case\> | → | ( \<parameters\> ) |
 | 19 | \<parameters\> | → | \<func-parameters\> \<multi-parameters\> |
 | 20 | \<parameters\> | → | λ  |
-| 21 | \<func-parameters\> | → | \<data-type\> id  |
+| 21 | \<func-parameters\> | → | \<data-type\> id \<array-dec\> |
 | 22 | \<multi-parameters\> | → | , \<func-parameters\> \<multi-parameters\> |
 | 23 | \<multi-parameters\> | → | λ |
 | 24 | \<array-dec\> | → | \[ \] |

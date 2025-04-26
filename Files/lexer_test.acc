@@ -1,6 +1,7 @@
+shimenet printArray(chika myArray[]){
+    serve(myArray);
+}
+
 shimenet kween () {
-    anda x[] = {1, 2};
-    serve(x);
-    chika msg = "The array is: " + x;
-    serve(msg);
+    serve("Hello, World!");
 }
