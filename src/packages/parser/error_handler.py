@@ -5,7 +5,7 @@ def Test3():
 
 class SemanticError(Exception):
     def __init__(self, message, line = None):
-        print(line)
+        print(message)
         location = f" at line {line + 1}" if line is not None else ""
         super().__init__(f"{message}{location}")
 

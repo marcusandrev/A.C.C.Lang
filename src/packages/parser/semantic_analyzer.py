@@ -1185,31 +1185,44 @@ class SemanticAnalyzer:
         return left_type
 
     def parse_additive(self):
+        """
+        Handles + and -.
+        - If op is '+' and both operands are 'chika', it's string concat.
+        - Otherwise both must be numeric/boolean: anda, andamhie, eklabool, or givenchy.
+        """
         left_type = self.parse_multiplicative()
         while self.current_token() and self.current_token()[1] in ['+', '-']:
             op = self.current_token()[1]
-            self.advance()
+            self.advance()  # consume '+' or '-'
 
-            # ✨ Save the original allow_unindexed_array_usage state
-            original_flag = self.allow_unindexed_array_usage
-            
-            # ✨ If this is string addition, allow array printing
-            if op == '+' and ('chika' in [left_type]):
-                self.allow_unindexed_array_usage = True
+            # Save the allow-flag so we restore it after parsing RHS
+            saved_allow = self.allow_unindexed_array_usage
 
+            # Parse the right side
             right_type = self.parse_multiplicative()
 
-            if op == '+' and ('chika' in [left_type, right_type]):
-                left_type = 'chika'
+            # Decide result
+            if op == '+' and left_type == 'chika' and right_type == 'chika':
+                # string concatenation
+                result_type = 'chika'
             else:
-                if left_type not in ['anda', 'andamhie', 'eklabool', 'givenchy'] or right_type not in ['anda', 'andamhie', 'eklabool', 'givenchy']:
-                    self.log += str(SemanticError("Invalid types for arithmetic addition/subtraction", self._token_stream[self.token_index][1][0])) + '\n'
-                left_type = 'andamhie'
+                # arithmetic addition/subtraction
+                if left_type not in ['anda', 'andamhie', 'eklabool', 'givenchy'] \
+                   or right_type not in ['anda', 'andamhie', 'eklabool', 'givenchy']:
+                    # we use your usual error pattern
+                    pos = self._token_stream[self.token_index][1][0] if self.token_index < len(self._token_stream) else -1
+                    self.log += str(SemanticError("Invalid types for arithmetic addition/subtraction", pos)) + '\n'
+                    result_type = 'invalid'
+                else:
+                    result_type = 'andamhie'
 
-            # ✨ Restore the original state
-            self.allow_unindexed_array_usage = original_flag
+            # restore the original allow-flag
+            self.allow_unindexed_array_usage = saved_allow
+
+            left_type = result_type
 
         return left_type
+
 
     def parse_multiplicative(self):
         left_type = self.parse_unary()
