@@ -1117,6 +1117,16 @@ class SemanticAnalyzer:
         if token[1].endswith('_literal'):
             lit_type = token[1].split('_')[0]
             self.advance()
+            # Check if string literal is being indexed
+            if lit_type == 'chika' and self.current_token() and self.current_token()[1] == '[':
+                self.advance()  # Skip '['
+                index_type = self.evaluate_expression()
+                if index_type not in ['anda', 'andamhie']:
+                    self.log += str(SemanticError("String index must be a numeric type", self._token_stream[self.token_index][1][0])) + '\n'
+                if not self.current_token() or self.current_token()[1] != ']':
+                    self.log += str(SemanticError("Expected ']' after string index", self._token_stream[self.token_index][1][0])) + '\n'
+                self.advance()  # Skip ']'
+                return 'chika'  # Indexing a string returns a 'chika'
             return lit_type
         elif token[1] in ['korik', 'eme']:
             self.advance()
