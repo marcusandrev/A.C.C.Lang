@@ -292,10 +292,9 @@ class ASTGenerator:
         elif token[1] == 'id':
             if self.next_token() and self.next_token()[1] == '(':
                 return self.parse_function_call_statement()
-            elif self.next_token() and self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
+            elif self.next_token() and (self.next_token()[1] == '[' or self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']):
                 return self.parse_assignment_statement()
             elif self.next_token() and self.next_token()[1] in ['++', '--']:
-                # Handle postfix ++i; or i--;
                 return self.parse_unary_statement(postfix=True)
             else:
                 self.advance()
@@ -425,13 +424,29 @@ class ASTGenerator:
             raise SemanticError("Expected ';' or '{' after function parameter list", self.tokens[self.index][1][0])
 
     def parse_assignment_statement(self):
-        ident = self.current_token()[0]
-        self.advance()  # Skip identifier
+        # --- parse the LHS as either a bare identifier or an array access ---
+        lhs = self.parse_primary()
+        if not isinstance(lhs, (IdentifierNode, ArrayAccessNode)):
+            raise SemanticError(
+                "Invalid assignment target",
+                self.tokens[self.index][1][0]
+            )
+
+        # next must be one of the assignment operators
+        ops = ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']
+        if not self.current_token() or self.current_token()[1] not in ops:
+            raise SemanticError(
+                "Expected assignment operator",
+                self.tokens[self.index][1][0]
+            )
         op = self.current_token()[1]
-        self.advance()  # Skip operator
+        self.advance()
+
+        # parse the RHS expression
         expr = self.parse_expression()
         self.expect(';', "Expected ';' at end of assignment statement")
-        return AssignmentNode(ident, op, expr)
+
+        return AssignmentNode(lhs, op, expr)
 
     def parse_function_call_statement(self):
         if not self.current_token() or self.current_token()[1] != 'id':

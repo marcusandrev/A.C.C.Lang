@@ -1,4 +1,5 @@
-from .ast_generator import UnaryOpNode, IdentifierNode
+from .ast_generator import UnaryOpNode, IdentifierNode, ArrayAccessNode
+
 
 # code_generation.py
 
@@ -208,65 +209,52 @@ class CodeGenerator:
         self.current_scope()[node.name] = node.data_type
 
     def visit_AssignmentNode(self, node):
-        # Handle pre-/post-increment/decrement in assignment expression
-        expr = node.expression
-        if node.operator == '=' and hasattr(expr, 'operator') and expr.operator in ['++', '--']:
-            op_symbol = '+' if expr.operator == '++' else '-'
-            operand = expr.operand
-            if isinstance(operand, IdentifierNode):
-                var = operand.name
-            else:
-                var = self.visit(operand)
-            update_type = self.lookup_variable(var)
-            # prefix
-            if not getattr(expr, 'is_postfix', False):
-                if update_type:
-                    self.code_lines.append(
-                        self.indent() +
-                        f"_{var} = _cType_('{update_type}', _{var} {op_symbol} 1)"
-                    )
-                else:
-                    self.code_lines.append(
-                        self.indent() + f"_{var} = _{var} {op_symbol} 1"
-                    )
-                self.code_lines.append(
-                    self.indent() + f"_{node.identifier} = _cType_('{update_type}', _{var})"
-                )
-            else:
-                # postfix
-                self.code_lines.append(
-                    self.indent() + f"_{node.identifier} = _cType_('{update_type}', _{var})"
-                )
-                if update_type:
-                    self.code_lines.append(
-                        self.indent() +
-                        f"_{var} = _cType_('{update_type}', _{var} {op_symbol} 1)"
-                    )
-                else:
-                    self.code_lines.append(
-                        self.indent() + f"_{var} = _{var} {op_symbol} 1"
-                    )
+        # --- ARRAY ELEMENT ASSIGNMENT ---
+        if isinstance(node.identifier, ArrayAccessNode):
+            # generate the left‐hand side code, e.g. "_cNone_(_grades,'grades')[4]"
+            lhs_code = self.visit(node.identifier)
+
+            # generate the right‐hand side and clamp/convert its type
+            rhs_code = self.visit(node.expression)
+            base_name = node.identifier.array.name  # e.g. "grades"
+            base_type = self.lookup_variable(base_name)
+            if base_type:
+                rhs_code = f"_cType_('{base_type}', {rhs_code})"
+
+            self.code_lines.append(self.indent() + f"{lhs_code} = {rhs_code}")
             return
 
-        var_type = self.lookup_variable(node.identifier)
-        right = self.visit(node.expression)
-        if var_type is None or node.operator == "=":
-            if var_type:
-                self.code_lines.append(
-                    self.indent() +
-                    f"_{node.identifier} = _cType_('{var_type}', {right})"
-                )
+        # --- SIMPLE VARIABLE ASSIGNMENT ---
+        if isinstance(node.identifier, IdentifierNode):
+            var = node.identifier.name
+            var_type = self.lookup_variable(var)
+            rhs = self.visit(node.expression)
+
+            # compound assignments like "+="
+            if node.operator != "=":
+                op_map = {
+                    "+=": "+", "-=": "-", "*=": "*", "/=": "/",
+                    "%=": "%", "**=": "**", "//=": "//"
+                }
+                bin_op = op_map[node.operator]
+                if var_type:
+                    # e.g. _x = _cType_('anda', _x + _cType_('anda', expr))
+                    expr = f"_cType_('{var_type}', {rhs})"
+                    full = f"_cType_('{var_type}', _{var} {bin_op} {expr})"
+                    self.code_lines.append(self.indent() + f"_{var} = {full}")
+                else:
+                    self.code_lines.append(self.indent() + f"_{var} {node.operator} {rhs}")
             else:
-                self.code_lines.append(self.indent() + f"_{node.identifier} {node.operator} {right}")
-        else:
-            op_map = {"+=": "+", "-=": "-", "*=": "*", "/=": "/", "%=": "%", "**=": "**", "//=": "//"}
-            bin_op = op_map.get(node.operator, node.operator)
-            full = (
-                f"_cType_("
-                f"'{var_type}', _{node.identifier} {bin_op} _cType_('{var_type}', {right})"
-                f")"
-            )
-            self.code_lines.append(self.indent() + f"_{node.identifier} = {full}")
+                # simple "="
+                if var_type:
+                    rhs = f"_cType_('{var_type}', {rhs})"
+                self.code_lines.append(self.indent() + f"_{var} = {rhs}")
+            return
+
+        # fallback: (for backwards compatibility)
+        # you could raise an error here if you prefer
+        raise Exception("Unsupported assignment target: " + repr(node.identifier))
+
 
     def visit_FunctionCallNode(self, node):
         args = ", ".join(self.visit(arg) for arg in node.arguments)
