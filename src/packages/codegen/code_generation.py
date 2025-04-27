@@ -1,4 +1,4 @@
-from .ast_generator import UnaryOpNode, IdentifierNode, ArrayAccessNode, LiteralNode
+from .ast_generator import UnaryOpNode, IdentifierNode, ArrayAccessNode, LiteralNode, InputCallNode
 
 
 # code_generation.py
@@ -417,9 +417,10 @@ class CodeGenerator:
                     L = f"str({L})"
                 return f"({L} + {R})"
             expr = f"({L} + {R})"
-            t = self.infer_type(node)
-            if t in ['anda', 'andamhie']:
-                return f"_cType_('{t}', {expr})"
+            if lt in ['anda', 'andamhie', 'eklabool'] and rt in ['anda', 'andamhie', 'eklabool']:
+                t = self.infer_type(node)
+                if t in ['anda', 'andamhie']:
+                    return f"_cType_('{t}', {expr})"
             return expr
         else:
             L = self.visit(node.left)
@@ -464,33 +465,46 @@ class CodeGenerator:
         return f"input('{node.prompt}')"
 
     def infer_type(self, node):
-        if hasattr(node, 'literal_type'):
+        # — string/number/boolean literals —
+        if isinstance(node, LiteralNode):
             return node.literal_type
+
+        # — givenchy(input) always yields a string (chika) —
+        if isinstance(node, InputCallNode):
+            return 'chika'
+
+        # — identifiers: lookup in your symbol stack, then take only the type portion —
         if hasattr(node, 'name'):
-            vt = self.lookup_variable(node.name)
+            vt = self.lookup_variable(node.name)    # returns (type,is_array) or None
             if vt:
-                return vt
+                return vt[0] if isinstance(vt, tuple) else vt
+
+        # — operators: same logic as before —
         if hasattr(node, 'operator'):
             if node.operator == '+':
                 lt = self.infer_type(node.left)
                 rt = self.infer_type(node.right)
+                # if either side is a string, result is string
                 if lt == 'chika' or rt == 'chika':
                     return 'chika'
+                # else if either is float, result is float
                 if lt == 'andamhie' or rt == 'andamhie':
                     return 'andamhie'
                 return 'anda'
             if node.operator in ['-', '*', '/', '%', '**', '//']:
                 lt = self.infer_type(node.left)
                 rt = self.infer_type(node.right)
-                if lt == 'andamhie' or rt == 'andamhie':
-                    return 'andamhie'
-                return 'anda'
+                return 'andamhie' if lt == 'andamhie' or rt == 'andamhie' else 'anda'
             if node.operator in ['&&', '||']:
                 return 'eklabool'
+
+        # — unary operators —
         if hasattr(node, 'operand'):
             if node.operator == '!':
                 return 'eklabool'
             return self.infer_type(node.operand)
+
+        # fall-back
         return None
 
     def visit_UnaryOpStatementNode(self, node):
