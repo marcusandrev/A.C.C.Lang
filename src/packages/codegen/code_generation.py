@@ -235,7 +235,9 @@ class CodeGenerator:
             else:
                 rhs_code = self.visit(node.expression)
                 base_name = node.identifier.array.name
-                base_type = self.lookup_variable(base_name)
+
+                base_info = self.lookup_variable(base_name)
+                base_type = base_info[0] if isinstance(base_info, tuple) else base_info
                 if base_type:
                     rhs_code = f"_cType_('{base_type}', {rhs_code})"
 
