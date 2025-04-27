@@ -64,7 +64,9 @@ def _cArray_(expected, arr):
 
 def _kween():
     _words = _cArray_('chika', ["Hello, ", "World!"])
-    print((str(_cNoArray_(_cNone_(_words, 'words')[0], '+')) + _cNoArray_("Abdiel", '+')), end='')
+    _words2 = None
+    raise TypeError('Cannot assign scalar to array variable words2')
+    print(_cNone_(_words2, 'words2'), end='')
 
 if __name__ == '__main__':
     _kween()

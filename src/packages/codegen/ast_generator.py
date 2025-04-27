@@ -375,9 +375,14 @@ class ASTGenerator:
         if self.current_token() and self.current_token()[1] == '=':
             self.advance()  # Skip '='
             if is_array:
-                initializer = self.parse_array_initializer(data_type)
+                # array literal  →  { … }
+                if self.current_token() and self.current_token()[1] == '{':
+                    initializer = self.parse_array_initializer(data_type)
+                # array-to-array →  any other expression
+                else:
+                    initializer = self.parse_expression()
             else:
-                initializer = self.parse_expression()
+                initializer = self.parse_expression()            
         return VarDeclNode(data_type, var_name, initializer, is_constant, is_array, dimensions if is_array else None)
 
     def parse_array_initializer(self, data_type):

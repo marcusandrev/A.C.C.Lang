@@ -10,6 +10,7 @@ class CodeGenerator:
         self.switch_counter = 0  # Used to generate unique names for switch temp variables
         self.for_counter = 0     # Used to generate unique names for for loop helper variables
         self.symbol_stack = [{}]  # Stack to maintain scopes for variable types
+        self.import_emitted = False
 
     def indent(self):
         return "    " * self.indent_level
@@ -218,6 +219,18 @@ class CodeGenerator:
                 expr_code = self.visit_list(node.initializer)
                 code = (f"_{node.name} = "
                         f"_cArray_('{node.data_type}', {expr_code})")
+            # ───── another array variable ────────────
+            elif (isinstance(node.initializer, IdentifierNode) and
+                  isinstance(self.lookup_variable(node.initializer.name), tuple) and
+                  self.lookup_variable(node.initializer.name)[1]):
+                src = node.initializer.name            # words  (no leading “_” yet)
+                if not self.import_emitted:            # make sure “import copy” is at top
+                    self.code_lines.insert(0, "import copy")
+                    self.import_emitted = True
+                code = (f"_{node.name} = "
+                        f"_cArray_('{node.data_type}', "
+                        f"copy.deepcopy(_{src}))")
+            # ───── plain scalar expression ───────────
             else:
                 expr = self.visit(node.initializer)
                 expr = f"_cType_('{node.data_type}', {expr})"
