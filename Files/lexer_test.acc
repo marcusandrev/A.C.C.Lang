@@ -1,11 +1,8 @@
-shimenet printArray(chika myArray[]){
-    serve(myArray);
+anda printArray(){
+    anda grades[] = {1, 1, 2, 3, 2};
+    push grades;
 }
 
 shimenet kween () {
-    chika arr[] = {"Hello", "World!"};
-    printArray(arr + 5);
-    serve(arr);
-    printArray(arr);
-    serve(arr + "hello");
+    serve(printArray() + "hehe");
 }

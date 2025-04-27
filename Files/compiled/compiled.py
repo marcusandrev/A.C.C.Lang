@@ -57,11 +57,12 @@ def _cArray_(expected, arr):
     else:
         return _cType_(expected, arr)
 
+def _printArray():
+    _grades = _cArray_('anda', [1, 1, 2, 3, 2])
+    return _cType_('anda', (_cNone_(_grades, 'grades') + 5))
+
 def _kween():
-    _x = _cArray_('anda', [1, 2])
-    print(_cNone_(_x, 'x'), end='')
-    _msg = _cType_('chika', ("The array is: " + str(_cNone_(_x, 'x'))))
-    print(_cNone_(_msg, 'msg'), end='')
+    print(_printArray(), end='')
 
 if __name__ == '__main__':
     _kween()
