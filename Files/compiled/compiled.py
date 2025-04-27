@@ -64,8 +64,7 @@ def _cArray_(expected, arr):
 
 def _kween():
     _words = _cArray_('chika', ["Hello, ", "World!"])
-    _wow = None
-    print(_cNone_(_words, 'words'), end='')
+    print((str(_cNoArray_(_cNone_(_words, 'words')[0], '+')) + _cNoArray_("Abdiel", '+')), end='')
 
 if __name__ == '__main__':
     _kween()

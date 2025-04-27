@@ -1179,6 +1179,13 @@ class SemanticAnalyzer:
         while self.current_token() and self.current_token()[1] == '||':
             self.advance()  # Skip '||'
             right_type = self.parse_logical_and()
+            if self._is_array_type(left_type) or self._is_array_type(right_type):
+                pos = self._token_stream[self.token_index][1][0] if self.token_index < len(self._token_stream) else -1
+                self.log += str(SemanticError(
+                    "Array variables cannot participate in expressions",
+                    pos)) + '\n'
+                left_type = 'anda'
+                continue
             for t in (left_type, right_type):
                 if t not in ['anda', 'andamhie', 'eklabool', 'chika', 'givenchy']:
                     self.log += str(SemanticError(f"Invalid operand type '{t}' for logical operator '||'", self._token_stream[self.token_index][1][0])) + '\n'
@@ -1190,6 +1197,13 @@ class SemanticAnalyzer:
         while self.current_token() and self.current_token()[1] == '&&':
             self.advance()  # Skip '&&'
             right_type = self.parse_equality()
+            if self._is_array_type(left_type) or self._is_array_type(right_type):
+                pos = self._token_stream[self.token_index][1][0] if self.token_index < len(self._token_stream) else -1
+                self.log += str(SemanticError(
+                    "Array variables cannot participate in expressions",
+                    pos)) + '\n'
+                left_type = 'anda'
+                continue
             for t in (left_type, right_type):
                 if t not in ['anda', 'andamhie', 'eklabool', 'chika', 'givenchy']:
                     self.log += str(SemanticError(f"Invalid operand type '{t}' for logical operator '&&'", self._token_stream[self.token_index][1][0])) + '\n'
@@ -1202,6 +1216,13 @@ class SemanticAnalyzer:
             op = self.current_token()[1]
             self.advance()
             right_type = self.parse_relational()
+            if self._is_array_type(left_type) or self._is_array_type(right_type):
+                pos = self._token_stream[self.token_index][1][0] if self.token_index < len(self._token_stream) else -1
+                self.log += str(SemanticError(
+                    "Array variables cannot participate in expressions",
+                    pos)) + '\n'
+                left_type = 'anda'
+                continue
             if left_type not in ['anda', 'andamhie', 'eklabool', 'chika', 'givenchy'] or right_type not in ['anda', 'andamhie', 'eklabool', 'chika', 'givenchy']:
                 self.log += str(SemanticError("Invalid types for equality operator", self._token_stream[self.token_index][1][0])) + '\n'
             left_type = 'eklabool'
@@ -1213,6 +1234,13 @@ class SemanticAnalyzer:
             op = self.current_token()[1]
             self.advance()
             right_type = self.parse_additive()
+            if self._is_array_type(left_type) or self._is_array_type(right_type):
+                pos = self._token_stream[self.token_index][1][0] if self.token_index < len(self._token_stream) else -1
+                self.log += str(SemanticError(
+                    "Array variables cannot participate in expressions",
+                    pos)) + '\n'
+                left_type = 'anda'
+                continue
             if left_type not in ['anda', 'andamhie', 'eklabool', 'givenchy'] or right_type not in ['anda', 'andamhie', 'eklabool', 'givenchy']:
                 self.log += str(SemanticError("Invalid types for relational operator", self._token_stream[self.token_index][1][0])) + '\n'
             left_type = 'eklabool'
@@ -1234,6 +1262,14 @@ class SemanticAnalyzer:
 
             # Parse the right side
             right_type = self.parse_multiplicative()
+
+            if self._is_array_type(left_type) or self._is_array_type(right_type):
+                pos = self._token_stream[self.token_index][1][0] if self.token_index < len(self._token_stream) else -1
+                self.log += str(SemanticError(
+                    "Array variables cannot participate in expressions",
+                    pos)) + '\n'
+                left_type = 'anda'
+                continue
 
             # Restore the original allow-flag
             self.allow_unindexed_array_usage = saved_allow
@@ -1271,6 +1307,13 @@ class SemanticAnalyzer:
             op = self.current_token()[1]
             self.advance()
             right_type = self.parse_unary()
+            if self._is_array_type(left_type) or self._is_array_type(right_type):
+                pos = self._token_stream[self.token_index][1][0] if self.token_index < len(self._token_stream) else -1
+                self.log += str(SemanticError(
+                    "Array variables cannot participate in expressions",
+                    pos)) + '\n'
+                left_type = 'anda'
+                continue
             if left_type not in ['anda', 'andamhie', 'eklabool', 'givenchy'] or right_type not in ['anda', 'andamhie', 'eklabool', 'givenchy']:
                 self.log += str(SemanticError("Invalid types for arithmetic multiplicative operation", self._token_stream[self.token_index][1][0])) + '\n'
             left_type = 'andamhie'
@@ -1439,7 +1482,7 @@ class SemanticAnalyzer:
                                 break
                     if not is_function_param_array:
                         self.log += str(SemanticError(f"Array variable '{var_name}' cannot be used directly in expressions; use an element access", self._token_stream[self.token_index][1][0])) + '\n'
-
+                return f"array_{var_entry['data_type']}"
 
             
             # --- Added support for postfix operators: ++ and --
@@ -1496,3 +1539,6 @@ class SemanticAnalyzer:
         
         self.advance()
         self.allow_unindexed_array_usage = False
+
+    def _is_array_type(self, t):
+        return isinstance(t, str) and t.startswith("array_")
