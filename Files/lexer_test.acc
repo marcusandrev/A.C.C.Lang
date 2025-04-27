@@ -1,8 +1,6 @@
-anda printArray(){
-    anda grades[] = {1, 1, 2, 3, 2};
-    push grades;
-}
-
-shimenet kween () {
-    serve(printArray);
+shimenet kween() {
+    chika input = givenchy("Enter a string: ");
+    chika name;
+    name = givenchy("Enter a string: ");
+    serve(input + name);
 }

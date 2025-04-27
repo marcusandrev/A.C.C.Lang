@@ -169,7 +169,8 @@ class CodeGenerator:
             else:
                 var = self.visit(operand)
             # determine type for operand update
-            update_type = self.lookup_variable(var)
+            update_info = self.lookup_variable(var)
+            update_type = update_info[0] if isinstance(update_info, tuple) else update_info
             # prefix: update then assign
             if not getattr(init, 'is_postfix', False):
                 if update_type:
@@ -244,7 +245,8 @@ class CodeGenerator:
         # --- SIMPLE VARIABLE ASSIGNMENT ---
         if isinstance(node.identifier, IdentifierNode):
             var = node.identifier.name
-            var_type = self.lookup_variable(var)
+            var_info = self.lookup_variable(var)
+            var_type = var_info[0] if isinstance(var_info, tuple) else var_info
 
             # check if RHS is an array initializer
             if isinstance(node.expression, list):

@@ -529,13 +529,13 @@ class SemanticAnalyzer:
                 else:
                     # Check that the value assigned matches the base type
                     if var_type in ['anda', 'andamhie']:
-                        if rhs_value not in ['anda', 'andamhie', 'eklabool']:
+                        if rhs_value not in ['anda', 'andamhie', 'eklabool', 'givenchy']:
                             self.log += str(SemanticError(f"Array element of type '{var_type}' cannot be assigned a value of type '{rhs_value}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
                     elif var_type == 'eklabool':
-                        if rhs_value not in ['anda', 'andamhie', 'eklabool', 'chika']:
+                        if rhs_value not in ['anda', 'andamhie', 'eklabool', 'chika', 'givenchy']:
                             self.log += str(SemanticError(f"Array element of type 'eklabool' cannot be assigned a value of type '{rhs_value}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
                     elif var_type == 'chika':
-                        if rhs_value != 'chika':
+                        if rhs_value not in ['chika', 'givenchy']:
                             self.log += str(SemanticError(f"Array element of type 'chika' must be assigned a 'chika', got '{rhs_value}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
 
             else:
@@ -551,13 +551,13 @@ class SemanticAnalyzer:
                     else:
                         # Normal scalar assignment
                         if var_type in ['anda', 'andamhie']:
-                            if rhs_value not in ['anda', 'andamhie', 'eklabool']:
+                            if rhs_value not in ['anda', 'andamhie', 'eklabool', 'givenchy']:
                                 self.log += str(SemanticError(f"Variable '{ident}' of type '{var_type}' cannot be assigned a value of type '{rhs_value}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
                         elif var_type == 'eklabool':
-                            if rhs_value not in ['anda', 'andamhie', 'eklabool', 'chika']:
+                            if rhs_value not in ['anda', 'andamhie', 'eklabool', 'chika', 'givenchy']:
                                 self.log += str(SemanticError(f"Variable '{ident}' of type '{var_type}' cannot be assigned a value of type '{rhs_value}'", self._token_stream[self.token_index - 1][1][0])) + '\n'
                         elif var_type == 'chika':
-                            if rhs_value != 'chika':
+                            if rhs_value not in ['chika', 'givenchy']:
                                 self.log += str(SemanticError(f"Variable '{ident}' of type '{var_type}' must be assigned a 'chika'", self._token_stream[self.token_index - 1][1][0])) + '\n'
 
     def evaluate_expression_with_name(self):
