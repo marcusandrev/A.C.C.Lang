@@ -1,3 +1,8 @@
+def _cNoArray_(value, op):
+    if isinstance(value, list):
+        raise TypeError(f"Runtime error: array value used with operator {op}")
+    return value
+
 def _cNone_(value, name):
     if value is None:
         raise NameError(f"Runtime error: variable '{name}' used before initialization")
@@ -58,10 +63,9 @@ def _cArray_(expected, arr):
         return _cType_(expected, arr)
 
 def _kween():
-    _input = _cType_('chika', input('Enter a string: '))
-    _name = None
-    _name = _cType_('chika', input('Enter a string: '))
-    print(_cType_('anda', (_cNone_(_input, 'input') + _cNone_(_name, 'name'))), end='')
+    _words = _cArray_('chika', ["Hello, ", "World!"])
+    _wow = None
+    print(_cNone_(_words, 'words'), end='')
 
 if __name__ == '__main__':
     _kween()

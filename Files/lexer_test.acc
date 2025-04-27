@@ -1,6 +1,6 @@
 shimenet kween() {
-    chika input = givenchy("Enter a string: ");
-    chika name;
-    name = givenchy("Enter a string: ");
-    serve(input + name);
+    chika words[] = {"Hello, ", "World!"};
+    chika wow[];
+    wow = words;
+    serve(words + 5);
 }

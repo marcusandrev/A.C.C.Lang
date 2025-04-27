@@ -35,6 +35,12 @@ class CodeGenerator:
 
     def emit_helper_functions(self):
         # Helper to catch use-before-init errors
+                # ── forbid arrays in scalar operators ─────────────────────────
+        self.code_lines.append("""def _cNoArray_(value, op):
+    if isinstance(value, list):
+        raise TypeError(f"Runtime error: array value used with operator {op}")
+    return value
+""")
         self.code_lines.append("""def _cNone_(value, name):
     if value is None:
         raise NameError(f"Runtime error: variable '{name}' used before initialization")
@@ -217,66 +223,99 @@ class CodeGenerator:
                 expr = f"_cType_('{node.data_type}', {expr})"
                 code = f"_{node.name} = {expr}"
         self.code_lines.append(self.indent() + code)
-        self.current_scope()[node.name] = node.data_type
+        # keep both the element-type **and** the “is array” flag
+        if node.is_array:
+            self.current_scope()[node.name] = (node.data_type, True)
+        else:
+            self.current_scope()[node.name] = node.data_type
 
+
+    # ──────────────────────────────────────────────────────────
+    #  assignment :  LHS (‘=’ | ‘+=’ …) RHS
+    #  – LHS may be IdentifierNode or ArrayAccessNode
+    #  – RHS may be scalar, {…} literal, or another array variable
+    # ──────────────────────────────────────────────────────────
     def visit_AssignmentNode(self, node):
-        # --- ARRAY ELEMENT ASSIGNMENT ---
+        # ──────── ARRAY-ELEMENT on LHS ────────
         if isinstance(node.identifier, ArrayAccessNode):
-            # generate the left-hand side code, e.g., "_cNone_(_grades,'grades')[4]"
             lhs_code = self.visit(node.identifier)
 
-            # check if RHS is an array initializer
-            if isinstance(node.expression, list):
+            if isinstance(node.expression, list):          # { … }
                 rhs_code = self.visit_list(node.expression)
-                base_name = node.identifier.array.name  # e.g., "grades"
-                base_type = self.lookup_variable(base_name)
-                if base_type:
-                    rhs_code = f"_cArray_('{base_type}', {rhs_code})"
+                base_name = node.identifier.array.name
+                base_info = self.lookup_variable(base_name)
+                elem_type = base_info[0] if isinstance(base_info, tuple) else base_info
+                if elem_type:
+                    rhs_code = f"_cArray_('{elem_type}', {rhs_code})"
             else:
                 rhs_code = self.visit(node.expression)
                 base_name = node.identifier.array.name
-
                 base_info = self.lookup_variable(base_name)
-                base_type = base_info[0] if isinstance(base_info, tuple) else base_info
-                if base_type:
-                    rhs_code = f"_cType_('{base_type}', {rhs_code})"
+                elem_type = base_info[0] if isinstance(base_info, tuple) else base_info
+                if elem_type:
+                    rhs_code = f"_cType_('{elem_type}', {rhs_code})"
 
             self.code_lines.append(self.indent() + f"{lhs_code} = {rhs_code}")
             return
 
-        # --- SIMPLE VARIABLE ASSIGNMENT ---
-        if isinstance(node.identifier, IdentifierNode):
-            var = node.identifier.name
-            var_info = self.lookup_variable(var)
-            var_type = var_info[0] if isinstance(var_info, tuple) else var_info
+        # ──────── SIMPLE VARIABLE on LHS ────────
+        if not isinstance(node.identifier, IdentifierNode):
+            raise Exception("Unsupported assignment target: " + repr(node.identifier))
 
-            # check if RHS is an array initializer
-            if isinstance(node.expression, list):
-                rhs = self.visit_list(node.expression)
-                if var_type:
-                    rhs = f"_cArray_('{var_type}', {rhs})"
-                self.code_lines.append(self.indent() + f"_{var} = {rhs}")
+        lhs_name      = node.identifier.name
+        lhs_info      = self.lookup_variable(lhs_name)
+        lhs_type      = lhs_info[0] if isinstance(lhs_info, tuple) else lhs_info
+        lhs_is_array  = isinstance(lhs_info, tuple) and lhs_info[1]
+
+        # --- determine RHS code & kind ---
+        rhs_is_array = isinstance(node.expression, list)
+        if rhs_is_array:
+            rhs_code = self.visit_list(node.expression)
+        else:
+            rhs_code = self.visit(node.expression)
+            if isinstance(node.expression, IdentifierNode):
+                rhs_info     = self.lookup_variable(node.expression.name)
+                rhs_is_array = isinstance(rhs_info, tuple) and rhs_info[1]
+
+        # --- compound operators (+=, …) remain scalar-only ---
+        if node.operator != "=":
+            if lhs_is_array or rhs_is_array:
+                self.code_lines.append(
+                    self.indent() +
+                    f"raise TypeError('Compound operator {node.operator} not valid with arrays')"
+                )
+                return
+            op = {"+=":"+", "-=":"-", "*=":"*", "/=":"/", "%=":"%", "**=":"**", "//=":"//"}[node.operator]
+            if lhs_type:
+                rhs_code = f"_cType_('{lhs_type}', {rhs_code})"
+                expr = f"_cType_('{lhs_type}', _{lhs_name} {op} {rhs_code})"
+                self.code_lines.append(self.indent() + f"_{lhs_name} = {expr}")
             else:
-                rhs = self.visit(node.expression)
-                if node.operator != "=":
-                    op_map = {
-                        "+=": "+", "-=": "-", "*=": "*", "/=": "/",
-                        "%=": "%", "**=": "**", "//=": "//"
-                    }
-                    bin_op = op_map[node.operator]
-                    if var_type:
-                        expr = f"_cType_('{var_type}', {rhs})"
-                        full = f"_cType_('{var_type}', _{var} {bin_op} {expr})"
-                        self.code_lines.append(self.indent() + f"_{var} = {full}")
-                    else:
-                        self.code_lines.append(self.indent() + f"_{var} {node.operator} {rhs}")
-                else:
-                    if var_type:
-                        rhs = f"_cType_('{var_type}', {rhs})"
-                    self.code_lines.append(self.indent() + f"_{var} = {rhs}")
+                self.code_lines.append(self.indent() + f"_{lhs_name} {node.operator} {rhs_code}")
             return
 
-        raise Exception("Unsupported assignment target: " + repr(node.identifier))
+        # --- plain “=” assignment ---
+        if lhs_is_array:
+            if not rhs_is_array:
+                self.code_lines.append(
+                    self.indent() +
+                    f"raise TypeError('Cannot assign scalar to array variable {lhs_name}')"
+                )
+            else:
+                if lhs_type:
+                    rhs_code = f"_cArray_('{lhs_type}', {rhs_code})"
+                self.code_lines.append(self.indent() + f"_{lhs_name} = {rhs_code}")
+        else:
+            if rhs_is_array:
+                self.code_lines.append(
+                    self.indent() +
+                    f"raise TypeError('Cannot assign array to scalar variable {lhs_name}')"
+                )
+            else:
+                if lhs_type:
+                    rhs_code = f"_cType_('{lhs_type}', {rhs_code})"
+                self.code_lines.append(self.indent() + f"_{lhs_name} = {rhs_code}")
+
 
 
     def visit_FunctionCallNode(self, node):
@@ -407,9 +446,16 @@ class CodeGenerator:
         return f"_cNone_(_{node.name}, '{node.name}')"
 
     def visit_BinaryOpNode(self, node):
+        # first generate raw operand code
+        L_raw = self.visit(node.left)
+        R_raw = self.visit(node.right)
+
+        # wrap them: arrays are disallowed in operators
+        L = f"_cNoArray_({L_raw}, '{node.operator}')"
+        R = f"_cNoArray_({R_raw}, '{node.operator}')"
+
+        # handle '+' special-case for chika concatenation
         if node.operator == '+':
-            L = self.visit(node.left)
-            R = self.visit(node.right)
             lt = self.infer_type(node.left)
             rt = self.infer_type(node.right)
             if lt == 'chika' or rt == 'chika':
@@ -418,39 +464,35 @@ class CodeGenerator:
                 elif rt == 'chika' and lt != 'chika':
                     L = f"str({L})"
                 return f"({L} + {R})"
-            expr = f"({L} + {R})"
-            if lt in ['anda', 'andamhie', 'eklabool'] and rt in ['anda', 'andamhie', 'eklabool']:
-                t = self.infer_type(node)
-                if t in ['anda', 'andamhie']:
-                    return f"_cType_('{t}', {expr})"
-            return expr
-        else:
-            L = self.visit(node.left)
-            R = self.visit(node.right)
-            op = node.operator
-            if op == '&&':
-                op = 'and'
-            elif op == '||':
-                op = 'or'
-            expr = f"({L} {op} {R})"
-            if node.operator in ['-', '*', '/', '%', '**', '//']:
-                t = self.infer_type(node)
-                if t in ['anda', 'andamhie']:
-                    return f"_cType_('{t}', {expr})"
-            return expr
 
-    def visit_UnaryOpNode(self, node):
-        val = self.visit(node.operand)
-        op = node.operator
-        if op == '!':
-            return f"(not {val})"
-        if op in ['++', '--']:
-            ar = '+' if op == '++' else '-'
-            expr = f"({val} {ar} 1)"
-            t = self.infer_type(node.operand)
+        # map logical symbols
+        op_map = {'&&': 'and', '||': 'or'}
+        op = op_map.get(node.operator, node.operator)
+
+        expr = f"({L} {op} {R})"
+
+        # numeric post-clamp for maths ops
+        if node.operator in ['+', '-', '*', '/', '%', '**', '//']:
+            t = self.infer_type(node)
             if t in ['anda', 'andamhie']:
                 return f"_cType_('{t}', {expr})"
-            return expr
+        return expr
+
+    def visit_UnaryOpNode(self, node):
+        val_raw = self.visit(node.operand)
+        val     = f"_cNoArray_({val_raw}, '{node.operator}')"
+        op      = node.operator
+
+        if op == '!':
+            return f"(not {val})"
+
+        if op in ['++', '--']:
+            ar = '+' if op == '++' else '-'
+            t  = self.infer_type(node.operand)
+            expr = f"({val} {ar} 1)"
+            return f"_cType_('{t}', {expr})" if t in ['anda', 'andamhie'] else expr
+
+        # plain unary ‘-’
         return f"({op}{val})"
 
     def visit_ArrayAccessNode(self, node):
