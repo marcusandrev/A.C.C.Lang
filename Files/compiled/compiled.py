@@ -62,11 +62,13 @@ def _cArray_(expected, arr):
     else:
         return _cType_(expected, arr)
 
+def _modify(_myArray):
+    _cNone_(_myArray, 'myArray')[0] = _cType_('anda', 5)
+
 def _kween():
-    _words = _cArray_('chika', ["Hello, ", "World!"])
-    _words2 = None
-    raise TypeError('Cannot assign scalar to array variable words2')
-    print(_cNone_(_words2, 'words2'), end='')
+    _grades = _cArray_('anda', [1, 1, 2, 3, 5])
+    _modify(_cNone_(_grades, 'grades')[0])
+    print(_cNone_(_grades, 'grades'), end='')
 
 if __name__ == '__main__':
     _kween()

@@ -653,20 +653,50 @@ class SemanticAnalyzer:
 
         if len(arg_info_list) != len(expected_params):
             self.log += str(SemanticError(f"Function '{func_name}' expects {len(expected_params)} arguments, got {len(arg_info_list)}", self._token_stream[self.token_index][1][0])) + '\n'
+        # ---------- argument-by-argument checks ----------
         for i, (arg_info, param) in enumerate(zip(arg_info_list, expected_params)):
             arg_name, arg_type = arg_info
             param_name, param_type, param_is_array = param
 
-            # Check type compatibility first
+            # ---- work out whether the actual argument is an array ----
+            is_argument_array = False
+            var_entry = self.lookup_variable(arg_name)
+            if var_entry and var_entry.get("is_array", False):
+                is_argument_array = True
+
+            # ---- 1. shape (array vs scalar) compatibility ----
+            if is_argument_array != param_is_array:
+                self.log += str(SemanticError(
+                    f"Argument {i+1} '{param_name}' of function '{func_name}' expects "
+                    f"{'an array' if param_is_array else 'a scalar'}, but got "
+                    f"{'an array' if is_argument_array else 'a scalar'}",
+                    self._token_stream[self.token_index][1][0]
+                )) + '\n'
+                # shape mismatch → skip further checks on this argument
+                continue
+
+            # ---- 2. primitive/base-type compatibility ----
+            #      (only needed when shapes already match)
+            #      For arrays we compare the *element* type, i.e. strip the 'array_' prefix first.
+            base_arg_type = arg_type[len("array_"):] if isinstance(arg_type, str) and arg_type.startswith("array_") else arg_type
+
             if param_type in ['anda', 'andamhie']:
-                if arg_type not in ['anda', 'andamhie', 'eklabool']:
-                    self.log += str(SemanticError(f"Argument {i+1} of '{func_name}' expects a numeric type, got '{arg_type}'", self._token_stream[self.token_index][1][0])) + '\n'
+                if base_arg_type not in ['anda', 'andamhie', 'eklabool']:
+                    self.log += str(SemanticError(
+                        f"Argument {i+1} of '{func_name}' expects a numeric type, got '{base_arg_type}'",
+                        self._token_stream[self.token_index][1][0])) + '\n'
+
             elif param_type == 'eklabool':
-                if arg_type not in ['eklabool', 'anda', 'andamhie', 'chika']:
-                    self.log += str(SemanticError(f"Argument {i+1} of '{func_name}' expects a boolean type, got '{arg_type}'", self._token_stream[self.token_index][1][0])) + '\n'
+                if base_arg_type not in ['eklabool', 'anda', 'andamhie', 'chika']:
+                    self.log += str(SemanticError(
+                        f"Argument {i+1} of '{func_name}' expects a boolean type, got '{base_arg_type}'",
+                        self._token_stream[self.token_index][1][0])) + '\n'
+
             elif param_type == 'chika':
-                if arg_type != 'chika':
-                    self.log += str(SemanticError(f"Argument {i+1} of '{func_name}' expects type 'chika', got '{arg_type}'", self._token_stream[self.token_index][1][0])) + '\n'
+                if base_arg_type != 'chika':
+                    self.log += str(SemanticError(
+                        f"Argument {i+1} of '{func_name}' expects type 'chika', got '{base_arg_type}'",
+                        self._token_stream[self.token_index][1][0])) + '\n'
 
             # ➡️ Now additionally check array vs scalar compatibility
             # --- lookup if the argument is an array in symbol table ---
