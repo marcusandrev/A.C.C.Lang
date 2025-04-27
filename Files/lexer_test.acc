@@ -4,5 +4,5 @@ anda printArray(){
 }
 
 shimenet kween () {
-    serve(printArray() + "hehe");
+    serve(printArray);
 }

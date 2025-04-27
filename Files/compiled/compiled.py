@@ -59,10 +59,10 @@ def _cArray_(expected, arr):
 
 def _printArray():
     _grades = _cArray_('anda', [1, 1, 2, 3, 2])
-    return _cType_('anda', (_cNone_(_grades, 'grades') + 5))
+    return _cNone_(_grades, 'grades')
 
 def _kween():
-    print(_printArray(), end='')
+    print((str(_printArray()) + "heelloo"), end='')
 
 if __name__ == '__main__':
     _kween()
