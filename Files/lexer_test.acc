@@ -1,4 +1,4 @@
 shimenet kween() {
     chika words[] = {"Hello, ", "World!"};
-    serve(words[0] + "Abdiel");
+    chika words2[] = words;
 }

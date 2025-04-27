@@ -53,6 +53,7 @@
 | 47 | \<multi-init-values-tail\> | → | λ |
 | 48 | \<init-values\> | → | \<expression\> |
 | 49 | \<array-init\> | → | \= { \<array-elements\> } |
+|  | \<array-init\> | → | \= id |
 | 50 | \<array-init\> | → | λ |
 | 51 | \<array-elements\> | → | \<array-values\> \<extra-array-value\> |
 |  | \<array-elements\> | → | { \<array-elements\> } \<extra-array-value\> |

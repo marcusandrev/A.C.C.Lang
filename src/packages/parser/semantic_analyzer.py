@@ -310,30 +310,54 @@ class SemanticAnalyzer:
 
     def process_variable_declaration(self, data_type, var_name, is_constant):
         is_array = False
-        initializer_value = None
+        initializer_value = None            # stored in the symbol-table entry
 
         if self.current_token() and self.current_token()[1] == '[':
             is_array = True
             self.advance()
             if not self.current_token() or self.current_token()[1] != ']':
-                self.log += str(SemanticError("Expected ']' after '[' in array declaration", self._token_stream[self.token_index][1][0])) + '\n'
+                self.log += str(SemanticError(
+                    "Expected ']' after '[' in array declaration",
+                    self._token_stream[self.token_index][1][0])) + '\n'
             else:
-                self.advance()  # skip ']'
-
+                self.advance()              # skip ']'
         if self.current_token() and self.current_token()[1] == '=':
             self.advance()
+
             if self.current_token() and self.current_token()[1] == '{':
                 if is_array:
                     initializer_value = self.process_array_initializer_dynamic(data_type)
                 else:
                     initializer_value = self.evaluate_expression()
+
             else:
-                initializer_value = self.evaluate_expression()
+                saved_flag = self.allow_unindexed_array_usage
+                if is_array:
+                    # allow a naked array name like  chika words2[] = words;
+                    self.allow_unindexed_array_usage = True
+
+                rhs_type, rhs_name = self.evaluate_expression_with_name()
+
+                self.allow_unindexed_array_usage = saved_flag
+                initializer_value = rhs_type      # we just keep the type info
+
+                # shape compatibility checks
+                if is_array and not self._is_array_type(rhs_type):
+                    self.log += str(SemanticError(
+                        f"Array variable '{var_name}' must be initialised with an array value",
+                        self._token_stream[self.token_index][1][0])) + '\n'
+                if (not is_array) and self._is_array_type(rhs_type):
+                    self.log += str(SemanticError(
+                        f"Scalar variable '{var_name}' cannot be initialised with an array value",
+                        self._token_stream[self.token_index][1][0])) + '\n'
 
         if is_constant and initializer_value is None:
-            self.log += str(SemanticError("Constant variable declaration must be assigned an initializer", self._token_stream[self.token_index][1][0])) + '\n'
+            self.log += str(SemanticError(
+                "Constant variable declaration must be assigned an initializer",
+                self._token_stream[self.token_index][1][0])) + '\n'
 
-        self.register_variable(data_type, var_name, is_constant, initializer_value, is_array)
+        self.register_variable(data_type, var_name, is_constant,
+                            initializer_value, is_array)
 
     def process_array_initializer_dynamic(self, var_type=None, dim_index=0):
         if not self.current_token() or self.current_token()[1] != '{':

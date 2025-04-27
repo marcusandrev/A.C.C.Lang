@@ -49,6 +49,7 @@
  <multi-init-values-tail> -> λ 
  <init-values> -> <expression> 
  <array-init> -> = { <array-elements> } 
+ <array-init> -> = id 
  <array-init> -> λ 
  <array-elements> -> <array-values> <extra-array-value> 
  <array-elements> -> { <array-elements> } <extra-array-value> 

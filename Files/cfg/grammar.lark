@@ -92,7 +92,7 @@ var_init_tail: EQUAL init_values  |
 multi_init_values: COMMA ID multi_init_values_tail multi_init_values  |  
 multi_init_values_tail: EQUAL init_values  |  
 init_values: expression 
-array_init: EQUAL LBRACE array_elements RBRACE  |  
+array_init: EQUAL LBRACE array_elements RBRACE  | EQUAL ID  |  
 array_elements: array_values extra_array_value  | LBRACE array_elements RBRACE extra_array_value 
 extra_array_value: COMMA array_values extra_array_value  | COMMA LBRACE array_elements RBRACE extra_array_value  |  
 func_def: return_type ID LPAR parameters RPAR LBRACE func_body RBRACE func_def  |  
