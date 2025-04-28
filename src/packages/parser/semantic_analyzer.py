@@ -610,6 +610,26 @@ class SemanticAnalyzer:
             name = f"<nonvar@{saved_index}>"
         return expr_type, name
 
+    def flatten_array(self, nested):
+        """Flattens nested arrays into a flat list of types."""
+        result = []
+        if isinstance(nested, list):
+            for elem in nested:
+                result.extend(self.flatten_array(elem))
+        else:
+            result.append(nested)
+        return result
+
+    def is_type_compatible_array_append(self, array_type, value_type):
+        """Checks if value_type is allowed to be inserted into array of array_type."""
+        if array_type in ['anda', 'andamhie']:
+            return value_type in ['anda', 'andamhie', 'eklabool']
+        if array_type == 'eklabool':
+            return value_type in ['anda', 'andamhie', 'eklabool', 'chika']
+        if array_type == 'chika':
+            return value_type == 'chika'
+        return False
+
     def process_adele_statement(self):
         """Built-in adele(arr, value): append `value` to array `arr`."""
         # record position for error messages
@@ -630,8 +650,12 @@ class SemanticAnalyzer:
         entry = self.lookup_variable(arg_name)
         if not entry:
             self.log += str(SemanticError(f"Argument '{arg_name}' to 'adele' is not declared", pos)) + '\n'
+            expected_elem_type = 'anda'  # recovery
         elif not entry.get("is_array", False):
             self.log += str(SemanticError(f"Argument '{arg_name}' to 'adele' must be an array", pos)) + '\n'
+            expected_elem_type = 'anda'  # recovery
+        else:
+            expected_elem_type = entry.get("data_type", 'anda')
 
         # expect comma
         if not self.current_token() or self.current_token()[1] != ',':
@@ -639,10 +663,29 @@ class SemanticAnalyzer:
         else:
             self.advance()
 
-        # ─── second argument: any expression ───
+        # ─── second argument: scalar or array initializer ───
         saved_flag = self.allow_unindexed_array_usage
         self.allow_unindexed_array_usage = True
-        self.evaluate_expression()
+
+        if self.current_token() and self.current_token()[1] == '{':
+            # Support array initializer
+            array_elements = self.process_array_initializer_dynamic()
+            # Now validate all elements inside
+            flat_list = self.flatten_array(array_elements)
+            for elem_type in flat_list:
+                if not self.is_type_compatible_array_append(expected_elem_type, elem_type):
+                    self.log += str(SemanticError(
+                        f"Array '{arg_name}' expects elements of type '{expected_elem_type}', but got '{elem_type}'",
+                        self._token_stream[self.token_index][1][0]
+                    )) + '\n'
+        else:
+            value_type = self.evaluate_expression()
+            if not self.is_type_compatible_array_append(expected_elem_type, value_type):
+                self.log += str(SemanticError(
+                    f"Array '{arg_name}' expects elements of type '{expected_elem_type}', but got '{value_type}'",
+                    self._token_stream[self.token_index][1][0]
+                )) + '\n'
+
         self.allow_unindexed_array_usage = saved_flag
 
         # closing ')'
@@ -656,7 +699,6 @@ class SemanticAnalyzer:
             self.log += str(SemanticError("Missing ';' after 'adele' call", pos)) + '\n'
         else:
             self.advance()
-
 
     def process_adelete_statement(self):
         # current token is 'adelete'
