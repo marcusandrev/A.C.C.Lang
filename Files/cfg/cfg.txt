@@ -86,6 +86,9 @@
  <expression-value> -> id <identifier-tail> 
  <expression-value> -> <general-operands> 
  <expression-value> -> ( <expression> ) 
+ <expression-value> -> len ( <len-choice> ) 
+ <len-choice> -> chika_literal 
+ <len-choice> -> id 
  <identifier-tail> -> <func-array> 
  <identifier-tail> -> <unary-operator> 
  <identifier-tail> -> λ 
@@ -110,6 +113,8 @@
  <statements> -> id <assign-call-stmts> <statements> 
  <statements> -> <input-stmts> <statements> 
  <statements> -> <output-stmts> <statements> 
+ <statements> -> <append-stmts> <statements> 
+ <statements> -> <delete-stmts> <statements> 
  <statements> -> <conditional-stmts> <statements> 
  <statements> -> <loop-stmts> <statements> 
  <statements> -> <switch-stmts> <statements> 
@@ -120,6 +125,8 @@
  <loop-body> -> id <assign-call-stmts> <statements> 
  <loop-body> -> <input-stmts> <loop-body> 
  <loop-body> -> <output-stmts> <loop-body> 
+ <loop-body> -> <append-stmts> <loop-body> 
+ <loop-body> -> <delete-stmts> <loop-body> 
  <loop-body> -> <loop-stmts> <loop-body> 
  <loop-body> -> <loop-conditional-stmts> <loop-body> 
  <loop-body> -> <loop-switch-stmts> <loop-body> 
@@ -147,6 +154,8 @@
  <input-type> -> λ 
  <givenchy-values> -> <expression-operands> 
  <output-stmts> -> serve ( <output-values> ) ; 
+ <append-stmts> -> adele ( id , <assignment-values> ) ; 
+ <delete-stmts> -> adelete ( id <array-indexing> ) ; 
  <output-values> -> <expression> 
  <conditional-stmts> -> pak ( <condition> ) { <conditional-body> } <ganern-pak-statement> <ganern-case> 
  <condition> -> <expression> 

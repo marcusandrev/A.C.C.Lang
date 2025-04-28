@@ -90,6 +90,9 @@
 | 90 | \<expression-value\> | → | id \<identifier-tail\> |
 | 91 | \<expression-value\> | → | \<general-operands\> |
 | 92 | \<expression-value\> | → | ( \<expression\> ) |
+|  | \<expression-value\> | → | len ( \<len-choice\> ) |
+|  | \<len-choice\> | → | chika\_literal |
+|  | \<len-choice\> | → | id |
 | 93 | \<identifier-tail\> | → | \<func-array\> |
 | 94 | \<identifier-tail\> | → | \<unary-operator\> |
 | 95 | \<identifier-tail\> | → | λ |
@@ -114,6 +117,8 @@
 | 114 | \<statements\> | → | id \<assign-call-stmts\> \<statements\> |
 | 115 | \<statements\> | → | \<input-stmts\> \<statements\> |
 | 116 | \<statements\> | → | \<output-stmts\> \<statements\> |
+|  | \<statements\> | → | \<append-stmts\> \<statements\> |
+|  | \<statements\> | → | \<delete-stmts\> \<statements\> |
 | 117 | \<statements\> | → | \<conditional-stmts\> \<statements\> |
 | 118 | \<statements\> | → | \<loop-stmts\> \<statements\> |
 | 119 | \<statements\> | → | \<switch-stmts\> \<statements\> |
@@ -124,6 +129,8 @@
 | 123 | \<loop-body\> | → | id \<assign-call-stmts\> \<statements\> |
 | 124 | \<loop-body\> | → | \<input-stmts\> \<loop-body\> |
 | 125 | \<loop-body\> | → | \<output-stmts\> \<loop-body\> |
+|  | \<loop-body\> | → | \<append-stmts\> \<loop-body\> |
+|  | \<loop-body\> | → | \<delete-stmts\> \<loop-body\> |
 | 126 | \<loop-body\> | → | \<loop-stmts\> \<loop-body\> |
 | 127 | \<loop-body\> | → | \<loop-conditional-stmts\> \<loop-body\> |
 | 128 | \<loop-body\> | → | \<loop-switch-stmts\> \<loop-body\> |
@@ -151,6 +158,8 @@
 | 148 | \<input-type\> | → | λ |
 | 149 | \<givenchy-values\> | → | \<expression-operands\> |
 | 150 | \<output-stmts\> | → | serve ( \<output-values\> ) ; |
+|  | \<append-stmts\> | → | adele ( id , \<assignment-values\> ) ; |
+|  | \<delete-stmts\> | → | adelete ( id \<array-indexing\> ) ; |
 | 151 | \<output-values\> | → | \<expression\> |
 | 152 | \<conditional-stmts\> | → | pak ( \<condition\> ) { \<conditional-body\> } \<ganern-pak-statement\> \<ganern-case\> |
 | 153 | \<condition\> | → | \<expression\> |

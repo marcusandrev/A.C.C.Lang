@@ -1,9 +1,5 @@
-shimenet modify(anda myArray[]){
-    myArray[0] = 5;
-}
-
 shimenet kween () {
     anda grades[] = {1, 1, 2, 3, 5};
-    modify(grades);
-    serve(grades);
+    adele(grades, 2);
+    adele(grades[], {3, 2});
 }

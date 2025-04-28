@@ -7,6 +7,8 @@ NAUR: "naur"
 SHIMENET: "shimenet"
 ANDA: "anda"
 ANDAMHIE: "andamhie"
+ADELE: "adele"
+ADELETE: "adelete"
 CHIKA: "chika"
 EKLABOOL: "eklabool"
 KORIK: "korik"
@@ -21,6 +23,7 @@ DITECH: "ditech"
 FORDA: "forda"
 KERI: "keri"
 LANG: "lang"
+LEN: "len"
 AMACCANA: "amaccana"
 GOGOGO: "gogogo"
 KWEEN: "kween"
@@ -63,7 +66,7 @@ TIMES: "*"
 GREATER_THAN: ">"
 LESS_THAN: "<"
 EQUAL: "="
-ID: /(?!(eklabool|anda|andamhie|chika|givenchy|serve|pak|ganern|versa|betsung|ditech|forda|keri|lang|amaccana|gogogo|kween|shimenet|push|korik|eme|naur|from|to|step))/ /[a-zA-Z][a-zA-Z0-9_]{0,19}/
+ID: /(?!(eklabool|anda|andamhie|adele|adelete|chika|givenchy|serve|pak|ganern|versa|betsung|ditech|forda|keri|lang|len|amaccana|gogogo|kween|shimenet|push|korik|eme|naur|from|to|step))/ /[a-zA-Z][a-zA-Z0-9_]{0,19}/
 ANDA_LITERAL: /[0-9]+/
 ANDAMHIE_LITERAL: /[0-9]+\.[0-9]+/
 CHIKA_LITERAL: /"([^"\\]|\\.)*"/
@@ -110,13 +113,14 @@ multi_expression: LPAR expression RPAR expression_tail
 expression_tail: general_operators expression_operands expression_tail  |  
 expression_operands: negative_not_value expression_value 
 negative_not_value: MINUS  | NOT  |  
-expression_value: unary_operator ID  | ID identifier_tail  | general_operands  | LPAR expression RPAR 
+expression_value: unary_operator ID  | ID identifier_tail  | general_operands  | LPAR expression RPAR  | LEN LPAR len_choice RPAR 
+len_choice: CHIKA_LITERAL  | ID 
 identifier_tail: func_array  | unary_operator  |  
 unary_operator: MINUS_MINUS  | PLUS_PLUS 
 general_operands: literals 
 general_operators: PLUS  | MINUS  | MODULO  | DIVIDE  | TIMES  | EXPONENTIATE  | FLOOR  | GREATER_THAN  | LESS_THAN  | GREATER_EQUAL  | LESS_EQUAL  | EQUAL_EQUAL  | NOT_EQUAL  | AND  | OR 
-statements: ID assign_call_stmts statements  | input_stmts statements  | output_stmts statements  | conditional_stmts statements  | loop_stmts statements  | switch_stmts statements  | return_stmts statements  | unary_stmts statements  | local_dec statements  |  
-loop_body: ID assign_call_stmts statements  | input_stmts loop_body  | output_stmts loop_body  | loop_stmts loop_body  | loop_conditional_stmts loop_body  | loop_switch_stmts loop_body  | return_stmts loop_body  | unary_stmts loop_body  | control_flow_stmts loop_body  | local_dec loop_body  |  
+statements: ID assign_call_stmts statements  | input_stmts statements  | output_stmts statements  | append_stmts statements  | delete_stmts statements  | conditional_stmts statements  | loop_stmts statements  | switch_stmts statements  | return_stmts statements  | unary_stmts statements  | local_dec statements  |  
+loop_body: ID assign_call_stmts statements  | input_stmts loop_body  | output_stmts loop_body  | append_stmts loop_body  | delete_stmts loop_body  | loop_stmts loop_body  | loop_conditional_stmts loop_body  | loop_switch_stmts loop_body  | return_stmts loop_body  | unary_stmts loop_body  | control_flow_stmts loop_body  | local_dec loop_body  |  
 multi_loop_body: loop_body multi_loop_body  |  
 assign_call_stmts: array_indexing assignment_operators assignment_values SEMICOLON  | LPAR arguments RPAR SEMICOLON 
 assignment_operators: EQUAL  | PLUS_EQUAL  | MINUS_EQUAL  | MODULO_EQUAL  | DIVIDE_EQUAL  | FLOOR_EQUAL  | TIMES_EQUAL  | EXPONENTIATE_EQUAL 
@@ -125,6 +129,8 @@ input_stmts: input_type ID EQUAL GIVENCHY LPAR givenchy_values RPAR SEMICOLON
 input_type: data_type  |  
 givenchy_values: expression_operands 
 output_stmts: SERVE LPAR output_values RPAR SEMICOLON 
+append_stmts: ADELE LPAR ID COMMA assignment_values RPAR SEMICOLON 
+delete_stmts: ADELETE LPAR ID array_indexing RPAR SEMICOLON 
 output_values: expression 
 conditional_stmts: PAK LPAR condition RPAR LBRACE conditional_body RBRACE ganern_pak_statement ganern_case 
 condition: expression 
