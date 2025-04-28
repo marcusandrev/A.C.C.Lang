@@ -41,6 +41,8 @@ class SemanticAnalyzer:
                     self.process_conditional_statement()
                 elif token[1] == 'serve':
                     self.process_serve_statement()
+                elif token[1] == 'adele':
+                    self.process_adele_statement()
                 elif token[1] == 'adelete':
                     self.process_adelete_statement()
                 elif token[1] == 'push':
@@ -609,6 +611,54 @@ class SemanticAnalyzer:
             name = f"<nonvar@{saved_index}>"
         return expr_type, name
 
+    def process_adele_statement(self):
+        """Built-in adele(arr, value): append `value` to array `arr`."""
+        # record position for error messages
+        pos = self._token_stream[self.token_index][1][0]
+
+        # skip the 'adele' identifier
+        self.advance()
+        if not self.current_token() or self.current_token()[1] != '(':
+            self.log += str(SemanticError("Expected '(' after 'adele'", pos)) + '\n'
+        self.advance()
+
+        # ─── first argument: must be an array variable ───
+        saved_flag = self.allow_unindexed_array_usage
+        self.allow_unindexed_array_usage = True
+        arg_type, arg_name = self.evaluate_expression_with_name()
+        self.allow_unindexed_array_usage = saved_flag
+
+        entry = self.lookup_variable(arg_name)
+        if not entry:
+            self.log += str(SemanticError(f"Argument '{arg_name}' to 'adele' is not declared", pos)) + '\n'
+        elif not entry.get("is_array", False):
+            self.log += str(SemanticError(f"Argument '{arg_name}' to 'adele' must be an array", pos)) + '\n'
+
+        # expect comma
+        if not self.current_token() or self.current_token()[1] != ',':
+            self.log += str(SemanticError("Expected ',' after first argument in 'adele'", pos)) + '\n'
+        else:
+            self.advance()
+
+        # ─── second argument: any expression ───
+        saved_flag = self.allow_unindexed_array_usage
+        self.allow_unindexed_array_usage = True
+        self.evaluate_expression()
+        self.allow_unindexed_array_usage = saved_flag
+
+        # closing ')'
+        if not self.current_token() or self.current_token()[1] != ')':
+            self.log += str(SemanticError("Missing ')' in 'adele' call", pos)) + '\n'
+        else:
+            self.advance()
+
+        # semicolon
+        if not self.current_token() or self.current_token()[1] != ';':
+            self.log += str(SemanticError("Missing ';' after 'adele' call", pos)) + '\n'
+        else:
+            self.advance()
+
+
     def process_adelete_statement(self):
         # current token is 'adelete'
         pos = self._token_stream[self.token_index][1][0]
@@ -889,6 +939,8 @@ class SemanticAnalyzer:
                 self.process_conditional_statement()
             elif token[1] == 'serve':
                 self.process_serve_statement()
+            elif token[1] == 'adele':
+                self.process_adele_statement()
             elif token[1] == 'adelete':
                 self.process_adelete_statement()
             elif token[1] == 'push':
