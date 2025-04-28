@@ -1437,27 +1437,39 @@ class SemanticAnalyzer:
             self.advance()  # Skip ')'
             return "givenchy"
 
+        # ──────── built-in len(...) ────────
         if token[1] == 'id' and token[0] == 'len' and self.next_token() and self.next_token()[1] == '(':
-            pos = self._token_stream[self.token_index][1][0]  # position for error messages
+            pos = self._token_stream[self.token_index][1][0]  # for error reporting
             self.advance()  # skip 'len'
             self.advance()  # skip '('
-            
+
+            # ─── allow bare-array usage for this one sub-expression ───
+            orig_allow = self.allow_unindexed_array_usage
+            self.allow_unindexed_array_usage = True
+
             arg_type = self.evaluate_expression()
-            
+
+            # ─── restore normal rules ───
+            self.allow_unindexed_array_usage = orig_allow
+
+            # no commas allowed
             if self.current_token() and self.current_token()[1] == ',':
                 self.log += str(SemanticError("len() takes exactly one argument", pos)) + '\n'
-                # consume extra arguments up to ')'
                 while self.current_token() and self.current_token()[1] != ')':
                     self.advance()
-            
+
             if not self.current_token() or self.current_token()[1] != ')':
                 self.log += str(SemanticError("Missing ')' after len()", pos)) + '\n'
             else:
                 self.advance()  # skip ')'
-            
+
+            # must be string or array
             if not (arg_type == 'chika' or (isinstance(arg_type, str) and arg_type.startswith('array_'))):
-                self.log += str(SemanticError(f"len() argument must be a string or array, got '{arg_type}'", pos)) + '\n'
-            
+                self.log += str(SemanticError(
+                    f"len() argument must be a string or array, got '{arg_type}'",
+                    pos
+                )) + '\n'
+
             return 'anda'
         # ─────────────────────────────────────
 
