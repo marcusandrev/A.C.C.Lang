@@ -1058,6 +1058,80 @@ class SemanticAnalyzer:
                 self.process_block()  # Process the else block.
                 break
 
+    def _parse_inline_function_call(self, func_name):
+        """
+        Called from parse_primary when we see `id ( ... )`.
+        Parses the argument list, checks that the function exists,
+        that the argument count and types match, and returns the
+        function’s return type.
+        """
+        # record position for error messages
+        pos = self._token_stream[self.token_index][1][0]
+
+        # consume the '('
+        self.advance()  # we already consumed the identifier
+
+        # look up the function
+        entry = self.symbol_table["functions"].get(func_name)
+        if not entry:
+            self.log += str(SemanticError(f"Call to undeclared function '{func_name}'", pos)) + '\n'
+            # set up a dummy entry so we can keep parsing
+            entry = {"parameters": [], "return_type": "anda", "defined": False}
+        expected = entry["parameters"] or []
+
+        # parse arguments
+        actual = []
+        while self.current_token() and self.current_token()[1] != ')':
+            arg_type = self.evaluate_expression()
+            actual.append(arg_type)
+
+            if self.current_token() and self.current_token()[1] == ',':
+                self.advance()
+            else:
+                break
+
+        # expect closing ')'
+        if not self.current_token() or self.current_token()[1] != ')':
+            self.log += str(SemanticError(f"Missing ')' after arguments in call to '{func_name}'", pos)) + '\n'
+        else:
+            self.advance()
+
+        # check arity
+        if len(actual) != len(expected):
+            self.log += str(SemanticError(
+                f"Function '{func_name}' expects {len(expected)} args, got {len(actual)}",
+                pos)) + '\n'
+        else:
+            # check each param’s type/shape
+            for i, ((pname, ptype, p_is_arr), a_t) in enumerate(zip(expected, actual), start=1):
+                # arrays vs scalars
+                if p_is_arr and not a_t.startswith("array_"):
+                    self.log += str(SemanticError(
+                        f"Arg {i} '{pname}' of '{func_name}' must be array, got scalar",
+                        pos)) + '\n'
+                if not p_is_arr and a_t.startswith("array_"):
+                    self.log += str(SemanticError(
+                        f"Arg {i} '{pname}' of '{func_name}' must be scalar, got array",
+                        pos)) + '\n'
+                # base-type check (strip any "array_" prefix)
+                base = a_t[len("array_"):] if a_t.startswith("array_") else a_t
+                if ptype in ['anda','andamhie'] and base not in ['anda','andamhie','eklabool']:
+                    self.log += str(SemanticError(
+                        f"Arg {i} '{pname}' of '{func_name}' expects numeric, got '{base}'",
+                        pos)) + '\n'
+                if ptype == 'chika' and base != 'chika':
+                    self.log += str(SemanticError(
+                        f"Arg {i} '{pname}' of '{func_name}' expects chika, got '{base}'",
+                        pos)) + '\n'
+                if ptype == 'eklabool' and base not in ['eklabool','anda','andamhie','chika']:
+                    self.log += str(SemanticError(
+                        f"Arg {i} '{pname}' of '{func_name}' expects boolean, got '{base}'",
+                        pos)) + '\n'
+
+        # return the declared return type (default to 'anda' if missing)
+        return entry.get("return_type", 'anda')
+
+
     # --- New methods for loop constructs ---
 
     def process_while_loop(self):

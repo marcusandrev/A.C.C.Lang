@@ -69,11 +69,30 @@ def _cSameElemType_(expected, actual):
             f"but value is list[{actual}]"
         )
 
+def _string_permutations(_input_string):
+    _permutations_list = _cArray_('chika', ["hello"])
+    _start_val_0 = 0
+    _end_val_0 = _cType_('anda', (_cNoArray_(_cType_('anda', len(_cNone_(_input_string, 'input_string'))), '-') - _cNoArray_(1, '-')))
+    _step_val_0 = 1
+    if _step_val_0 > 0:
+        _end_bound_0 = _end_val_0 + 1
+    else:
+        _end_bound_0 = _end_val_0 - 1
+    for _i in range(_start_val_0, _end_bound_0, _step_val_0):
+        _permutations_list.append(_cType_('chika', _cNone_(_input_string, 'input_string')[_cNone_(_i, 'i')]))
+    _start_val_1 = 0
+    _end_val_1 = _cType_('anda', (_cNoArray_(_cType_('anda', len(_cNone_(_permutations_list, 'permutations_list'))), '-') - _cNoArray_(1, '-')))
+    _step_val_1 = 1
+    if _step_val_1 > 0:
+        _end_bound_1 = _end_val_1 + 1
+    else:
+        _end_bound_1 = _end_val_1 - 1
+    for _i in range(_start_val_1, _end_bound_1, _step_val_1):
+        print((str(_cNoArray_(_cNone_(_permutations_list, 'permutations_list')[_cNone_(_i, 'i')], '+')) + _cNoArray_("\n", '+')), end='')
+
 def _kween():
-    _grades = _cArray_('anda', [1, 2, [5, 6]])
-    del _cNone_(_grades, 'grades')[4]
-    del _cNone_(_grades, 'grades')[1][1]
-    print(_cNone_(_grades, 'grades'), end='')
+    _my_string = _cType_('chika', "abc")
+    _string_permutations(_cNone_(_my_string, 'my_string'))
 
 if __name__ == '__main__':
     _kween()
