@@ -62,13 +62,8 @@ def _cArray_(expected, arr):
     else:
         return _cType_(expected, arr)
 
-def _modify(_myArray):
-    _cNone_(_myArray, 'myArray')[0] = _cType_('anda', 5)
-
 def _kween():
-    _grades = _cArray_('anda', [1, 1, 2, 3, 5])
-    _modify(_cNone_(_grades, 'grades')[0])
-    print(_cNone_(_grades, 'grades'), end='')
+    print("Hello, World!", end='')
 
 if __name__ == '__main__':
     _kween()
