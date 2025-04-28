@@ -88,7 +88,7 @@
  <expression-value> -> ( <expression> ) 
  <expression-value> -> len ( <len-choice> ) 
  <len-choice> -> chika_literal 
- <len-choice> -> id 
+ <len-choice> -> id <array-indexing> 
  <identifier-tail> -> <func-array> 
  <identifier-tail> -> <unary-operator> 
  <identifier-tail> -> λ 

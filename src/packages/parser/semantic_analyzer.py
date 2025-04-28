@@ -1437,6 +1437,30 @@ class SemanticAnalyzer:
             self.advance()  # Skip ')'
             return "givenchy"
 
+        if token[1] == 'id' and token[0] == 'len' and self.next_token() and self.next_token()[1] == '(':
+            pos = self._token_stream[self.token_index][1][0]  # position for error messages
+            self.advance()  # skip 'len'
+            self.advance()  # skip '('
+            
+            arg_type = self.evaluate_expression()
+            
+            if self.current_token() and self.current_token()[1] == ',':
+                self.log += str(SemanticError("len() takes exactly one argument", pos)) + '\n'
+                # consume extra arguments up to ')'
+                while self.current_token() and self.current_token()[1] != ')':
+                    self.advance()
+            
+            if not self.current_token() or self.current_token()[1] != ')':
+                self.log += str(SemanticError("Missing ')' after len()", pos)) + '\n'
+            else:
+                self.advance()  # skip ')'
+            
+            if not (arg_type == 'chika' or (isinstance(arg_type, str) and arg_type.startswith('array_'))):
+                self.log += str(SemanticError(f"len() argument must be a string or array, got '{arg_type}'", pos)) + '\n'
+            
+            return 'anda'
+        # ─────────────────────────────────────
+
         if token[1].endswith('_literal'):
             lit_type = token[1].split('_')[0]
             self.advance()
@@ -1451,9 +1475,11 @@ class SemanticAnalyzer:
                 self.advance()  # Skip ']'
                 return 'chika'  # Indexing a string returns a 'chika'
             return lit_type
+
         elif token[1] in ['korik', 'eme']:
             self.advance()
             return 'eklabool'
+
         elif token[1] == 'id':
             var_name = token[0]
             self.advance()
@@ -1461,7 +1487,6 @@ class SemanticAnalyzer:
             if self.current_token() and self.current_token()[1] == '(':
                 if var_name not in self.symbol_table["functions"]:
                     self.log += str(SemanticError(f"Function '{var_name}' is not declared", self._token_stream[self.token_index][1][0])) + '\n'
-                    # Use a dummy function entry to allow processing.
                     func_entry = {"parameters": [], "return_type": "anda"}
                 else:
                     func_entry = self.symbol_table["functions"][var_name]
@@ -1471,7 +1496,7 @@ class SemanticAnalyzer:
                     arg_type = self.evaluate_expression()
                     arg_types.append(arg_type)
                     if self.current_token() and self.current_token()[1] == ',':
-                        self.advance()  # Skip comma
+                        self.advance()
                 if not self.current_token() or self.current_token()[1] != ')':
                     self.log += str(SemanticError(f"Missing ')' in function call to '{var_name}'", self._token_stream[self.token_index][1][0])) + '\n'
                 self.advance()  # Skip ')'
@@ -1489,57 +1514,36 @@ class SemanticAnalyzer:
                         if arg_type != 'chika':
                             self.log += str(SemanticError(f"Argument {i+1} of '{var_name}' expects type 'chika', got '{arg_type}'", self._token_stream[self.token_index][1][0])) + '\n'
                 return func_entry["return_type"]
+
             # Process array access if present.
             array_accessed = False
             while self.current_token() and self.current_token()[1] == '[':
                 array_accessed = True
                 self.advance()  # Skip '['
                 index_type = self.evaluate_expression()
-                # Index cannot be 'chika'.
                 if index_type == 'chika':
                     self.log += str(SemanticError("Array index cannot be of type 'chika'", self._token_stream[self.token_index][1][0])) + '\n'
                 if not self.current_token() or self.current_token()[1] != ']':
                     self.log += str(SemanticError("Missing ']' in array access", self._token_stream[self.token_index][1][0])) + '\n'
                 self.advance()  # Skip ']'
-            # Lookup variable: check block scopes (if any), then local function scope, then global.
-            var_entry = None
-            if self.current_function:
-                for scope in reversed(self.block_scopes):
-                    if var_name in scope:
-                        var_entry = scope[var_name]
-                        break
-                if not var_entry:
-                    if var_name in self.symbol_table["functions"][self.current_function]["locals"]:
-                        var_entry = self.symbol_table["functions"][self.current_function]["locals"][var_name]
-                    else:
-                        for param in self.symbol_table["functions"][self.current_function]["parameters"]:
-                            if param[0] == var_name:
-                                var_entry = {"data_type": param[1]}
-                                break
-                        if not var_entry and var_name in self.symbol_table["variables"]:
-                            var_entry = self.symbol_table["variables"][var_name]
-            else:
-                if var_name in self.symbol_table["variables"]:
-                    var_entry = self.symbol_table["variables"][var_name]
+
+            var_entry = self.lookup_variable(var_name)
+
             if not var_entry:
                 self.log += str(SemanticError(f"Undeclared variable '{var_name}'", self._token_stream[self.token_index][1][0])) + '\n'
-            
-            # Disallow direct usage of array variables in expressions if array not accessed:
+
             if var_entry and var_entry.get("is_array", False) and not array_accessed:
                 if not self.allow_unindexed_array_usage:
-                    # Check if it's an array parameter — allow usage if it's a function parameter that is an array
                     is_function_param_array = False
                     if self.current_function:
                         for param in self.symbol_table["functions"][self.current_function]["parameters"]:
-                            if param[0] == var_name and len(param) > 2 and param[2]:  # param[2] = is_array
+                            if param[0] == var_name and param[2]:  # param[2] = is_array
                                 is_function_param_array = True
                                 break
                     if not is_function_param_array:
                         self.log += str(SemanticError(f"Array variable '{var_name}' cannot be used directly in expressions; use an element access", self._token_stream[self.token_index][1][0])) + '\n'
                 return f"array_{var_entry['data_type']}"
 
-            
-            # --- Added support for postfix operators: ++ and --
             while self.current_token() and self.current_token()[1] in ['++', '--']:
                 op = self.current_token()[1]
                 if var_entry and var_entry.get("naur_flag", False):
@@ -1548,9 +1552,10 @@ class SemanticAnalyzer:
                     for param in self.symbol_table["functions"][self.current_function]["parameters"]:
                         if param[0] == var_name:
                             self.log += str(SemanticError(f"Operator '{op}' cannot be applied to immutable parameter '{var_name}'", self._token_stream[self.token_index][1][0])) + '\n'
-                self.advance()  # Consume the postfix operator.
-            # -----------------------------------------------
+                self.advance()  # Consume postfix operator
+
             return var_entry["data_type"] if var_entry else 'anda'
+
         elif token[1] == '(':
             self.advance()  # Skip '('
             expr_type = self.evaluate_expression()
@@ -1558,8 +1563,10 @@ class SemanticAnalyzer:
                 self.log += str(SemanticError("Missing ')' in expression", self._token_stream[self.token_index][1][0])) + '\n'
             self.advance()  # Skip ')'
             return expr_type
+
         else:
             self.log += str(SemanticError(f"Unexpected token '{token[0]}' in expression", self._token_stream[self.token_index][1][0])) + '\n'
+            return 'anda'
 
     def process_serve_statement(self):
         """Process and validate the 'serve' statement (print statement)."""

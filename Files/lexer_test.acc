@@ -1,5 +1,5 @@
 shimenet kween () {
-    anda grades[] = {1, 1, 2, 3, 5};
-    adele(grades, 2);
-    adele(grades[], {3, 2});
+    anda grades[] = {1, 1, 2, 3, 5, {7, 2}};
+    anda length3 = len(grades);
+    anda length4 = len(grades[5]);
 }

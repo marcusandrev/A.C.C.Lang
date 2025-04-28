@@ -194,7 +194,7 @@ def convert_to_ebnf(non_terminals, productions):
     }
     ebnf = '%import common.WS\n%ignore WS\n%ignore "/^" /(.|\\n)*?(?=\^\/)/ "^/" | "/^" /(.|\\n)*/\n\nstart: program\n'
     for key, value in tokens.items():
-        if key == 'id': ebnf += f'{value}:' + ' /(?!(eklabool|anda|andamhie|adele|adelete|chika|givenchy|serve|pak|ganern|versa|betsung|ditech|forda|keri|lang|len|amaccana|gogogo|kween|shimenet|push|korik|eme|naur|from|to|step))/ /[a-zA-Z][a-zA-Z0-9_]{0,19}/\n'
+        if key == 'id': ebnf += f'{value}:' + ' /(?!(eklabool|anda|andamhie|adele|adelete|chika|givenchy|serve|pak|ganern|versa|betsung|ditech|forda|keri|lang|len|amaccana|gogogo|kween|shimenet|push|korik|eme|naur|from|to|step)\\b)/ /[a-zA-Z][a-zA-Z0-9_]{0,19}/\n'
         elif key == 'anda_literal': ebnf += f'{value}:' + ' /[0-9]+/\n'
         elif key == 'andamhie_literal': ebnf += f'{value}:' + ' /[0-9]+\\.[0-9]+/\n'
         elif key == 'chika_literal': ebnf += f'{value}:' + ' /"([^"\\\\]|\\\\.)*"/\n'

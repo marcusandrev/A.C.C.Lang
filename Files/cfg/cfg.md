@@ -92,7 +92,7 @@
 | 92 | \<expression-value\> | → | ( \<expression\> ) |
 |  | \<expression-value\> | → | len ( \<len-choice\> ) |
 |  | \<len-choice\> | → | chika\_literal |
-|  | \<len-choice\> | → | id |
+|  | \<len-choice\> | → | id \<array-indexing\> |
 | 93 | \<identifier-tail\> | → | \<func-array\> |
 | 94 | \<identifier-tail\> | → | \<unary-operator\> |
 | 95 | \<identifier-tail\> | → | λ |

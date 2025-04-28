@@ -11,7 +11,7 @@ if __name__ == '__main__':
     # source_code = open("A.C.C.Lang/Files/lexer_test.acc", "r").read()
 
     # For MacOS
-    file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'Files', 'lexer_test_all.acc'))
+    file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'Files', 'lexer_test.acc'))
     source_code = open(file_path, "r").read()
     lexer = Lexer(source_code)
     lexer.start()

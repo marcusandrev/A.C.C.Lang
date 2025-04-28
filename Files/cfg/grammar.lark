@@ -66,7 +66,7 @@ TIMES: "*"
 GREATER_THAN: ">"
 LESS_THAN: "<"
 EQUAL: "="
-ID: /(?!(eklabool|anda|andamhie|adele|adelete|chika|givenchy|serve|pak|ganern|versa|betsung|ditech|forda|keri|lang|len|amaccana|gogogo|kween|shimenet|push|korik|eme|naur|from|to|step))/ /[a-zA-Z][a-zA-Z0-9_]{0,19}/
+ID: /(?!(eklabool|anda|andamhie|adele|adelete|chika|givenchy|serve|pak|ganern|versa|betsung|ditech|forda|keri|lang|len|amaccana|gogogo|kween|shimenet|push|korik|eme|naur|from|to|step)\b)/ /[a-zA-Z][a-zA-Z0-9_]{0,19}/
 ANDA_LITERAL: /[0-9]+/
 ANDAMHIE_LITERAL: /[0-9]+\.[0-9]+/
 CHIKA_LITERAL: /"([^"\\]|\\.)*"/
@@ -114,7 +114,7 @@ expression_tail: general_operators expression_operands expression_tail  |
 expression_operands: negative_not_value expression_value 
 negative_not_value: MINUS  | NOT  |  
 expression_value: unary_operator ID  | ID identifier_tail  | general_operands  | LPAR expression RPAR  | LEN LPAR len_choice RPAR 
-len_choice: CHIKA_LITERAL  | ID 
+len_choice: CHIKA_LITERAL  | ID array_indexing 
 identifier_tail: func_array  | unary_operator  |  
 unary_operator: MINUS_MINUS  | PLUS_PLUS 
 general_operands: literals 
