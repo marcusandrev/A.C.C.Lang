@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const editor = document.querySelector('.editor');
   const lineNumbers = document.querySelector('.line-numbers');
   const themeSwitch = document.getElementById('theme-switch');
+
   const logo = document.getElementById('logo');
   const body = document.body;
 
@@ -50,6 +51,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
     updateLineNumbers();
   }
+});
+
+// Save functionality
+const saveButton = document.querySelector('.save-button');
+
+saveButton.addEventListener('click', () => {
+  const code = editor.getValue();
+
+  let fileName = document.getElementById('file-name').textContent.trim();
+
+  if (!fileName.endsWith('.txt')) {
+    fileName = fileName.split('.')[0] + '.txt';
+  }
+
+  const blob = new Blob([code], { type: 'text/plain' });
+
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
 });
 
 CodeMirror.defineMode('acclang', function (config, parserConfig) {
@@ -245,7 +270,7 @@ function initializeTerminal() {
     term.open(document.getElementById('terminal'));
     terminalInitialized = true;
 
-    term.onData(e => {
+    term.onData((e) => {
       if (e === '\r') {
         term.write('\r\n');
         socket.emit('user_input', inputBuffer);
@@ -261,7 +286,7 @@ function initializeTerminal() {
       }
     });
   }
-  
+
   // Reset the terminal when it's initialized or reused
   inputBuffer = '';
   if (term) {
@@ -273,7 +298,7 @@ function runLexer() {
   // Always reset the logs and token display
   document.getElementById('token-stream').innerHTML = '';
   document.getElementById('compiler-log').innerText = '';
-  
+
   // Hide the terminal initially
   document.getElementById('terminal').style.display = 'none';
 
@@ -282,17 +307,17 @@ function runLexer() {
     socket = io();
 
     // Set up listeners for terminal output
-    socket.on('output', data => {
+    socket.on('output', (data) => {
       if (terminalInitialized && term) {
         term.write(data.replace(/\n/g, '\r\n'));
       }
     });
 
     // Set up the compile_result handler
-    socket.on('compile_result', data => {
+    socket.on('compile_result', (data) => {
       const tb = document.getElementById('token-stream');
       tb.innerHTML = '';
-      data.tokens.forEach(tok => {
+      data.tokens.forEach((tok) => {
         const row = document.createElement('tr');
         row.innerHTML = `<td>${tok[0]}</td><td>${tok[1]}</td>`;
         tb.appendChild(row);
@@ -317,7 +342,7 @@ function loadFile(event) {
   const file = event.target.files[0];
   if (file) {
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
       editor.setValue(e.target.result);
       document.getElementById('file-name').textContent = file.name;
     };
