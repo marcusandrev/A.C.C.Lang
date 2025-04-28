@@ -220,8 +220,12 @@ class CodeGenerator:
             return
 
         # Original variable declaration handling
+        # Treat arrays specially
         if node.initializer is None:
-            code = f"_{node.name} = None"
+            if node.is_array:
+                code = f"_{node.name} = []"
+            else:
+                code = f"_{node.name} = None"
         else:
             if isinstance(node.initializer, list):
                 expr_code = self.visit_list(node.initializer)
@@ -254,51 +258,49 @@ class CodeGenerator:
     # ──────────────────────────────────────────────────────────
     #  assignment :  LHS (‘=’ | ‘+=’ …) RHS
     #  – LHS may be IdentifierNode or ArrayAccessNode
-    #  – RHS may be scalar, {…} literal, or another array variable
+    #  – RHS may be scalar, {…} literal, another array variable,
+    #    or the result of a function call that returns either.
     # ──────────────────────────────────────────────────────────
     def visit_AssignmentNode(self, node):
-        # ──────── ARRAY-ELEMENT on LHS ────────
+        # ───────── ARRAY ELEMENT on the LHS ─────────
         if isinstance(node.identifier, ArrayAccessNode):
             lhs_code = self.visit(node.identifier)
 
-            if isinstance(node.expression, list):          # { … }
-                rhs_code = self.visit_list(node.expression)
+            # literal {…} on RHS
+            if isinstance(node.expression, list):
+                rhs_code  = self.visit_list(node.expression)
                 base_name = node.identifier.array.name
-                base_info = self.lookup_variable(base_name)
-                elem_type = base_info[0] if isinstance(base_info, tuple) else base_info
-                if elem_type:
-                    rhs_code = f"_cArray_('{elem_type}', {rhs_code})"
+                elem_type = self.lookup_variable(base_name)[0]
+                rhs_code  = f"_cArray_('{elem_type}', {rhs_code})"
             else:
-                rhs_code = self.visit(node.expression)
+                rhs_code  = self.visit(node.expression)
                 base_name = node.identifier.array.name
-                base_info = self.lookup_variable(base_name)
-                elem_type = base_info[0] if isinstance(base_info, tuple) else base_info
-                if elem_type:
-                    rhs_code = f"_cType_('{elem_type}', {rhs_code})"
+                elem_type = self.lookup_variable(base_name)[0]
+                rhs_code  = f"_cType_('{elem_type}', {rhs_code})"
 
             self.code_lines.append(self.indent() + f"{lhs_code} = {rhs_code}")
             return
 
-        # ──────── SIMPLE VARIABLE on LHS ────────
+        # ───────── SIMPLE VARIABLE on the LHS ─────────
         if not isinstance(node.identifier, IdentifierNode):
             raise Exception("Unsupported assignment target: " + repr(node.identifier))
 
-        lhs_name      = node.identifier.name
-        lhs_info      = self.lookup_variable(lhs_name)
-        lhs_type      = lhs_info[0] if isinstance(lhs_info, tuple) else lhs_info
-        lhs_is_array  = isinstance(lhs_info, tuple) and lhs_info[1]
+        lhs_name     = node.identifier.name
+        lhs_info     = self.lookup_variable(lhs_name)
+        lhs_type     = lhs_info[0] if isinstance(lhs_info, tuple) else lhs_info
+        lhs_is_array = isinstance(lhs_info, tuple) and lhs_info[1]
 
-        # --- determine RHS code & kind ---
+        # ---------- RHS code ----------
         rhs_is_array = isinstance(node.expression, list)
-        if rhs_is_array:
-            rhs_code = self.visit_list(node.expression)
-        else:
-            rhs_code = self.visit(node.expression)
-            if isinstance(node.expression, IdentifierNode):
-                rhs_info     = self.lookup_variable(node.expression.name)
-                rhs_is_array = isinstance(rhs_info, tuple) and rhs_info[1]
+        rhs_code     = (self.visit_list(node.expression)
+                        if rhs_is_array else self.visit(node.expression))
 
-        # --- compound operators (+=, …) remain scalar-only ---
+        # Detect “RHS is an array variable” (IdentifierNode) for clamping
+        if (not rhs_is_array) and isinstance(node.expression, IdentifierNode):
+            rhs_info     = self.lookup_variable(node.expression.name)
+            rhs_is_array = isinstance(rhs_info, tuple) and rhs_info[1]
+
+        # ---------- compound operators (+=, …) ----------
         if node.operator != "=":
             if lhs_is_array or rhs_is_array:
                 self.code_lines.append(
@@ -306,36 +308,27 @@ class CodeGenerator:
                     f"raise TypeError('Compound operator {node.operator} not valid with arrays')"
                 )
                 return
-            op = {"+=":"+", "-=":"-", "*=":"*", "/=":"/", "%=":"%", "**=":"**", "//=":"//"}[node.operator]
+            op_map = {"+=":"+", "-=":"-", "*=":"*", "/=":"/", "%=":"%", "**=":"**", "//=":"//"}
+            op     = op_map[node.operator]
             if lhs_type:
                 rhs_code = f"_cType_('{lhs_type}', {rhs_code})"
-                expr = f"_cType_('{lhs_type}', _{lhs_name} {op} {rhs_code})"
+                expr     = f"_cType_('{lhs_type}', _{lhs_name} {op} {rhs_code})"
                 self.code_lines.append(self.indent() + f"_{lhs_name} = {expr}")
             else:
                 self.code_lines.append(self.indent() + f"_{lhs_name} {node.operator} {rhs_code}")
             return
 
-        # --- plain “=” assignment ---
+        # ---------- plain “=” assignment ----------
         if lhs_is_array:
-            if not rhs_is_array:
-                self.code_lines.append(
-                    self.indent() +
-                    f"raise TypeError('Cannot assign scalar to array variable {lhs_name}')"
-                )
-            else:
-                if lhs_type:
-                    rhs_code = f"_cArray_('{lhs_type}', {rhs_code})"
-                self.code_lines.append(self.indent() + f"_{lhs_name} = {rhs_code}")
+            # always clamp the incoming value to an array of the correct element-type
+            if lhs_type:
+                rhs_code = f"_cArray_('{lhs_type}', {rhs_code})"
+            self.code_lines.append(self.indent() + f"_{lhs_name} = {rhs_code}")
         else:
-            if rhs_is_array:
-                self.code_lines.append(
-                    self.indent() +
-                    f"raise TypeError('Cannot assign array to scalar variable {lhs_name}')"
-                )
-            else:
-                if lhs_type:
-                    rhs_code = f"_cType_('{lhs_type}', {rhs_code})"
-                self.code_lines.append(self.indent() + f"_{lhs_name} = {rhs_code}")
+            # scalar LHS: clamp to the declared primitive type when we know it
+            if lhs_type:
+                rhs_code = f"_cType_('{lhs_type}', {rhs_code})"
+            self.code_lines.append(self.indent() + f"_{lhs_name} = {rhs_code}")
 
     def visit_FunctionCallNode(self, node):
         # builtin len(…)  – already handled

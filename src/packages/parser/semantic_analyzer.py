@@ -497,8 +497,8 @@ class SemanticAnalyzer:
     #  assignment :  id [ '[' expr ']' ] assignment_op rhs_expr ';'
     # ──────────────────────────────────────────────────────────
     def process_assignment_statement(self):
-        lhs_name = self.current_token()[0]   # variable being written
-        self.advance()                       # skip identifier
+        lhs_name = self.current_token()[0]          # variable on LHS
+        self.advance()                              # skip identifier
 
         # ---------- optional single-dimension indexing ----------
         is_indexed = False
@@ -507,96 +507,104 @@ class SemanticAnalyzer:
             self.advance()
             index_t = self.evaluate_expression()
             if index_t not in ['anda', 'andamhie']:
-                self.log += str(SemanticError("Array index must be numeric", 
-                                              self._token_stream[self.token_index][1][0])) + '\n'
+                self.log += str(SemanticError(
+                    "Array index must be numeric",
+                    self._token_stream[self.token_index][1][0])) + '\n'
             if not self.current_token() or self.current_token()[1] != ']':
-                self.log += str(SemanticError("Expected ']' after array index", 
-                                              self._token_stream[self.token_index][1][0])) + '\n'
-            self.advance()
+                self.log += str(SemanticError(
+                    "Expected ']' after array index",
+                    self._token_stream[self.token_index][1][0])) + '\n'
+            self.advance()                          # skip ']'
 
         # ---------- assignment operator ----------
         if not self.current_token():
-            self.log += str(SemanticError("Expected assignment operator after identifier", 
-                                          self._token_stream[self.token_index-1][1][0])) + '\n'
+            self.log += str(SemanticError(
+                "Expected assignment operator after identifier",
+                self._token_stream[self.token_index-1][1][0])) + '\n'
             return
-        op_tok = self.current_token();  op = op_tok[1]
+        op_tok = self.current_token()
+        op = op_tok[1]
         if op not in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
-            self.log += str(SemanticError("Expected an assignment operator", 
-                                          self._token_stream[self.token_index][1][0])) + '\n'
-        self.advance()
+            self.log += str(SemanticError(
+                "Expected an assignment operator",
+                self._token_stream[self.token_index][1][0])) + '\n'
+        self.advance()                              # skip operator
 
         # ---------- look-up LHS variable ----------
         lhs_entry = self.lookup_variable(lhs_name)
         if not lhs_entry:
-            self.log += str(SemanticError(f"Assignment to undeclared variable {lhs_name}", self._token_stream[self.token_index][1][0])) + '\n'
+            self.log += str(SemanticError(
+                f"Assignment to undeclared variable {lhs_name}",
+                self._token_stream[self.token_index][1][0])) + '\n'
             lhs_entry = {"data_type": 'anda', "is_array": False, "naur_flag": False}  # recovery
 
         if lhs_entry.get("naur_flag"):
-            self.log += str(SemanticError(f"Assignment to constant variable '{lhs_name}' is not allowed", 
-                                          self._token_stream[self.token_index][1][0])) + '\n'
+            self.log += str(SemanticError(
+                f"Assignment to constant variable '{lhs_name}' is not allowed",
+                self._token_stream[self.token_index][1][0])) + '\n'
 
         lhs_is_array = lhs_entry.get("is_array", False)
 
         # ---------- RHS parsing ----------
-        # If we’re assigning **to an array variable**, briefly allow bare
-        # array names on the RHS so parse_primary won’t complain.
+        # If assigning *to* an array variable, allow bare array names while parsing RHS.
         saved_allow = self.allow_unindexed_array_usage
         if lhs_is_array:
             self.allow_unindexed_array_usage = True
 
         rhs_is_array = False
         if self.current_token() and self.current_token()[1] == '{':
-            # array literal
-            rhs_is_array = True
-            rhs_type = self.process_array_initializer_dynamic(var_type=lhs_entry["data_type"])
+            rhs_is_array = True                             # array literal
+            rhs_type = self.process_array_initializer_dynamic(
+                var_type=lhs_entry["data_type"])
         else:
             rhs_type, rhs_name = self.evaluate_expression_with_name()
-            # check if the expression was a bare identifier that denotes
-            # an array variable
+
+            # Detect if RHS is a bare array variable
             var_ent = self.lookup_variable(rhs_name)
             if var_ent and var_ent.get("is_array", False):
                 rhs_is_array = True
 
-        # restore the flag
+        # Restore flag
         self.allow_unindexed_array_usage = saved_allow
 
         # ---------- expect ';' ----------
         if not self.current_token() or self.current_token()[1] != ';':
-            self.log += str(SemanticError("Expected ';' at end of assignment statement", 
-                                          self._token_stream[self.token_index][1][0])) + '\n'
-        self.advance()
+            self.log += str(SemanticError(
+                "Expected ';' at end of assignment statement",
+                self._token_stream[self.token_index][1][0])) + '\n'
+        self.advance()                                  # skip ';'
 
         # ---------- type / shape checks ----------
-        if is_indexed:
-            # assigning **into** a single element
-            if rhs_is_array:
-                self.log += str(SemanticError(f"Cannot assign an array value to a single element '{lhs_name}[…]'", 
-                                              self._token_stream[self.token_index-1][1][0])) + '\n'
-        else:
-            if lhs_is_array != rhs_is_array:
-                if lhs_is_array:
-                    self.log += str(SemanticError(f"Array variable '{lhs_name}' must be assigned an array, not a scalar value", 
-                                                  self._token_stream[self.token_index-1][1][0])) + '\n'
-                else:
-                    self.log += str(SemanticError(f"Scalar variable '{lhs_name}' cannot be assigned an array value", 
-                                                  self._token_stream[self.token_index-1][1][0])) + '\n'
-            else:
-                # scalar-to-scalar, or array-to-array → keep your previous
-                # primitive-type compatibility rules
-                if not lhs_is_array:
-                    lt = lhs_entry["data_type"]; rt = rhs_type
-                    if lt in ['anda', 'andamhie']:
-                        if rt not in ['anda', 'andamhie', 'eklabool', 'givenchy']:
-                            self.log += str(SemanticError(f"Variable '{lhs_name}' of type '{lt}' cannot be assigned a value of type '{rt}'",
-                                                          self._token_stream[self.token_index-1][1][0])) + '\n'
-                    elif lt == 'eklabool':
-                        if rt not in ['anda', 'andamhie', 'eklabool', 'chika', 'givenchy']:
-                            self.log += str(SemanticError(f"Variable '{lhs_name}' of type '{lt}' cannot be assigned a value of type '{rt}'",
-                                                          self._token_stream[self.token_index-1][1][0])) + '\n'
-                    elif lt == 'chika':
-                        if rt not in ['chika', 'givenchy']:
-                            self.log += str(SemanticError(f"Variable '{lhs_name}' of type '{lt}' must be assigned a 'chika'", 
-                                                          self._token_stream[self.token_index-1][1][0])) + '\n'
+        # ⋆ If we’re writing into a single element (`arr[i] = …`)
+        #   we still forbid an array value on the RHS.
+        if is_indexed and rhs_is_array:
+            self.log += str(SemanticError(
+                f"Cannot assign an array value to a single element '{lhs_name}[…]'",
+                self._token_stream[self.token_index-1][1][0])) + '\n'
+
+        # NOTE:  the previous block that compared lhs_is_array and rhs_is_array
+        #        for whole-variable assignments has been **removed**
+        #        per the user’s request.
+
+        # ---------- primitive-type compatibility for scalar-to-scalar ----------
+        if not lhs_is_array and not rhs_is_array:
+            lt = lhs_entry["data_type"]
+            rt = rhs_type
+            if lt in ['anda', 'andamhie']:
+                if rt not in ['anda', 'andamhie', 'eklabool', 'givenchy']:
+                    self.log += str(SemanticError(
+                        f"Variable '{lhs_name}' of type '{lt}' cannot be assigned a value of type '{rt}'",
+                        self._token_stream[self.token_index-1][1][0])) + '\n'
+            elif lt == 'eklabool':
+                if rt not in ['anda', 'andamhie', 'eklabool', 'chika', 'givenchy']:
+                    self.log += str(SemanticError(
+                        f"Variable '{lhs_name}' of type '{lt}' cannot be assigned a value of type '{rt}'",
+                        self._token_stream[self.token_index-1][1][0])) + '\n'
+            elif lt == 'chika':
+                if rt not in ['chika', 'givenchy']:
+                    self.log += str(SemanticError(
+                        f"Variable '{lhs_name}' of type '{lt}' must be assigned a 'chika'",
+                        self._token_stream[self.token_index-1][1][0])) + '\n'
 
     def evaluate_expression_with_name(self):
         """Evaluates an expression and also tries to capture the base variable name if it exists."""
