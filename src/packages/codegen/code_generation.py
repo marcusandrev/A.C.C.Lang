@@ -1,4 +1,4 @@
-from .ast_generator import UnaryOpNode, IdentifierNode, ArrayAccessNode, LiteralNode, InputCallNode
+from .ast_generator import UnaryOpNode, IdentifierNode, ArrayAccessNode, LiteralNode, InputCallNode, FunctionCallNode
 
 
 # code_generation.py
@@ -332,6 +332,14 @@ class CodeGenerator:
 
 
     def visit_FunctionCallNode(self, node):
+        # built-in len: wrap Python len(...) and clamp to integer type ('anda')
+        if node.name == 'len':
+            # assume exactly one argument
+            arg = node.arguments[0]
+            arg_code = self.visit(arg)
+            # call Python's len(), then enforce numeric clamps for 'anda'
+            return f"_cType_('anda', len({arg_code}))"
+
         args = ", ".join(self.visit(arg) for arg in node.arguments)
         return f"_{node.name}({args})"
 

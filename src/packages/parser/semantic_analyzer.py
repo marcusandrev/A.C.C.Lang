@@ -528,13 +528,12 @@ class SemanticAnalyzer:
         # ---------- look-up LHS variable ----------
         lhs_entry = self.lookup_variable(lhs_name)
         if not lhs_entry:
-            self.log += str(SemanticError(f"Assignment to undeclared variable '{lhs_name}'", 
-                                          op_tok[1][0])) + '\n'
+            self.log += str(SemanticError(f"Assignment to undeclared variable {lhs_name}", self._token_stream[self.token_index][1][0])) + '\n'
             lhs_entry = {"data_type": 'anda', "is_array": False, "naur_flag": False}  # recovery
 
         if lhs_entry.get("naur_flag"):
             self.log += str(SemanticError(f"Assignment to constant variable '{lhs_name}' is not allowed", 
-                                          op_tok[1][0])) + '\n'
+                                          self._token_stream[self.token_index][1][0])) + '\n'
 
         lhs_is_array = lhs_entry.get("is_array", False)
 
@@ -1551,6 +1550,8 @@ class SemanticAnalyzer:
             is_literal = self.current_token()[1] == 'chika_literal'
             name = self.current_token()[0]
             entry = self.lookup_variable(name) if not is_literal else None
+            if not is_literal and entry is None:
+                self.log += str(SemanticError(f"Undeclared variable '{name}'", pos)) + '\n'
             self.advance()  # skip identifier or literal
 
             if not is_literal and entry:
