@@ -8,7 +8,7 @@ body {
   margin: 0;
   padding: 0;
   background: linear-gradient(180deg, #f8f8f8 0%, #e1e1e1 100%);
-  transition: background 0.5s ease, color 0.5s ease; 
+  transition: background 0.5s ease, color 0.5s ease;
 }
 
 body.dark-mode {
@@ -19,9 +19,10 @@ body.dark-mode .editor-container,
 body.dark-mode .compiler-log-container,
 body.dark-mode .main-right-container {
   background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0px 4px 8px rgba(255, 255, 255, 0.205) inset, 0px 8px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 4px 8px rgba(255, 255, 255, 0.205) inset,
+    0px 8px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: background 0.5s ease, box-shadow 0.5s ease, border 0.5s ease; 
+  transition: background 0.5s ease, box-shadow 0.5s ease, border 0.5s ease;
 }
 
 body.dark-mode .editor-tab,
@@ -29,7 +30,7 @@ body.dark-mode .compiler-log-tab,
 body.dark-mode .table-tab {
   background-color: #282a36; /* Changed from #1B2331 to #282a36 */
   color: white;
-  transition: background-color 0.5s ease, color 0.5s ease; 
+  transition: background-color 0.5s ease, color 0.5s ease;
 }
 
 body.dark-mode .editor,
@@ -38,44 +39,44 @@ body.dark-mode .compiler-log,
 body.dark-mode .table-container {
   background-color: #282a36; /* Changed from #1B2331 to #282a36 */
   color: white;
-  transition: background-color 0.5s ease, color 0.5s ease; 
+  transition: background-color 0.5s ease, color 0.5s ease;
 }
 
 body.dark-mode .table-wrapper th {
-  background-color: #1A344D;
+  background-color: #1a344d;
   color: white;
-  transition: background-color 0.5s ease, color 0.5s ease; 
+  transition: background-color 0.5s ease, color 0.5s ease;
 }
 
 body.dark-mode .table-wrapper tr:nth-child(odd) {
   background-color: #224361;
-  transition: background-color 0.5s ease; 
+  transition: background-color 0.5s ease;
 }
 
 body.dark-mode .table-wrapper tr:nth-child(even) {
   background-color: #2a374e;
-  transition: background-color 0.5s ease; 
+  transition: background-color 0.5s ease;
 }
 
 body.dark-mode .editor::placeholder {
   color: #999;
-  transition: color 0.5s ease; 
+  transition: color 0.5s ease;
 }
 
 body.dark-mode .compiler-log {
-  color: #FF2727;
-  transition: background-color 0.5s ease, color 0.5s ease; 
+  color: #ff2727;
+  transition: background-color 0.5s ease, color 0.5s ease;
 }
 
 body.dark-mode .tooltip {
-  background: #3d5b8fbb; 
+  background: #3d5b8fbb;
   color: #f0e6ee;
-  border-color: #3d5b8fbb; 
-  transition: background 0.5s ease, color 0.5s ease, border-color 0.5s ease; 
+  border-color: #3d5b8fbb;
+  transition: background 0.5s ease, color 0.5s ease, border-color 0.5s ease;
 }
 
 body.dark-mode .tooltip::after {
-  border-color: #3d5b8fbb transparent transparent transparent; 
+  border-color: #3d5b8fbb transparent transparent transparent;
 }
 
 /* Scrollbar styles */
@@ -84,13 +85,13 @@ body.dark-mode ::-webkit-scrollbar {
 }
 
 body.dark-mode ::-webkit-scrollbar-track {
-  background: #1B2331;
+  background: #1b2331;
 }
 
 body.dark-mode ::-webkit-scrollbar-thumb {
   background-color: #3d5b8f;
   border-radius: 10px;
-  border: 3px solid #1B2331;
+  border: 3px solid #1b2331;
 }
 
 body ::-webkit-scrollbar {
@@ -125,11 +126,12 @@ body .table-wrapper tr:nth-child(odd),
 body .table-wrapper tr:nth-child(even),
 body .editor::placeholder,
 body .tooltip {
-  transition: background-color 0.5s ease, color 0.5s ease, box-shadow 0.5s ease, border 0.5s ease; 
+  transition: background-color 0.5s ease, color 0.5s ease, box-shadow 0.5s ease,
+    border 0.5s ease;
 }
 
 body .table-wrapper th {
-  transition: background-color 0.5s ease; 
+  transition: background-color 0.5s ease;
 }
 
 .app-container {
@@ -181,8 +183,8 @@ body .table-wrapper th {
 }
 
 .switch:checked {
-  border-color: #1AAD19;
-  background-color: #1AAD19;
+  border-color: #1aad19;
+  background-color: #1aad19;
 }
 
 .switch:checked:before {
@@ -208,9 +210,9 @@ body .table-wrapper th {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: -1; 
-  pointer-events: none; 
-  overflow: hidden; 
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
 }
 
 @keyframes ellipse-1 {
@@ -307,7 +309,7 @@ body .table-wrapper th {
   align-items: center;
   width: 100%;
   margin: 10px;
-  z-index: 10; 
+  z-index: 10;
 }
 
 .navbar-left {
@@ -320,9 +322,9 @@ body .table-wrapper th {
   border: none;
   margin-right: 15px;
   cursor: pointer;
-  border-radius: 50%; 
-  width: 40px; 
-  height: 40px; 
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
   transition: transform 0.1s;
 }
 
@@ -331,8 +333,8 @@ body .table-wrapper th {
 }
 
 .navbar-left button img {
-  width: 40px; 
-  height: 40px; 
+  width: 40px;
+  height: 40px;
   vertical-align: middle;
   transition: opacity 0.1s;
 }
@@ -344,19 +346,19 @@ body .table-wrapper th {
 .shine {
   position: relative;
   display: inline-block;
-  overflow: hidden; 
-  border-radius: 50%; 
-  width: 40px; 
-  height: 40px; 
-  vertical-align: middle; 
-  padding: 1px; 
+  overflow: hidden;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  vertical-align: middle;
+  padding: 1px;
 }
 
 .shine img {
   display: block;
   width: 100%;
   height: 100%;
-  border-radius: 0; 
+  border-radius: 0;
 }
 
 .shine::after {
@@ -374,16 +376,16 @@ body .table-wrapper th {
   );
   transform: skewX(-20deg);
   opacity: 0;
-  transition: opacity 0.3s, left 1s; 
+  transition: opacity 0.3s, left 1s;
   pointer-events: none;
-  border-radius: 50%; 
-  z-index: 1; 
+  border-radius: 50%;
+  z-index: 1;
 }
 
 .shine:hover::after {
   opacity: 1;
-  left: 150%; 
-  animation: none; 
+  left: 150%;
+  animation: none;
 }
 
 @keyframes shine {
@@ -523,15 +525,21 @@ body .table-wrapper th {
 
 .editor-tab {
   margin-right: 15px;
-  background-color: #ffff;
-  margin-left: 0; /* Align to the left side of the editor */
+  margin-left: 0;
+}
+
+.tab-shape {
+  display: inline-flex;
+  align-items: center;
+  background-color: #fff;
+  padding: 5px 10px;
   border-radius: 5px 5px 0 0;
-  width: 100px;
+  white-space: nowrap;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .tab-text {
-  margin-left: 5px;
+  margin: 0;
 }
 
 .editor-wrapper {
@@ -554,7 +562,6 @@ body .table-wrapper th {
   font-family: monospace;
   font-size: 14px;
   height: calc(100% - 20px);
-
 }
 
 .editor {
@@ -568,7 +575,6 @@ body .table-wrapper th {
   background-color: #ffff;
   border-radius: 0 10px 10px 0;
   height: calc(100% - 20px);
-  
 }
 
 .compiler-log-container {
@@ -601,7 +607,7 @@ body .table-wrapper th {
   max-width: 100%;
   box-sizing: border-box;
   color: #ff0000;
-  transition: background-color 0.5s ease, color 0.5s ease; 
+  transition: background-color 0.5s ease, color 0.5s ease;
 }
 
 .compiler-log-tab {
@@ -629,9 +635,7 @@ body .table-wrapper th {
   box-shadow: 0px 4px 8px white inset, 0px 8px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #ddd;
   padding: 20px;
-  height: calc(
-    89vh - 40px
-  ); 
+  height: calc(89vh - 40px);
 }
 
 .table-tab {
@@ -640,7 +644,7 @@ body .table-wrapper th {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   width: 55px;
   padding: 3px;
-  overflow-y: auto; 
+  overflow-y: auto;
 }
 
 .tab-text-table {
@@ -653,7 +657,7 @@ body .table-wrapper th {
   border-radius: 0 10px 10px 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   height: calc(100% - 20px);
-  overflow-y: auto; 
+  overflow-y: auto;
 }
 
 .table-wrapper {
@@ -677,11 +681,11 @@ body .table-wrapper th {
 
 .table-wrapper tr:nth-child(even) {
   background-color: #f1f0eb;
-  transition: background-color 0.5s ease; 
+  transition: background-color 0.5s ease;
 }
 .table-wrapper tr:nth-child(odd) {
   background-color: #ffffff;
-  transition: background-color 0.5s ease; 
+  transition: background-color 0.5s ease;
 }
 
 /* make the compiler log area a column flexbox */
@@ -693,7 +697,7 @@ body .table-wrapper th {
 /* 1. Make the wrapper fill its parent and serve as positioning context */
 .compiler-output {
   position: relative;
-  flex: 1;            /* if you still want it to flex */
+  flex: 1; /* if you still want it to flex */
   /* remove any display: flex / flex-direction here,
      since we’re absolutely positioning the children */
 }
@@ -705,9 +709,9 @@ body .table-wrapper th {
   left: 0;
   width: 100%;
   height: 100%;
-  margin: 0;          /* reset default <pre> margins */
-  overflow-y: auto;   /* scroll within the log if needed */
-  z-index: 1;         /* behind the terminal */
+  margin: 0; /* reset default <pre> margins */
+  overflow-y: auto; /* scroll within the log if needed */
+  z-index: 1; /* behind the terminal */
 }
 
 /* 3. Have the terminal fill the same area, on top */
@@ -758,7 +762,7 @@ body.dark-mode #terminal {
 }
 
 /* Light mode variables */
-body.light-mode .xterm-viewport .xterm-dom-renderer-owner-1 .xterm-rows{
+body.light-mode .xterm-viewport .xterm-dom-renderer-owner-1 .xterm-rows {
   --xterm-bg: #ffffff;
 }
 
@@ -766,7 +770,7 @@ body.light-mode .xterm-viewport .xterm-dom-renderer-owner-1 .xterm-rows{
 body.dark-mode .xterm-viewport {
   --xterm-bg: #282a36;
   --xterm-color: #ffffff;
-  --padding-right: 0px; 
+  --padding-right: 0px;
 }
 
 .xterm-viewport {
@@ -781,34 +785,41 @@ body.light-mode .xterm-viewport {
 body.dark-mode .xterm-viewport {
   --xterm-bg: #282a36;
   --xterm-color: #ffffff;
-  --padding-right: 0px; 
+  --padding-right: 0px;
 }
 
-.xterm-dom-renderer-owner-1 .xterm-rows span{
-  color: #000000 !important; 
+.xterm-dom-renderer-owner-1 .xterm-rows span {
+  color: #000000 !important;
 }
 
-body.dark-mode .xterm-dom-renderer-owner-1 .xterm-rows span{
-  color: #ffffff !important; 
+body.dark-mode .xterm-dom-renderer-owner-1 .xterm-rows span {
+  color: #ffffff !important;
 }
-
 
 .xterm-dom-renderer-owner-1 .xterm-rows .xterm-cursor.xterm-cursor-outline {
   outline: 1px solid #000000 !important;
   outline-offset: -1px;
 }
 
-.xterm-dom-renderer-owner-1 .xterm-rows .xterm-cursor.xterm-cursor-blink.xterm-cursor-block {
-background-color: #000000 !important;
+.xterm-dom-renderer-owner-1
+  .xterm-rows
+  .xterm-cursor.xterm-cursor-blink.xterm-cursor-block {
+  background-color: #000000 !important;
 }
 
-body.dark-mode .xterm-dom-renderer-owner-1 .xterm-rows .xterm-cursor.xterm-cursor-outline {
+body.dark-mode
+  .xterm-dom-renderer-owner-1
+  .xterm-rows
+  .xterm-cursor.xterm-cursor-outline {
   outline: 1px solid #ffffff !important;
   outline-offset: -1px;
 }
 
-body.dark-mode .xterm-dom-renderer-owner-1 .xterm-rows .xterm-cursor.xterm-cursor-blink.xterm-cursor-block {
-background-color: #ffffff !important;
+body.dark-mode
+  .xterm-dom-renderer-owner-1
+  .xterm-rows
+  .xterm-cursor.xterm-cursor-blink.xterm-cursor-block {
+  background-color: #ffffff !important;
 }
 
 .xterm {
