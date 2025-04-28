@@ -41,6 +41,8 @@ class SemanticAnalyzer:
                     self.process_conditional_statement()
                 elif token[1] == 'serve':
                     self.process_serve_statement()
+                elif token[1] == 'adelete':
+                    self.process_adelete_statement()
                 elif token[1] == 'push':
                     self.process_push_statement()
                 elif token[1] == 'keri':
@@ -607,6 +609,31 @@ class SemanticAnalyzer:
             name = f"<nonvar@{saved_index}>"
         return expr_type, name
 
+    def process_adelete_statement(self):
+        # current token is 'adelete'
+        pos = self._token_stream[self.token_index][1][0]
+        self.advance()   # skip 'adelete'
+        if not self.current_token() or self.current_token()[1] != '(':
+            self.log += str(SemanticError("Expected '(' after 'adelete'", pos)) + '\n'
+        self.advance()   # skip '('
+
+        # parse the argument and capture its base name
+        arg_type, arg_name = self.evaluate_expression_with_name()
+        entry = self.lookup_variable(arg_name)
+        if not entry:
+            self.log += str(SemanticError(f"Argument '{arg_name}' to 'adelete' is not declared", pos)) + '\n'
+        elif not entry.get("is_array", False):
+            self.log += str(SemanticError(f"Argument '{arg_name}' to 'adelete' must be an array", pos)) + '\n'
+
+        if not self.current_token() or self.current_token()[1] != ')':
+            self.log += str(SemanticError("Missing ')' in 'adelete' call", pos)) + '\n'
+        else:
+            self.advance()  # skip ')'
+
+        if not self.current_token() or self.current_token()[1] != ';':
+            self.log += str(SemanticError("Missing ';' after 'adelete' call", pos)) + '\n'
+        else:
+            self.advance()  # skip ';'
 
     def process_function_call(self):
         """
@@ -853,6 +880,8 @@ class SemanticAnalyzer:
                 self.process_conditional_statement()
             elif token[1] == 'serve':
                 self.process_serve_statement()
+            elif token[1] == 'adelete':
+                self.process_adelete_statement()
             elif token[1] == 'push':
                 self.process_push_statement()
             elif token[1] == 'keri':
