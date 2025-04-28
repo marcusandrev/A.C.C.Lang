@@ -69,8 +69,79 @@ def _cSameElemType_(expected, actual):
             f"but value is list[{actual}]"
         )
 
+def _string_permutations(_input_string):
+    _permutations = _cArray_('chika', [_cNone_(_input_string, 'input_string')[0]])
+    print(_cNone_(_permutations, 'permutations'), end='')
+    _start_val_0 = 1
+    _end_val_0 = _cType_('anda', (_cNoArray_(_cType_('anda', len(_cNone_(_input_string, 'input_string'))), '-') - _cNoArray_(1, '-')))
+    _step_val_0 = 1
+    if _step_val_0 > 0:
+        _end_bound_0 = _end_val_0 + 1
+    else:
+        _end_bound_0 = _end_val_0 - 1
+    for _i in range(_start_val_0, _end_bound_0, _step_val_0):
+        _char_to_inser = _cType_('chika', _cNone_(_input_string, 'input_string')[_cNone_(_i, 'i')])
+        _new_permutations = []
+        print((_cNoArray_("\nInserting character: ", '+') + _cNoArray_(_cNone_(_char_to_inser, 'char_to_inser'), '+')), end='')
+        _start_val_1 = 0
+        _end_val_1 = _cType_('anda', (_cNoArray_(_cType_('anda', len(_cNone_(_permutations, 'permutations'))), '-') - _cNoArray_(1, '-')))
+        _step_val_1 = 1
+        if _step_val_1 > 0:
+            _end_bound_1 = _end_val_1 + 1
+        else:
+            _end_bound_1 = _end_val_1 - 1
+        for _j in range(_start_val_1, _end_bound_1, _step_val_1):
+            _perm = _cType_('chika', _cNone_(_permutations, 'permutations')[_cNone_(_j, 'j')])
+            print((_cNoArray_("\n   Processing permutation: ", '+') + _cNoArray_(_cNone_(_perm, 'perm'), '+')), end='')
+            _start_val_2 = 0
+            _end_val_2 = _cType_('anda', len(_cNone_(_perm, 'perm')))
+            _step_val_2 = 1
+            if _step_val_2 > 0:
+                _end_bound_2 = _end_val_2 + 1
+            else:
+                _end_bound_2 = _end_val_2 - 1
+            for _k in range(_start_val_2, _end_bound_2, _step_val_2):
+                _new_perm = _cType_('chika', "")
+                _start_val_3 = 0
+                _end_val_3 = _cType_('anda', (_cNoArray_(_cNone_(_k, 'k'), '-') - _cNoArray_(1, '-')))
+                _step_val_3 = 1
+                if _step_val_3 > 0:
+                    _end_bound_3 = _end_val_3 + 1
+                else:
+                    _end_bound_3 = _end_val_3 - 1
+                for _l in range(_start_val_3, _end_bound_3, _step_val_3):
+                    _new_perm = _cType_('chika', _new_perm + _cType_('chika', _cNone_(_perm, 'perm')[_cNone_(_l, 'l')]))
+                _new_perm = _cType_('chika', _new_perm + _cType_('chika', _cNone_(_char_to_inser, 'char_to_inser')))
+                _start_val_4 = _cNone_(_k, 'k')
+                _end_val_4 = _cType_('anda', (_cNoArray_(_cType_('anda', len(_cNone_(_perm, 'perm'))), '-') - _cNoArray_(1, '-')))
+                _step_val_4 = 1
+                if _step_val_4 > 0:
+                    _end_bound_4 = _end_val_4 + 1
+                else:
+                    _end_bound_4 = _end_val_4 - 1
+                for _l in range(_start_val_4, _end_bound_4, _step_val_4):
+                    _new_perm = _cType_('chika', _new_perm + _cType_('chika', _cNone_(_perm, 'perm')[_cNone_(_l, 'l')]))
+                _new_permutations.append(_cType_('chika', _cNone_(_new_perm, 'new_perm')))
+                print((_cNoArray_((_cNoArray_((_cNoArray_("\n    Inserted at index ", '+') + str(_cNoArray_(_cNone_(_k, 'k'), '+'))), '+') + _cNoArray_(": ", '+')), '+') + _cNoArray_(_cNone_(_new_perm, 'new_perm'), '+')), end='')
+        _permutations = _cArray_('chika', _cNone_(_new_permutations, 'new_permutations'))
+        print("\n  Current permutations: ", end='')
+        print(_cNone_(_permutations, 'permutations'), end='')
+        print("\n", end='')
+    print("\nAll permutations:\n", end='')
+    print(_cNone_(_permutations, 'permutations'), end='')
+    _start_val_5 = 0
+    _end_val_5 = _cType_('anda', (_cNoArray_(_cType_('anda', len(_cNone_(_permutations, 'permutations'))), '-') - _cNoArray_(1, '-')))
+    _step_val_5 = 1
+    if _step_val_5 > 0:
+        _end_bound_5 = _end_val_5 + 1
+    else:
+        _end_bound_5 = _end_val_5 - 1
+    for _x in range(_start_val_5, _end_bound_5, _step_val_5):
+        print((str(_cNoArray_(_cNone_(_permutations, 'permutations')[_cNone_(_x, 'x')], '+')) + _cNoArray_("\n", '+')), end='')
+
 def _kween():
-    print("Hello, World!", end='')
+    _my_string = _cType_('chika', input('Enter a string: '))
+    _string_permutations(_cNone_(_my_string, 'my_string'))
 
 if __name__ == '__main__':
     _kween()

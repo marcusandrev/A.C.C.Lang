@@ -1,3 +1,42 @@
+shimenet string_permutations(chika input_string){
+    chika permutations[] = {input_string[0]};
+    serve(permutations);
+    
+    forda(anda i from 1 to len(input_string) - 1) {
+        chika char_to_insert = input_string[i];
+        chika new_permutations[];
+        serve("\nInserting character: " + char_to_insert);
+        
+        forda(anda j from 0 to len(permutations) - 1) {
+            chika perm = permutations[j];
+            serve("\n   Processing permutation: " + perm);
+            forda(anda k from 0 to len(perm)){
+                chika new_perm = "";
+                forda (anda l from 0 to k-1) {
+                    new_perm += perm[l];
+                }
+                new_perm += char_to_insert;
+                forda(anda l from k to len(perm) - 1) {
+                    new_perm += perm[l];
+                }
+                adele(new_permutations, new_perm);
+                serve("\n    Inserted at index " + k + ": " + new_perm);
+            }
+        }
+        permutations = new_permutations;
+        serve("\n  Current permutations: ");
+        serve(permutations);
+        serve("\n");
+    }
+    serve("\nAll permutations:\n");
+    serve(permutations);
+    forda(anda x from 0 to len(permutations)-1){
+        serve(permutations[x] + "\n");
+    }
+}
+    
+
 shimenet kween () {
-    chika permutations_list[];
+    chika my_string = givenchy("Enter a string: ");
+    string_permutations(my_string);
 }
