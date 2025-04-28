@@ -612,13 +612,22 @@ class SemanticAnalyzer:
     def process_adelete_statement(self):
         # current token is 'adelete'
         pos = self._token_stream[self.token_index][1][0]
-        self.advance()   # skip 'adelete'
+        self.advance()  # skip 'adelete'
         if not self.current_token() or self.current_token()[1] != '(':
             self.log += str(SemanticError("Expected '(' after 'adelete'", pos)) + '\n'
-        self.advance()   # skip '('
+        self.advance()  # skip '('
 
-        # parse the argument and capture its base name
+        # temporarily allow bare-array usage
+        saved_flag = self.allow_unindexed_array_usage
+        self.allow_unindexed_array_usage = True
+
+        # parse argument, capturing its name
         arg_type, arg_name = self.evaluate_expression_with_name()
+
+        # restore normal rules
+        self.allow_unindexed_array_usage = saved_flag
+
+        # semantic check: must be a declared array
         entry = self.lookup_variable(arg_name)
         if not entry:
             self.log += str(SemanticError(f"Argument '{arg_name}' to 'adelete' is not declared", pos)) + '\n'
@@ -628,12 +637,12 @@ class SemanticAnalyzer:
         if not self.current_token() or self.current_token()[1] != ')':
             self.log += str(SemanticError("Missing ')' in 'adelete' call", pos)) + '\n'
         else:
-            self.advance()  # skip ')'
+            self.advance()
 
         if not self.current_token() or self.current_token()[1] != ';':
             self.log += str(SemanticError("Missing ';' after 'adelete' call", pos)) + '\n'
         else:
-            self.advance()  # skip ';'
+            self.advance()
 
     def process_function_call(self):
         """
