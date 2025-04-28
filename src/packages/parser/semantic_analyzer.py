@@ -1532,16 +1532,15 @@ class SemanticAnalyzer:
             self.advance()  # skip ')'
             return "givenchy"
 
-        # ─── built-in len(...) with up to 3-dimension support ───
+        # --- built-in len(...) with up to 3-dimension support ---
         if token[1] == 'id' and token[0] == 'len' and self.next_token() and self.next_token()[1] == '(':
             pos = self._token_stream[self.token_index][1][0]
-            # consume 'len' and '('
-            self.advance()
-            self.advance()
+            self.advance()  # skip 'len'
+            self.advance()  # skip '('
 
-            # must start with an identifier
-            if not self.current_token() or self.current_token()[1] != 'id':
-                self.log += str(SemanticError("len() argument must be an array or string", pos)) + '\n'
+            # must start with an identifier or a string literal
+            if not self.current_token() or self.current_token()[1] not in ['id', 'chika_literal']:
+                self.log += str(SemanticError("len() argument must be an array or a string literal", pos)) + '\n'
                 # recover to closing ')'
                 while self.current_token() and self.current_token()[1] != ')':
                     self.advance()
@@ -1549,9 +1548,16 @@ class SemanticAnalyzer:
                     self.advance()
                 return 'anda'
 
-            name  = self.current_token()[0]
-            entry = self.lookup_variable(name)
-            self.advance()  # consume identifier
+            is_literal = self.current_token()[1] == 'chika_literal'
+            name = self.current_token()[0]
+            entry = self.lookup_variable(name) if not is_literal else None
+            self.advance()  # skip identifier or literal
+
+            if not is_literal and entry:
+                if not entry.get("is_array", False) and entry.get("data_type") != "chika":
+                    self.log += str(SemanticError(
+                        "len() argument must be an array or a chika",
+                        pos)) + '\n'
 
             # collect up to three [literal] indexes
             indexes = []
@@ -1580,17 +1586,18 @@ class SemanticAnalyzer:
             else:
                 self.advance()
 
-            # compile-time initializer validation
-            init_val = entry.get("value") if entry else None
-            for idx in indexes:
-                if isinstance(init_val, list) and 0 <= idx < len(init_val):
-                    if not isinstance(init_val[idx], list):
-                        self.log += str(SemanticError(
-                            f"len() argument at index {idx} is not an array",
-                            pos)) + '\n'
-                    init_val = init_val[idx]
-                else:
-                    break
+            if not is_literal:
+                # compile-time initializer validation
+                init_val = entry.get("value") if entry else None
+                for idx in indexes:
+                    if isinstance(init_val, list) and 0 <= idx < len(init_val):
+                        if not isinstance(init_val[idx], list):
+                            self.log += str(SemanticError(
+                                f"len() argument at index {idx} is not an array",
+                                pos)) + '\n'
+                        init_val = init_val[idx]
+                    else:
+                        break
 
             return 'anda'
 

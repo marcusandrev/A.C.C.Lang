@@ -1,7 +1,5 @@
 shimenet kween () {
     anda grades[] = {1, 2, 3};
-    anda grades2[] = {5, 8};
-    adele(grades, 4);
-    adele(grades, grades2[0]);
-    adele(grades, grades2);
+    chika msg = "hello";
+    serve(len(msg));
 }
