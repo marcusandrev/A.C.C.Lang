@@ -519,9 +519,9 @@ body .table-wrapper th {
   flex-direction: column;
   box-shadow: 0px 4px 8px white inset, 0px 8px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #ddd;
-  height: calc(60vh - 100px);
-  overflow-y: auto;
-}
+  height: calc(60vh - 150px); 
+  overflow-y: auto; 
+  }
 
 .editor-tab {
   margin-right: 15px;
@@ -589,7 +589,7 @@ body .table-wrapper th {
   box-shadow: 0px 4px 8px white inset, 0px 8px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #ddd;
   padding: 10px 20px 10px 20px;
-  height: 260px;
+  height: 350px;
 }
 
 .compiler-log {
@@ -719,11 +719,36 @@ body .table-wrapper th {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100% !important;
-  z-index: 2; /* in front */
-  display: none; /* you already toggle this in JS */
-  overflow-y: hidden;
+  width: calc(100% - 10px) !important;
+  height: 100% !important; 
+  z-index: 2;         /* in front */
+  display: none;      /* you already toggle this in JS */
+  overflow: hidden;
+  border-radius: 0 10px 10px 10px !important;
+  padding: 10px 0px 10px 10px !important;
+  overflow-wrap: break-word !important;
+  height: calc(100% - 20px) !important;
+  background-color: #ffffff !important;
+  transition: background-color 0.5s ease; 
+  padding-right: 0px !important; /* Add padding to create space */
+}
+
+body.dark-mode #terminal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(100% - 10px) !important;
+  height: 100% !important; 
+  z-index: 2;         /* in front */
+  display: none;      /* you already toggle this in JS */
+  overflow: hidden;
+  border-radius: 0 10px 10px 10px !important;
+  padding: 10px 0px 10px 10px !important;
+  overflow-wrap: break-word !important;
+  height: calc(100% - 20px) !important;
+  background-color:#282a36 !important;
+  transition: background-color 0.5s ease; 
+  padding-right: 0px !important; /* Add padding to create space */
 }
 
 /* Override default xterm-viewport styles and integrate light/dark mode themes */
@@ -795,4 +820,32 @@ body.dark-mode
   .xterm-rows
   .xterm-cursor.xterm-cursor-blink.xterm-cursor-block {
   background-color: #ffffff !important;
+}
+
+.xterm {
+    cursor: text;
+    position: relative;
+    user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
+    height: 100% !important;
+}
+
+.xterm-screen {
+  height: 100% !important;
+}
+
+.xterm-dom-renderer-owner-1 .xterm-rows {
+  height: 100% !important; 
+  font-size: 12px !important;
+}
+
+.xterm-rows > div {
+  height: 13px !important;     /* Make the rows shorter */
+  line-height: 12px !important; /* Align text to row height */
+}
+
+.xterm-rows {
+  min-height: calc(26 * 1em) !important; /* Assuming each row is approximately 1em in height */
+  overflow-y: hidden; /* Prevent overflow */
 }
