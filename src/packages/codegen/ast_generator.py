@@ -268,6 +268,8 @@ class ASTGenerator:
             return self.parse_if_statement()
         elif token[1] == 'serve':
             return self.parse_print_statement()
+        elif token[1] == 'adele':          #  ←  NEW  (put just above the final “else”)
+            return self.parse_adele_statement()
         elif token[1] == 'push':
             return self.parse_return_statement()
         elif token[1] == 'keri':
@@ -481,6 +483,17 @@ class ASTGenerator:
                 self.advance()
         self.expect(')', f"Missing ')' in function call to '{func_name}'")
         return FunctionCallNode(func_name, args)
+
+    # ───── NEW helper inside ASTGenerator ───────────────────────
+    def parse_adele_statement(self):
+        self.expect('adele',  "Expected 'adele'")
+        self.expect('(',      "Expected '(' after 'adele'")
+        target_arr = self.parse_expression()
+        self.expect(',',      "Expected ',' after first adele argument")
+        value_expr = self.parse_expression()
+        self.expect(')',      "Expected ')' after adele arguments")
+        self.expect(';',      "Expected ';' after adele call")
+        return FunctionCallNode('adele', [target_arr, value_expr])
 
     def parse_print_statement(self):
         self.advance()  # Skip 'serve'

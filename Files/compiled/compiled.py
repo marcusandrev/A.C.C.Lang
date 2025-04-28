@@ -1,3 +1,4 @@
+import copy
 def _cNoArray_(value, op):
     if isinstance(value, list):
         raise TypeError(f"Runtime error: array value used with operator {op}")
@@ -62,9 +63,19 @@ def _cArray_(expected, arr):
     else:
         return _cType_(expected, arr)
 
+def _cSameElemType_(expected, actual):
+    if expected != actual:
+        raise TypeError(
+            f"Type mismatch in adele(): target list holds {expected} "
+            f"but value is list[{actual}]"
+        )
+
 def _kween():
-    _x = _cType_('anda', _cType_('anda', (_cNoArray_(5, '+') + _cNoArray_(_cType_('anda', len("hello")), '+'))))
-    print(_cNone_(_x, 'x'), end='')
+    _grades = _cArray_('anda', [1, 2])
+    _grades2 = _cArray_('chika', ["hello", "world"])
+    _cSameElemType_('anda', 'anda')
+    _grades.append(_cArray_('anda', copy.deepcopy(_grades)))
+    print(_cNone_(_grades, 'grades'), end='')
 
 if __name__ == '__main__':
     _kween()

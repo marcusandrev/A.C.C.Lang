@@ -1,4 +1,4 @@
 shimenet kween () {
-    asd = "hehe";
-    asd2 = "hehe";
+    anda grades[] = {1, 2};
+    adele(grades, {5, 2});
 }

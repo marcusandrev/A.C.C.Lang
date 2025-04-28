@@ -103,6 +103,14 @@ class CodeGenerator:
     else:
         return _cType_(expected, arr)
 """)
+        # --- NEW: same-type guard for adele() --------------------------
+        self.code_lines.append("""def _cSameElemType_(expected, actual):
+    if expected != actual:
+        raise TypeError(
+            f"Type mismatch in adele(): target list holds {expected} "
+            f"but value is list[{actual}]"
+        )
+""")
 
     def generate(self, node):
         self.emit_helper_functions()
@@ -329,19 +337,51 @@ class CodeGenerator:
                     rhs_code = f"_cType_('{lhs_type}', {rhs_code})"
                 self.code_lines.append(self.indent() + f"_{lhs_name} = {rhs_code}")
 
-
-
     def visit_FunctionCallNode(self, node):
-        # built-in len: wrap Python len(...) and clamp to integer type ('anda')
+        # builtin len(…)  – already handled
         if node.name == 'len':
-            # assume exactly one argument
-            arg = node.arguments[0]
-            arg_code = self.visit(arg)
-            # call Python's len(), then enforce numeric clamps for 'anda'
+            arg_code = self.visit(node.arguments[0])
             return f"_cType_('anda', len({arg_code}))"
 
-        args = ", ".join(self.visit(arg) for arg in node.arguments)
-        return f"_{node.name}({args})"
+        # builtin adele(array, value)  – FINAL VERSION
+        if node.name == 'adele':
+            tgt_expr = node.arguments[0]          # target list (grades)
+            src_expr = node.arguments[1]          # value to append
+
+            # helper: does an expression denote an array variable?
+            def array_info(expr):
+                if isinstance(expr, IdentifierNode):
+                    info = self.lookup_variable(expr.name)
+                    if isinstance(info, tuple) and info[1]:
+                        return info[0]            # its element-type
+                return None                       # not a known array var
+
+            tgt_code   = self.visit(tgt_expr)
+            src_code   = self.visit(src_expr)
+            tgt_etype  = array_info(tgt_expr)     # e.g. 'anda'
+            src_etype  = array_info(src_expr)     # e.g. 'chika' or None
+
+            # ---------- scalar case ------------------------------------------------
+            if src_etype is None:                 # right-hand value is scalar *or* {…} literal
+                if tgt_etype:                     # we know what to clamp to
+                    # if it’s a literal {…} we still have to array-clamp
+                    if isinstance(src_expr, list):
+                        src_code = f"_cArray_('{tgt_etype}', {self.visit_list(src_expr)})"
+                    else:
+                        src_code = f"_cType_('{tgt_etype}', {src_code})"
+                return f"_{tgt_expr.name}.append({src_code})" if isinstance(tgt_expr, IdentifierNode) else f"{tgt_code}.append({src_code})"
+
+            # ---------- array-to-array case ----------------------------------------
+            # 1) static element-type check
+            self.code_lines.append(self.indent() + f"_cSameElemType_('{tgt_etype}', '{src_etype}')")
+
+            # 2) make a deep copy of the list we’re appending
+            if not self.import_emitted:
+                self.code_lines.insert(0, "import copy")
+                self.import_emitted = True
+            src_code = f"_cArray_('{tgt_etype}', copy.deepcopy(_{src_expr.name}))"
+
+            return f"_{tgt_expr.name}.append({src_code})" if isinstance(tgt_expr, IdentifierNode) else f"{tgt_code}.append({src_code})"
 
     def visit_ReturnNode(self, node):
         if node.expression is not None:
