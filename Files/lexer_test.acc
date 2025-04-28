@@ -30,6 +30,7 @@ shimenet string_permutations(chika input_string){
     }
     serve("\nAll permutations:\n");
     serve(permutations);
+    serve("\n");
     forda(anda x from 0 to len(permutations)-1){
         serve(permutations[x] + "\n");
     }
