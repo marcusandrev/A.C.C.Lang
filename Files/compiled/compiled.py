@@ -1,4 +1,3 @@
-import copy
 def _cNoArray_(value, op):
     if isinstance(value, list):
         raise TypeError(f"Runtime error: array value used with operator {op}")
@@ -71,10 +70,9 @@ def _cSameElemType_(expected, actual):
         )
 
 def _kween():
-    _grades = _cArray_('anda', [1, 2])
-    _grades2 = _cArray_('chika', ["hello", "world"])
-    _cSameElemType_('anda', 'anda')
-    _grades.append(_cArray_('anda', copy.deepcopy(_grades)))
+    _grades = _cArray_('anda', [1, 2, [5, 6]])
+    del _cNone_(_grades, 'grades')[4]
+    del _cNone_(_grades, 'grades')[1][1]
     print(_cNone_(_grades, 'grades'), end='')
 
 if __name__ == '__main__':

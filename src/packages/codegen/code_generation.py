@@ -343,7 +343,7 @@ class CodeGenerator:
             arg_code = self.visit(node.arguments[0])
             return f"_cType_('anda', len({arg_code}))"
 
-        # builtin adele(array, value)  – FINAL VERSION
+        # builtin adele(array, value) – FINAL VERSION
         if node.name == 'adele':
             tgt_expr = node.arguments[0]          # target list (grades)
             src_expr = node.arguments[1]          # value to append
@@ -382,6 +382,29 @@ class CodeGenerator:
             src_code = f"_cArray_('{tgt_etype}', copy.deepcopy(_{src_expr.name}))"
 
             return f"_{tgt_expr.name}.append({src_code})" if isinstance(tgt_expr, IdentifierNode) else f"{tgt_code}.append({src_code})"
+
+        # builtin adelete(array) or adelete(array[index])
+        if node.name == 'adelete':
+            if len(node.arguments) != 1:
+                return f"raise TypeError('adelete() takes exactly 1 argument')"
+
+            target = node.arguments[0]
+
+            # whole-variable form: adelete(grades);
+            if isinstance(target, IdentifierNode):
+                return f"del _{target.name}"
+
+            # element-form: adelete(grades[1][1]);
+            if isinstance(target, ArrayAccessNode):
+                return f"del {self.visit(target)}"
+
+            # anything else is illegal
+            return ("raise TypeError('adelete() argument must be an array variable "
+                    "or array element reference')")
+
+        # normal (user-defined) function call
+        args = ", ".join(self.visit(a) for a in node.arguments)
+        return f"_{node.name}({args})"
 
     def visit_ReturnNode(self, node):
         if node.expression is not None:

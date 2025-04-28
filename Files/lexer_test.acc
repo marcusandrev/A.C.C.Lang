@@ -1,4 +1,6 @@
 shimenet kween () {
-    anda grades[] = {1, 2};
-    adele(grades[0], {5, 1});
+    anda grades[] = {1, 2, {5, 6}};
+    adelete(grades[4]);
+    adelete(grades[1][1]);
+    serve(grades);
 }

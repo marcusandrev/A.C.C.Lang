@@ -270,6 +270,8 @@ class ASTGenerator:
             return self.parse_print_statement()
         elif token[1] == 'adele':          #  ←  NEW  (put just above the final “else”)
             return self.parse_adele_statement()
+        elif token[1] == 'adelete':        # ← NEW
+            return self.parse_adelete_statement()
         elif token[1] == 'push':
             return self.parse_return_statement()
         elif token[1] == 'keri':
@@ -494,6 +496,15 @@ class ASTGenerator:
         self.expect(')',      "Expected ')' after adele arguments")
         self.expect(';',      "Expected ';' after adele call")
         return FunctionCallNode('adele', [target_arr, value_expr])
+
+# ─── add the helper (anywhere near the other helpers) ─────
+    def parse_adelete_statement(self):
+        self.expect('adelete', "Expected 'adelete'")
+        self.expect('(',       "Expected '(' after 'adelete'")
+        target_expr = self.parse_expression()
+        self.expect(')',       "Expected ')' after adelete argument")
+        self.expect(';',       "Expected ';' after adelete call")
+        return FunctionCallNode('adelete', [target_expr])
 
     def parse_print_statement(self):
         self.advance()  # Skip 'serve'
