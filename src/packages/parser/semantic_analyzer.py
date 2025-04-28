@@ -1442,96 +1442,69 @@ class SemanticAnalyzer:
             self.advance()  # skip ')'
             return "givenchy"
 
-        # ─── built-in len(...) with special array-index support ───
+        # ─── built-in len(...) with up to 3-dimension support ───
         if token[1] == 'id' and token[0] == 'len' and self.next_token() and self.next_token()[1] == '(':
             pos = self._token_stream[self.token_index][1][0]
-            self.advance()  # skip 'len'
-            self.advance()  # skip '('
+            # consume 'len' and '('
+            self.advance()
+            self.advance()
 
-            # Case A: len(arrayVariable)
-            if self.current_token() and self.current_token()[1] == 'id':
-                name = self.current_token()[0]
-                entry = self.lookup_variable(name)
-                self.advance()  # consume the identifier
-
-                # Case A1: no '[', so bare array
-                if self.current_token() and self.current_token()[1] != '[':
-                    if not entry or not entry.get("is_array", False):
-                        self.log += str(SemanticError(
-                            f"len() argument must be an array or string, got '{name}'",
-                            pos)) + '\n'
-                    # expect ')'
-                    if not self.current_token() or self.current_token()[1] != ')':
-                        self.log += str(SemanticError("Missing ')' after len()", pos)) + '\n'
-                    else:
-                        self.advance()
-                    return 'anda'
-
-                # Case A2: len(arrayVariable[N])
-                if entry and entry.get("is_array", False) and self.current_token()[1] == '[':
-                    self.advance()  # skip '['
-                    # only accept a numeric literal index
-                    idx_tok = self.current_token()
-                    if not idx_tok or idx_tok[1] != 'anda_literal':
-                        self.log += str(SemanticError("len() index must be a numeric literal", pos)) + '\n'
-                        # try to recover by skipping to closing ')'
-                        while self.current_token() and self.current_token()[1] not in [']', ')']:
-                            self.advance()
-                    else:
-                        idx = int(idx_tok[0])
-                        self.advance()  # skip the literal
-
-                        if not self.current_token() or self.current_token()[1] != ']':
-                            self.log += str(SemanticError("Missing ']' in len() argument", pos)) + '\n'
-                        else:
-                            self.advance()  # skip ']'
-
-                        # compile-time check: must have been initialized
-                        init_val = entry.get("value", None)
-                        if isinstance(init_val, list):
-                            if 0 <= idx < len(init_val):
-                                # only allow if that element is itself a list
-                                if not isinstance(init_val[idx], list):
-                                    self.log += str(SemanticError(
-                                        f"len() argument at index {idx} is not an array",
-                                        pos)) + '\n'
-                            else:
-                                # out-of-bounds, but we’ll let runtime handle that
-                                pass
-                        else:
-                            # no initializer to inspect
-                            pass
-
-                    # expect ')'
-                    if not self.current_token() or self.current_token()[1] != ')':
-                        self.log += str(SemanticError("Missing ')' after len()", pos)) + '\n'
-                    else:
-                        self.advance()
-                    return 'anda'
-
-            # Case B: anything else (e.g. len(expr)) → fall back to original rules
-            orig_allow = self.allow_unindexed_array_usage
-            self.allow_unindexed_array_usage = True
-            arg_type = self.evaluate_expression()
-            self.allow_unindexed_array_usage = orig_allow
-
-            if self.current_token() and self.current_token()[1] == ',':
-                self.log += str(SemanticError("len() takes exactly one argument", pos)) + '\n'
+            # must start with an identifier
+            if not self.current_token() or self.current_token()[1] != 'id':
+                self.log += str(SemanticError("len() argument must be an array or string", pos)) + '\n'
+                # recover to closing ')'
                 while self.current_token() and self.current_token()[1] != ')':
                     self.advance()
+                if self.current_token():
+                    self.advance()
+                return 'anda'
 
+            name  = self.current_token()[0]
+            entry = self.lookup_variable(name)
+            self.advance()  # consume identifier
+
+            # collect up to three [literal] indexes
+            indexes = []
+            while self.current_token() and self.current_token()[1] == '[':
+                self.advance()  # skip '['
+                idx_tok = self.current_token()
+                if not idx_tok or idx_tok[1] != 'anda_literal':
+                    self.log += str(SemanticError("len() index must be a numeric literal", pos)) + '\n'
+                    # skip until ']' or ')'
+                    while self.current_token() and self.current_token()[1] not in [']', ')']:
+                        self.advance()
+                    if not self.current_token() or self.current_token()[1] != ']':
+                        self.log += str(SemanticError("Missing ']' in len() argument", pos)) + '\n'
+                    break
+                idx = int(idx_tok[0])
+                indexes.append(idx)
+                self.advance()  # skip literal
+                if not self.current_token() or self.current_token()[1] != ']':
+                    self.log += str(SemanticError("Missing ']' in len() argument", pos)) + '\n'
+                    break
+                self.advance()  # skip ']'
+
+            # expect closing ')'
             if not self.current_token() or self.current_token()[1] != ')':
                 self.log += str(SemanticError("Missing ')' after len()", pos)) + '\n'
             else:
                 self.advance()
 
-            if not (arg_type == 'chika' or (isinstance(arg_type, str) and arg_type.startswith('array_'))):
-                self.log += str(SemanticError(
-                    f"len() argument must be a string or array, got '{arg_type}'",
-                    pos)) + '\n'
+            # compile-time initializer validation
+            init_val = entry.get("value") if entry else None
+            for idx in indexes:
+                if isinstance(init_val, list) and 0 <= idx < len(init_val):
+                    if not isinstance(init_val[idx], list):
+                        self.log += str(SemanticError(
+                            f"len() argument at index {idx} is not an array",
+                            pos)) + '\n'
+                    init_val = init_val[idx]
+                else:
+                    break
+
             return 'anda'
 
-        # ─── literals: 'anda_literal', 'chika_literal', etc. ───
+        # ─── literals: anda_literal, chika_literal, etc. ───
         if token[1].endswith('_literal'):
             lit_type = token[1].split('_')[0]
             self.advance()
@@ -1554,24 +1527,22 @@ class SemanticAnalyzer:
             self.advance()
             return 'eklabool'
 
-        # ─── identifier: variable, array access, or function call ───
+        # ─── identifier: variable, array access, or inline function call ───
         if token[1] == 'id':
             var_name = token[0]
             self.advance()
 
-            # function-call in expr
+            # inline function-call
             if self.current_token() and self.current_token()[1] == '(':
-                # … your existing function-call logic here …
-                # return the function's return_type
                 return self._parse_inline_function_call(var_name)
 
-            # array indexing or scalar
+            # array indexing
             idx_count = 0
             while self.current_token() and self.current_token()[1] == '[':
                 idx_count += 1
                 self.advance()
                 t = self.evaluate_expression()
-                if t not in ['anda','andamhie']:
+                if t not in ['anda', 'andamhie']:
                     p = self._token_stream[self.token_index][1][0]
                     self.log += str(SemanticError("Array index must be numeric", p)) + '\n'
                 if not self.current_token() or self.current_token()[1] != ']':
@@ -1585,13 +1556,12 @@ class SemanticAnalyzer:
                 self.log += str(SemanticError(f"Undeclared variable '{var_name}'", p)) + '\n'
                 return 'anda'
 
-            base = entry["data_type"]
+            base   = entry["data_type"]
             is_arr = entry.get("is_array", False)
             dims   = entry.get("dimensions", [])
 
             if is_arr:
                 if idx_count == 0:
-                    # bare-array
                     if not self.allow_unindexed_array_usage:
                         p = self._token_stream[self.token_index][1][0]
                         self.log += str(SemanticError(
@@ -1599,15 +1569,12 @@ class SemanticAnalyzer:
                             p)) + '\n'
                     return f"array_{base}"
                 else:
-                    # if we had real dimensions, we'd compare idx_count < len(dims)
-                    # for now we use dims:
                     if idx_count < len(dims):
                         return f"array_{base}"
                     else:
                         return base
             # scalar
-            # allow postfix ++/--
-            while self.current_token() and self.current_token()[1] in ['++','--']:
+            while self.current_token() and self.current_token()[1] in ['++', '--']:
                 self.advance()
             return base
 
