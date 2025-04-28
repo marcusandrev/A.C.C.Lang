@@ -517,7 +517,7 @@ body .table-wrapper th {
   flex-direction: column;
   box-shadow: 0px 4px 8px white inset, 0px 8px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #ddd;
-  height: calc(60vh - 100px); 
+  height: calc(60vh - 150px); 
   overflow-y: auto; 
   }
 
@@ -583,7 +583,7 @@ body .table-wrapper th {
   box-shadow: 0px 4px 8px white inset, 0px 8px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #ddd;
   padding: 10px 20px 10px 20px;
-  height: 260px;
+  height: 350px;
 }
 
 .compiler-log {
@@ -826,10 +826,15 @@ background-color: #ffffff !important;
 
 .xterm-dom-renderer-owner-1 .xterm-rows {
   height: 100% !important; 
+  font-size: 12px !important;
 }
 
-/* Ensure a minimum of 13 rows are displayed in the xterm */
+.xterm-rows > div {
+  height: 13px !important;     /* Make the rows shorter */
+  line-height: 12px !important; /* Align text to row height */
+}
+
 .xterm-rows {
-  min-height: calc(13 * 1em) !important; /* Assuming each row is approximately 1em in height */
+  min-height: calc(26 * 1em) !important; /* Assuming each row is approximately 1em in height */
   overflow-y: hidden; /* Prevent overflow */
 }

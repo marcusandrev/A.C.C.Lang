@@ -58,7 +58,15 @@ def _cArray_(expected, arr):
         return _cType_(expected, arr)
 
 def kween():
-    print("Hello, World!", end='')
+    start_val_0 = 1
+    end_val_0 = 1000
+    step_val_0 = 1
+    if step_val_0 > 0:
+        end_bound_0 = end_val_0 + 1
+    else:
+        end_bound_0 = end_val_0 - 1
+    for x in range(start_val_0, end_bound_0, step_val_0):
+        print((str(_cNone_(x, 'x')) + "\n"), end='')
 
 if __name__ == '__main__':
     kween()
