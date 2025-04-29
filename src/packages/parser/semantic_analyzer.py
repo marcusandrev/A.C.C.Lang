@@ -1087,10 +1087,14 @@ class SemanticAnalyzer:
             entry = {"parameters": [], "return_type": "anda", "defined": False}
         expected = entry["parameters"] or []
 
-        # parse arguments
+        # parse arguments (allow unindexed‐array usage for bare arrays)
         actual = []
+        saved_flag = self.allow_unindexed_array_usage
         while self.current_token() and self.current_token()[1] != ')':
+            # temporarily allow bare-array usage
+            self.allow_unindexed_array_usage = True
             arg_type = self.evaluate_expression()
+            self.allow_unindexed_array_usage = saved_flag
             actual.append(arg_type)
 
             if self.current_token() and self.current_token()[1] == ',':
