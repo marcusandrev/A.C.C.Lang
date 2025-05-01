@@ -265,6 +265,7 @@ function initializeTerminal() {
       cursorBlink: true,
       fontFamily: 'monospace',
       fontSize: 14,
+      cols: 100,
     });
 
     term.open(document.getElementById('terminal'));
