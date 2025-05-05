@@ -70,11 +70,16 @@ def _cSameElemType_(expected, actual):
             f"but value is list[{actual}]"
         )
 
+def _cEnsureArray_(value, name):
+    if not isinstance(value, list):
+        raise TypeError(f"Runtime error: cannot append to non-array '{name}'")
+    return value
+
 def _kween():
     _grades = _cArray_('anda', [1, 2, 3, 4, 5])
-    _g = []
+    _g = _cArray_('anda', [[6], 7, 8, 9, 10])
     _cSameElemType_('anda', 'anda')
-    _g.append(_cArray_('anda', copy.deepcopy(_grades)))
+    _cEnsureArray_(_cNone_(_g, 'g')[0], 'g[0]').append(_cArray_('anda', copy.deepcopy(_grades)))
     print(_cNone_(_g, 'g'), end='')
 
 if __name__ == '__main__':

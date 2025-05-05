@@ -111,6 +111,11 @@ class CodeGenerator:
             f"but value is list[{actual}]"
         )
 """)
+        self.code_lines.append("""def _cEnsureArray_(value, name):
+    if not isinstance(value, list):
+        raise TypeError(f"Runtime error: cannot append to non-array '{name}'")
+    return value
+""")
 
     def generate(self, node):
         self.emit_helper_functions()
@@ -329,11 +334,15 @@ class CodeGenerator:
             src_expr = node.arguments[1]          # value to append
 
             def array_info(expr):
+                # If it's a bare array variable, return its element type
                 if isinstance(expr, IdentifierNode):
                     info = self.lookup_variable(expr.name)
                     if isinstance(info, tuple) and info[1]:
-                        return info[0]            # its element-type
-                return None                       # not a known array var
+                        return info[0]
+                # If it's an indexed access, recurse into the base
+                if isinstance(expr, ArrayAccessNode):
+                    return array_info(expr.array)
+                return None
 
             tgt_code   = self.visit(tgt_expr)
             src_code   = self.visit(src_expr)
@@ -346,7 +355,21 @@ class CodeGenerator:
                         src_code = f"_cArray_('{tgt_etype}', {self.visit_list(src_expr)})"
                     else:
                         src_code = f"_cType_('{tgt_etype}', {src_code})"
-                return f"_{tgt_expr.name}.append({src_code})" if isinstance(tgt_expr, IdentifierNode) else f"{tgt_code}.append({src_code})"
+                # guard against appending to a non‐array element
+                # Compute display name for error message
+                if isinstance(tgt_expr, IdentifierNode):
+                    display_name = tgt_expr.name
+                elif isinstance(tgt_expr, ArrayAccessNode):
+                    # Convert g[0][1] → "g[0][1]"
+                    base = tgt_expr.array.name if isinstance(tgt_expr.array, IdentifierNode) else "<unknown>"
+                    indices = "".join(f"[{self.visit(i)}]" for i in tgt_expr.index_exprs)
+                    display_name = base + indices
+                else:
+                    display_name = "<unknown>"
+
+                # Wrap with array check and generate append code
+                array_check = f"_cEnsureArray_({tgt_code}, '{display_name}')"
+                return f"{array_check}.append({src_code})"
 
             # 1) static element-type check
             self.code_lines.append(self.indent() + f"_cSameElemType_('{tgt_etype}', '{src_etype}')")
@@ -357,7 +380,21 @@ class CodeGenerator:
                 self.import_emitted = True
             src_code = f"_cArray_('{tgt_etype}', copy.deepcopy(_{src_expr.name}))"
 
-            return f"_{tgt_expr.name}.append({src_code})" if isinstance(tgt_expr, IdentifierNode) else f"{tgt_code}.append({src_code})"
+            # guard against appending to a non‐array element
+            # Compute display name for error message
+            if isinstance(tgt_expr, IdentifierNode):
+                display_name = tgt_expr.name
+            elif isinstance(tgt_expr, ArrayAccessNode):
+                # Convert g[0][1] → "g[0][1]"
+                base = tgt_expr.array.name if isinstance(tgt_expr.array, IdentifierNode) else "<unknown>"
+                indices = "".join(f"[{self.visit(i)}]" for i in tgt_expr.index_exprs)
+                display_name = base + indices
+            else:
+                display_name = "<unknown>"
+
+            # Wrap with array check and generate append code
+            array_check = f"_cEnsureArray_({tgt_code}, '{display_name}')"
+            return f"{array_check}.append({src_code})"
 
         # builtin adelete(array) or adelete(array[index])
         if node.name == 'adelete':
