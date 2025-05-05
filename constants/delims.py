@@ -3,7 +3,7 @@ from .atoms import ATOMS
 DELIMS = {
     'amaccana_gogogo_delim': {';', *ATOMS['similar_delim']},
     'close_brace_delim': {';', ',', ')', '}', *ATOMS['alphabet'], *ATOMS['similar_delim']},
-    'close_bracket_delim': {';', ':', ',', *ATOMS['general_operators'], ')', '[', ']', '}', *ATOMS['similar_delim']},
+    'close_bracket_delim': {';', ':', ',', *ATOMS['general_operators'], '(', ')', '[', ']', '}', *ATOMS['similar_delim']},
     'close_parenthesis_delim': {';', ':', ',', *ATOMS['general_operators'], ')', '[', ']', '{', '}', *ATOMS['similar_delim']},
     'control_flow_delim': {'(', *ATOMS['similar_delim']},
     'ditech_delim': {':', *ATOMS['similar_delim']},

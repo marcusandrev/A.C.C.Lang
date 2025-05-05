@@ -1,8 +1,5 @@
-anda g(){
-    anda y[] = {1, 2, 3};
-    push y;
-}
+anda g[]();
 
 shimenet kween () {
-    anda grades[] = g();
+
 }

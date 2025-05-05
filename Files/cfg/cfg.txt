@@ -56,7 +56,7 @@
  <extra-array-value> -> , <array-values> <extra-array-value> 
  <extra-array-value> -> , { <array-elements> } <extra-array-value> 
  <extra-array-value> -> λ 
- <func-def> -> <return-type> id ( <parameters> ) { <func-body> } <func-def> 
+ <func-def> -> <return-type> id <array-dec> ( <parameters> ) { <func-body> } <func-def> 
  <func-def> -> λ 
  <func-body> -> <statements>  
  <func-body> -> λ 

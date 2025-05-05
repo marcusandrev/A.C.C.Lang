@@ -60,7 +60,7 @@
 | 56 | \<extra-array-value\> | → | , \<array-values\> \<extra-array-value\> |
 |  | \<extra-array-value\> | → | , { \<array-elements\> } \<extra-array-value\> |
 | 57 | \<extra-array-value\> | → | λ |
-| 63 | \<func-def\> | → | \<return-type\> id ( \<parameters\> ) { \<func-body\> } \<func-def\> |
+| 63 | \<func-def\> | → | \<return-type\> id \<array-dec\> ( \<parameters\> ) { \<func-body\> } \<func-def\> |
 | 64 | \<func-def\> | → | λ |
 | 65 | \<func-body\> | → | \<statements\>  |
 | 66 | \<func-body\> | → | λ |

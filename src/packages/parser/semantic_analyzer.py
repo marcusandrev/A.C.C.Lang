@@ -70,16 +70,24 @@ class SemanticAnalyzer:
 
     def process_push_statement(self):
         if self.current_function is None:
+            # log it and skip ahead to the semicolon, never crash
             error_token = self._token_stream[self.token_index]
             self.log += str(SemanticError(
                 "Return statement 'push' is only allowed inside function bodies",
                 error_token[1][0]
             )) + '\n'
-
+            # skip “push” and its expression up to the next ';'
+            self.advance()
+            while self.current_token() and self.current_token()[1] != ';':
+                self.advance()
+            if self.current_token() and self.current_token()[1] == ';':
+                self.advance()
+            return
         func_entry = self.symbol_table["functions"][self.current_function]
         declared_return_type = func_entry["return_type"]
-        self.advance()
+        self.advance()  # skip 'push'
 
+        # allow bare arrays in the return expression
         orig_allow = self.allow_unindexed_array_usage
         self.allow_unindexed_array_usage = True
 
@@ -88,25 +96,38 @@ class SemanticAnalyzer:
             if self.token_index < len(self._token_stream) else -1
         )
 
-        # special case: array literal return
+        # --- case 1: array-literal return ---
         if self.current_token() and self.current_token()[1] == '{':
-            # parse the array initializer
-            self.allow_unindexed_array_usage = True
             array_elements = self.process_array_initializer_dynamic(var_type=declared_return_type)
-            # derive returned type, e.g. "array_anda"
             flat = self.flatten_array(array_elements)
             base = flat[0] if flat else declared_return_type
             expr_type = f"array_{base}"
             self.allow_unindexed_array_usage = orig_allow
 
-            # now expect the semicolon
+            # enforce array vs. scalar return
+            if declared_return_type.startswith("array_"):
+                if not expr_type.startswith("array_"):
+                    self.log += str(SemanticError(
+                        f"Function '{self.current_function}' must return an array of type "
+                        f"'{declared_return_type[len('array_'):]}'.",
+                        push_token_pos
+                    )) + '\n'
+            else:
+                if expr_type.startswith("array_"):
+                    self.log += str(SemanticError(
+                        f"Function '{self.current_function}' cannot return an array",
+                        push_token_pos
+                    )) + '\n'
+
+            # expect semicolon
             if not self.current_token() or self.current_token()[1] != ';':
                 self.log += str(SemanticError(
                     "Missing semicolon after return array literal",
                     push_token_pos
                 )) + '\n'
-            self.advance()
+            self.advance()  # skip ';'
 
+            # check void functions
             if declared_return_type == 'shimenet':
                 self.log += str(SemanticError(
                     "Function with return type 'shimenet' must not return a value",
@@ -114,18 +135,36 @@ class SemanticAnalyzer:
                 )) + '\n'
 
             func_entry["has_return"] = True
-        # fall back to scalar expression return
+
+        # --- case 2: scalar expression return ---
         elif self.current_token() and self.current_token()[1] != ';':
             expr_type = self.evaluate_expression()
             self.allow_unindexed_array_usage = orig_allow
 
+            # enforce array vs. scalar return
+            if declared_return_type.startswith("array_"):
+                if not expr_type.startswith("array_"):
+                    self.log += str(SemanticError(
+                        f"Function '{self.current_function}' must return an array of type "
+                        f"'{declared_return_type[len('array_'):]}'.",
+                        push_token_pos
+                    )) + '\n'
+            else:
+                if expr_type.startswith("array_"):
+                    self.log += str(SemanticError(
+                        f"Function '{self.current_function}' cannot return an array",
+                        push_token_pos
+                    )) + '\n'
+
+            # expect semicolon
             if not self.current_token() or self.current_token()[1] != ';':
                 self.log += str(SemanticError(
                     "Missing semicolon after return expression",
                     push_token_pos
                 )) + '\n'
-            self.advance()
+            self.advance()  # skip ';'
 
+            # check void functions
             if declared_return_type == 'shimenet':
                 self.log += str(SemanticError(
                     "Function with return type 'shimenet' must not return a value",
@@ -134,12 +173,14 @@ class SemanticAnalyzer:
 
             func_entry["has_return"] = True
 
+        # --- case 3: bare 'push;' or void-return fallback ---
         else:
             self.allow_unindexed_array_usage = orig_allow
 
             if declared_return_type != 'shimenet':
                 self.log += str(SemanticError(
-                    f"Function '{self.current_function}' with return type '{declared_return_type}' must return a value",
+                    f"Function '{self.current_function}' with return type "
+                    f"'{declared_return_type}' must return a value",
                     push_token_pos
                 )) + '\n'
             if not self.current_token() or self.current_token()[1] != ';':
@@ -147,7 +188,8 @@ class SemanticAnalyzer:
                     "Missing semicolon after 'push'",
                     push_token_pos
                 )) + '\n'
-            self.advance()
+            else:
+                self.advance()  # skip ';'
             func_entry["has_return"] = True
 
     def finalize_functions(self):
@@ -263,16 +305,20 @@ class SemanticAnalyzer:
     def handle_declaration(self):
         is_constant = False
         token = self.current_token()
+
+        # Handle constant declaration prefix
         if token[1] == 'naur':
             is_constant = True
             self.advance()
             token = self.current_token()
+
+        # Function declaration
         if token[1] == 'shimenet':
             if is_constant:
                 self.log += str(SemanticError("Constant declaration cannot be a function declaration", self._token_stream[self.token_index][1][0])) + '\n'
             if self.current_function is not None:
                 self.log += str(SemanticError("Nested function declarations are not allowed", self._token_stream[self.token_index][1][0])) + '\n'
-            self.advance()  # Skip 'shimenet'
+            self.advance()
             if self.current_token() and self.current_token()[1] == 'kween':
                 func_name = "kween"
                 self.advance()
@@ -283,32 +329,62 @@ class SemanticAnalyzer:
                 self.log += str(SemanticError("Expected function name after 'shimenet'", self._token_stream[self.token_index][1][0])) + '\n'
             self.function_declaration('shimenet', func_name)
             return
+
+        # Regular variable declaration
         if token[1] not in ['anda', 'andamhie', 'chika', 'eklabool']:
-            self.log += str(SemanticError("Expected a type token after 'naur'" if is_constant else "Expected a type token", self._token_stream[self.token_index][1][0])) + '\n'
+            self.log += str(SemanticError(
+                "Expected a type token after 'naur'" if is_constant else "Expected a type token",
+                self._token_stream[self.token_index][1][0])) + '\n'
+            return
+
         data_type = token[1]
-        self.advance()  # Skip type token
+        self.advance()
+
         if not self.current_token() or self.current_token()[1] != 'id':
             self.log += str(SemanticError("Expected identifier after type declaration", self._token_stream[self.token_index][1][0])) + '\n'
-        var_name = self.current_token()[0]
-        self.advance()  # Skip identifier
+            return
 
+        var_name = self.current_token()[0]
+        self.advance()
+
+        # recognize “anda g[]();” (or with {…} body) as a function returning array_anda
+        if self.current_token() and self.current_token()[1] == '[':
+            # must be “[…] (”
+            if self.next_token() and self.next_token()[1] == ']' \
+               and len(self._token_stream) > self.token_index+2 \
+               and self._token_stream[self.token_index+2][0][1] == '(':
+                # consume the brackets
+                self.advance()  # skip '['
+                self.advance()  # skip ']'
+                # call the usual function_declaration flow but with array_<type>
+                self.function_declaration(f"array_{data_type}", var_name)
+                return
+
+        # Function declaration using this type
         if self.current_token() and self.current_token()[1] == '(':
             if var_name == "kween" and data_type != "shimenet":
                 self.log += str(SemanticError("Function 'kween' must have return type 'shimenet'", self._token_stream[self.token_index][1][0])) + '\n'
             self.function_declaration(data_type, var_name)
             return
-        
+
+        # Variable declaration
         self.process_variable_declaration(data_type, var_name, is_constant)
+
+        # Handle multiple declarations separated by commas
         while self.current_token() and self.current_token()[1] == ',':
-            self.advance()  # Skip comma
+            self.advance()
             if not self.current_token() or self.current_token()[1] != 'id':
                 self.log += str(SemanticError("Expected identifier after comma in declaration", self._token_stream[self.token_index][1][0])) + '\n'
+                return
             var_name = self.current_token()[0]
-            self.advance()  # Skip identifier
+            self.advance()
             self.process_variable_declaration(data_type, var_name, is_constant)
+
+        # End of declaration must have semicolon
         if not self.current_token() or self.current_token()[1] != ';':
             self.log += str(SemanticError("Missing semicolon at end of declaration", self._token_stream[self.token_index][1][0])) + '\n'
-        self.advance()  # Skip ;
+        else:
+            self.advance()
 
     def process_variable_declaration(self, data_type, var_name, is_constant):
         is_array = False
