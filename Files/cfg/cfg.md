@@ -53,7 +53,7 @@
 | 47 | \<multi-init-values-tail\> | → | λ |
 | 48 | \<init-values\> | → | \<expression\> |
 | 49 | \<array-init\> | → | \= { \<array-elements\> } |
-|  | \<array-init\> | → | \= id |
+|  | \<array-init\> | → | \= id \<func-array-value\> |
 | 50 | \<array-init\> | → | λ |
 | 51 | \<array-elements\> | → | \<array-values\> \<extra-array-value\> |
 |  | \<array-elements\> | → | { \<array-elements\> } \<extra-array-value\> |
@@ -67,7 +67,7 @@
 | 67 | \<local-dec\> | → | \<local-dec-init\> \<array-assign\> \<local-dec\> |
 | 68 | \<local-dec\> | → | λ |
 | 69 | \<local-dec-init\> | → | \<naur-case\> \<data-type\> \<var-init\> ;  |
-| 70 | \<local-dec-init\> | → | \<data-type\> id \<array-dec\> \<array-init\> ;  |
+| 70 | \<local-dec-init\> | → | \<data-type\> id \<array-dec\> \<array-init\> ; |
 | 71 | \<arguments\> | → | \<arguments-value\> \<multi-arguments-value\> |
 | 72 | \<arguments\> | → | λ |
 | 73 | \<multi-arguments-value\> | → | , \<arguments-value\> \<multi-arguments-value\> |

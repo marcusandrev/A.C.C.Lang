@@ -224,40 +224,59 @@ class CodeGenerator:
             self.current_scope()[node.name] = node.data_type
             return
 
-        # Original variable declaration handling
-        # Treat arrays specially
-        if node.initializer is None:
-            if node.is_array:
-                code = f"_{node.name} = []"
-            else:
-                code = f"_{node.name} = None"
-        else:
-            if isinstance(node.initializer, list):
-                expr_code = self.visit_list(node.initializer)
-                code = (f"_{node.name} = "
-                        f"_cArray_('{node.data_type}', {expr_code})")
-            # ───── another array variable ────────────
-            elif (isinstance(node.initializer, IdentifierNode) and
-                  isinstance(self.lookup_variable(node.initializer.name), tuple) and
-                  self.lookup_variable(node.initializer.name)[1]):
-                src = node.initializer.name            # words  (no leading “_” yet)
-                if not self.import_emitted:            # make sure “import copy” is at top
+        # No initializer: None or empty list
+        if init is None:
+            code = f"_{node.name} = []" if node.is_array else f"_{node.name} = None"
+            self.code_lines.append(self.indent() + code)
+            self.current_scope()[node.name] = (node.data_type, node.is_array) if node.is_array else node.data_type
+            return
+
+        # 1) Literal list initializer
+        if isinstance(init, list):
+            expr_code = self.visit_list(init)
+            code = f"_{node.name} = _cArray_('{node.data_type}', {expr_code})"
+            self.code_lines.append(self.indent() + code)
+            self.current_scope()[node.name] = (node.data_type, True)
+            return
+
+        # 2) Whole-array variable initializer (e.g., g = grades)
+        if isinstance(init, IdentifierNode):
+            info = self.lookup_variable(init.name)
+            if isinstance(info, tuple) and info[1]:
+                # deep-copy the source array
+                if not self.import_emitted:
                     self.code_lines.insert(0, "import copy")
                     self.import_emitted = True
-                code = (f"_{node.name} = "
-                        f"_cArray_('{node.data_type}', "
-                        f"copy.deepcopy(_{src}))")
-            # ───── plain scalar expression ───────────
-            else:
-                expr = self.visit(node.initializer)
-                expr = f"_cType_('{node.data_type}', {expr})"
-                code = f"_{node.name} = {expr}"
+                code = (f"_{node.name} = _cArray_('{node.data_type}', "
+                        f"copy.deepcopy(_{init.name}))")
+                self.code_lines.append(self.indent() + code)
+                self.current_scope()[node.name] = (node.data_type, True)
+                return
+
+        # 3) Array-element initializer (e.g., g = grades[0])
+        if isinstance(init, ArrayAccessNode):
+            # check base is an array variable
+            base = init.array
+            if isinstance(base, IdentifierNode):
+                binfo = self.lookup_variable(base.name)
+                if isinstance(binfo, tuple) and binfo[1]:
+                    # deep-copy that array element
+                    if not self.import_emitted:
+                        self.code_lines.insert(0, "import copy")
+                        self.import_emitted = True
+                    src = self.visit(init)  # yields something like "_cNone_(_grades,'grades')[0]"
+                    code = (f"_{node.name} = _cArray_('{node.data_type}', "
+                            f"copy.deepcopy({src}))")
+                    self.code_lines.append(self.indent() + code)
+                    self.current_scope()[node.name] = (node.data_type, True)
+                    return
+
+        # 4) Scalar or mixed initializer (the old path)
+        expr = self.visit(init)
+        expr = f"_cType_('{node.data_type}', {expr})"
+        code = f"_{node.name} = {expr}"
         self.code_lines.append(self.indent() + code)
-        # keep both the element-type **and** the “is array” flag
-        if node.is_array:
-            self.current_scope()[node.name] = (node.data_type, True)
-        else:
-            self.current_scope()[node.name] = node.data_type
+        self.current_scope()[node.name] = node.data_type
 
     def visit_AssignmentNode(self, node):
         # ───────── ARRAY ELEMENT on the LHS ─────────

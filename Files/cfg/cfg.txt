@@ -49,7 +49,7 @@
  <multi-init-values-tail> -> λ 
  <init-values> -> <expression> 
  <array-init> -> = { <array-elements> } 
- <array-init> -> = id 
+ <array-init> -> = id <func-array-value> 
  <array-init> -> λ 
  <array-elements> -> <array-values> <extra-array-value> 
  <array-elements> -> { <array-elements> } <extra-array-value> 
@@ -63,7 +63,7 @@
  <local-dec> -> <local-dec-init> <array-assign> <local-dec> 
  <local-dec> -> λ 
  <local-dec-init> -> <naur-case> <data-type> <var-init> ;  
- <local-dec-init> -> <data-type> id <array-dec> <array-init> ;  
+ <local-dec-init> -> <data-type> id <array-dec> <array-init> ; 
  <arguments> -> <arguments-value> <multi-arguments-value> 
  <arguments> -> λ 
  <multi-arguments-value> -> , <arguments-value> <multi-arguments-value> 

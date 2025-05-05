@@ -76,10 +76,8 @@ def _cEnsureArray_(value, name):
     return value
 
 def _kween():
-    _grades = _cArray_('anda', [1, 2, 3, 4, 5])
-    _g = _cArray_('anda', [[6], 7, 8, 9, 10])
-    _cSameElemType_('anda', 'anda')
-    _cEnsureArray_(_cNone_(_g, 'g')[0], 'g[0]').append(_cArray_('anda', copy.deepcopy(_grades)))
+    _grades = _cArray_('anda', [[0, 1], 2, 3, 4, 5])
+    _g = _cArray_('anda', copy.deepcopy(_cNone_(_grades, 'grades')[0]))
     print(_cNone_(_g, 'g'), end='')
 
 if __name__ == '__main__':
