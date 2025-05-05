@@ -76,7 +76,8 @@ def _cEnsureArray_(value, name):
     return value
 
 def _g():
-    return [1, 2, 3]
+    _grades = _cArray_('anda', [1, 1, 2, 3])
+    return _cNone_(_grades, 'grades')
 
 def _kween():
     _grades = _cArray_('anda', copy.deepcopy(_g()))

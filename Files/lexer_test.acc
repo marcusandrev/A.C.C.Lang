@@ -1,7 +1,11 @@
+anda g[]();
+
 anda g[](){
-    push {1, 2, 3};
+    anda grades[] = {1, 1, 2, 3};
+    push grades;
 }
 
 shimenet kween () {
     anda grades[] = g();
+    serve(grades);
 }

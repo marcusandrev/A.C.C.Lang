@@ -319,14 +319,30 @@ class SemanticAnalyzer:
             if self.current_function is not None:
                 self.log += str(SemanticError("Nested function declarations are not allowed", self._token_stream[self.token_index][1][0])) + '\n'
             self.advance()
+        # -------- read the function name ----------
             if self.current_token() and self.current_token()[1] == 'kween':
                 func_name = "kween"
-                self.advance()
             elif self.current_token() and self.current_token()[1] == 'id':
                 func_name = self.current_token()[0]
-                self.advance()
             else:
-                self.log += str(SemanticError("Expected function name after 'shimenet'", self._token_stream[self.token_index][1][0])) + '\n'
+                self.log += str(SemanticError(
+                    "Expected function name after 'shimenet'",
+                    self._token_stream[self.token_index][1][0])) + '\n'
+                return
+            self.advance()                            # skip the name
+
+            if (self.current_token() and self.current_token()[1] == '[' and
+                self.next_token()     and self.next_token()[1] == ']' and
+                len(self._token_stream) > self.token_index + 2 and
+                self._token_stream[self.token_index + 2][0][1] == '('):
+
+                pos = self._token_stream[self.token_index][1][0]
+                self.log += str(SemanticError("Return type 'shimenet' cannot be declared as an array", pos)) + '\n'
+
+                self.advance()         # skip '['
+                self.advance()         # skip ']'
+
+            # ordinary (scalar) shimenet function
             self.function_declaration('shimenet', func_name)
             return
 
