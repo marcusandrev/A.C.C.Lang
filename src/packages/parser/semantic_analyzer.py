@@ -549,11 +549,22 @@ class SemanticAnalyzer:
     def is_type_compatible_array_append(self, array_type, value_type):
         """Checks if value_type is allowed to be inserted into array of array_type."""
         if array_type in ['anda', 'andamhie']:
-            return value_type in ['anda', 'andamhie', 'eklabool']
+           # allow either a scalar of the same category, *or* an array whose base type
+           # matches array_type (i.e. nested array)
+           if value_type in ['anda', 'andamhie', 'eklabool']:
+               return True
+           if isinstance(value_type, str) and value_type.startswith("array_"):
+               return value_type[len("array_"):] == array_type
+           return False
         if array_type == 'eklabool':
-            return value_type in ['anda', 'andamhie', 'eklabool', 'chika']
+           if value_type in ['anda', 'andamhie', 'eklabool', 'chika']:
+               return True
+           if isinstance(value_type, str) and value_type.startswith("array_"):
+               return value_type[len("array_"):] == array_type
+           return False
         if array_type == 'chika':
-            return value_type == 'chika'
+           # strings cannot be nested, so only literal chika
+           return value_type == 'chika'
         return False
 
     def process_adele_statement(self):

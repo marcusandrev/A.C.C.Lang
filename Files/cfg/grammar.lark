@@ -129,7 +129,7 @@ input_stmts: input_type ID EQUAL GIVENCHY LPAR givenchy_values RPAR SEMICOLON
 input_type: data_type  |  
 givenchy_values: expression_operands 
 output_stmts: SERVE LPAR output_values RPAR SEMICOLON 
-append_stmts: ADELE LPAR ID COMMA assignment_values RPAR SEMICOLON 
+append_stmts: ADELE LPAR ID array_indexing COMMA assignment_values RPAR SEMICOLON 
 delete_stmts: ADELETE LPAR ID array_indexing RPAR SEMICOLON 
 output_values: expression 
 conditional_stmts: PAK LPAR condition RPAR LBRACE conditional_body RBRACE ganern_pak_statement ganern_case 
@@ -163,4 +163,4 @@ ditech_case: DITECH COLON switch_statements  |
 control_flow_stmts: GOGOGO SEMICOLON  | AMACCANA SEMICOLON  |  
 return_stmts: PUSH push_values SEMICOLON  |  
 unary_stmts: unary_operator ID SEMICOLON  | ID unary_operator SEMICOLON 
-push_values: expression  |  
+push_values: expression  | LBRACE array_elements RBRACE  |  

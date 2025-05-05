@@ -1,3 +1,6 @@
 shimenet kween () {
-    serve("Hello, World!);
+    anda grades[] = {1, 2, 3, 4, 5};
+    anda g[];
+    adele(g, grades);
+    serve(g);
 }

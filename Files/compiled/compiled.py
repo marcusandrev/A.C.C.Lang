@@ -1,3 +1,4 @@
+import copy
 def _cNoArray_(value, op):
     if isinstance(value, list):
         raise TypeError(f"Runtime error: array value used with operator {op}")
@@ -70,126 +71,11 @@ def _cSameElemType_(expected, actual):
         )
 
 def _kween():
-    _n1 = None
-    _n2 = None
-    _n3 = None
-    _n4 = None
-    _n5 = None
-    _choice = None
-    _temp = None
-    print("Enter 5 numbers:\n", end='')
-    _n1 = _cType_('anda', input('Number 1: '))
-    _n2 = _cType_('anda', input('Number 2: '))
-    _n3 = _cType_('anda', input('Number 3: '))
-    _n4 = _cType_('anda', input('Number 4: '))
-    _n5 = _cType_('anda', input('Number 5: '))
-    _choice = _cType_('anda', input('\nChoose sorting order (1=Ascending, 2=Descending): '))
-    if (_cNoArray_(_cNone_(_choice, 'choice'), '==') == _cNoArray_(1, '==')):
-        if (_cNoArray_(_cNone_(_n1, 'n1'), '>') > _cNoArray_(_cNone_(_n2, 'n2'), '>')):
-            _temp = _cType_('anda', _cNone_(_n1, 'n1'))
-            _n1 = _cType_('anda', _cNone_(_n2, 'n2'))
-            _n2 = _cType_('anda', _cNone_(_temp, 'temp'))
-        if (_cNoArray_(_cNone_(_n1, 'n1'), '>') > _cNoArray_(_cNone_(_n3, 'n3'), '>')):
-            _temp = _cType_('anda', _cNone_(_n1, 'n1'))
-            _n1 = _cType_('anda', _cNone_(_n3, 'n3'))
-            _n3 = _cType_('anda', _cNone_(_temp, 'temp'))
-        if (_cNoArray_(_cNone_(_n1, 'n1'), '>') > _cNoArray_(_cNone_(_n4, 'n4'), '>')):
-            _temp = _cType_('anda', _cNone_(_n1, 'n1'))
-            _n1 = _cType_('anda', _cNone_(_n4, 'n4'))
-            _n4 = _cType_('anda', _cNone_(_temp, 'temp'))
-        if (_cNoArray_(_cNone_(_n1, 'n1'), '>') > _cNoArray_(_cNone_(_n5, 'n5'), '>')):
-            _temp = _cType_('anda', _cNone_(_n1, 'n1'))
-            _n1 = _cType_('anda', _cNone_(_n5, 'n5'))
-            _n5 = _cType_('anda', _cNone_(_temp, 'temp'))
-        if (_cNoArray_(_cNone_(_n2, 'n2'), '>') > _cNoArray_(_cNone_(_n3, 'n3'), '>')):
-            _temp = _cType_('anda', _cNone_(_n2, 'n2'))
-            _n2 = _cType_('anda', _cNone_(_n3, 'n3'))
-            _n3 = _cType_('anda', _cNone_(_temp, 'temp'))
-        if (_cNoArray_(_cNone_(_n2, 'n2'), '>') > _cNoArray_(_cNone_(_n4, 'n4'), '>')):
-            _temp = _cType_('anda', _cNone_(_n2, 'n2'))
-            _n2 = _cType_('anda', _cNone_(_n4, 'n4'))
-            _n4 = _cType_('anda', _cNone_(_temp, 'temp'))
-        if (_cNoArray_(_cNone_(_n2, 'n2'), '>') > _cNoArray_(_cNone_(_n5, 'n5'), '>')):
-            _temp = _cType_('anda', _cNone_(_n2, 'n2'))
-            _n2 = _cType_('anda', _cNone_(_n5, 'n5'))
-            _n5 = _cType_('anda', _cNone_(_temp, 'temp'))
-        if (_cNoArray_(_cNone_(_n3, 'n3'), '>') > _cNoArray_(_cNone_(_n4, 'n4'), '>')):
-            _temp = _cType_('anda', _cNone_(_n3, 'n3'))
-            _n3 = _cType_('anda', _cNone_(_n4, 'n4'))
-            _n4 = _cType_('anda', _cNone_(_temp, 'temp'))
-        if (_cNoArray_(_cNone_(_n3, 'n3'), '>') > _cNoArray_(_cNone_(_n5, 'n5'), '>')):
-            _temp = _cType_('anda', _cNone_(_n3, 'n3'))
-            _n3 = _cType_('anda', _cNone_(_n5, 'n5'))
-            _n5 = _cType_('anda', _cNone_(_temp, 'temp'))
-        if (_cNoArray_(_cNone_(_n4, 'n4'), '>') > _cNoArray_(_cNone_(_n5, 'n5'), '>')):
-            _temp = _cType_('anda', _cNone_(_n4, 'n4'))
-            _n4 = _cType_('anda', _cNone_(_n5, 'n5'))
-            _n5 = _cType_('anda', _cNone_(_temp, 'temp'))
-        print("\nSorted in ascending order: ", end='')
-        print(_cNone_(_n1, 'n1'), end='')
-        print(" ", end='')
-        print(_cNone_(_n2, 'n2'), end='')
-        print(" ", end='')
-        print(_cNone_(_n3, 'n3'), end='')
-        print(" ", end='')
-        print(_cNone_(_n4, 'n4'), end='')
-        print(" ", end='')
-        print(_cNone_(_n5, 'n5'), end='')
-        print("\n", end='')
-    elif (_cNoArray_(_cNone_(_choice, 'choice'), '==') == _cNoArray_(2, '==')):
-        if (_cNoArray_(_cNone_(_n1, 'n1'), '<') < _cNoArray_(_cNone_(_n2, 'n2'), '<')):
-            _temp = _cType_('anda', _cNone_(_n1, 'n1'))
-            _n1 = _cType_('anda', _cNone_(_n2, 'n2'))
-            _n2 = _cType_('anda', _cNone_(_temp, 'temp'))
-        if (_cNoArray_(_cNone_(_n1, 'n1'), '<') < _cNoArray_(_cNone_(_n3, 'n3'), '<')):
-            _temp = _cType_('anda', _cNone_(_n1, 'n1'))
-            _n1 = _cType_('anda', _cNone_(_n3, 'n3'))
-            _n3 = _cType_('anda', _cNone_(_temp, 'temp'))
-        if (_cNoArray_(_cNone_(_n1, 'n1'), '<') < _cNoArray_(_cNone_(_n4, 'n4'), '<')):
-            _temp = _cType_('anda', _cNone_(_n1, 'n1'))
-            _n1 = _cType_('anda', _cNone_(_n4, 'n4'))
-            _n4 = _cType_('anda', _cNone_(_temp, 'temp'))
-        if (_cNoArray_(_cNone_(_n1, 'n1'), '<') < _cNoArray_(_cNone_(_n5, 'n5'), '<')):
-            _temp = _cType_('anda', _cNone_(_n1, 'n1'))
-            _n1 = _cType_('anda', _cNone_(_n5, 'n5'))
-            _n5 = _cType_('anda', _cNone_(_temp, 'temp'))
-        if (_cNoArray_(_cNone_(_n2, 'n2'), '<') < _cNoArray_(_cNone_(_n3, 'n3'), '<')):
-            _temp = _cType_('anda', _cNone_(_n2, 'n2'))
-            _n2 = _cType_('anda', _cNone_(_n3, 'n3'))
-            _n3 = _cType_('anda', _cNone_(_temp, 'temp'))
-        if (_cNoArray_(_cNone_(_n2, 'n2'), '<') < _cNoArray_(_cNone_(_n4, 'n4'), '<')):
-            _temp = _cType_('anda', _cNone_(_n2, 'n2'))
-            _n2 = _cType_('anda', _cNone_(_n4, 'n4'))
-            _n4 = _cType_('anda', _cNone_(_temp, 'temp'))
-        if (_cNoArray_(_cNone_(_n2, 'n2'), '<') < _cNoArray_(_cNone_(_n5, 'n5'), '<')):
-            _temp = _cType_('anda', _cNone_(_n2, 'n2'))
-            _n2 = _cType_('anda', _cNone_(_n5, 'n5'))
-            _n5 = _cType_('anda', _cNone_(_temp, 'temp'))
-        if (_cNoArray_(_cNone_(_n3, 'n3'), '<') < _cNoArray_(_cNone_(_n4, 'n4'), '<')):
-            _temp = _cType_('anda', _cNone_(_n3, 'n3'))
-            _n3 = _cType_('anda', _cNone_(_n4, 'n4'))
-            _n4 = _cType_('anda', _cNone_(_temp, 'temp'))
-        if (_cNoArray_(_cNone_(_n3, 'n3'), '<') < _cNoArray_(_cNone_(_n5, 'n5'), '<')):
-            _temp = _cType_('anda', _cNone_(_n3, 'n3'))
-            _n3 = _cType_('anda', _cNone_(_n5, 'n5'))
-            _n5 = _cType_('anda', _cNone_(_temp, 'temp'))
-        if (_cNoArray_(_cNone_(_n4, 'n4'), '<') < _cNoArray_(_cNone_(_n5, 'n5'), '<')):
-            _temp = _cType_('anda', _cNone_(_n4, 'n4'))
-            _n4 = _cType_('anda', _cNone_(_n5, 'n5'))
-            _n5 = _cType_('anda', _cNone_(_temp, 'temp'))
-        print("\nSorted in descending order: ", end='')
-        print(_cNone_(_n1, 'n1'), end='')
-        print(" ", end='')
-        print(_cNone_(_n2, 'n2'), end='')
-        print(" ", end='')
-        print(_cNone_(_n3, 'n3'), end='')
-        print(" ", end='')
-        print(_cNone_(_n4, 'n4'), end='')
-        print(" ", end='')
-        print(_cNone_(_n5, 'n5'), end='')
-        print("\n", end='')
-    else:
-        print("\nInvalid choice.\n", end='')
+    _grades = _cArray_('anda', [1, 2, 3, 4, 5])
+    _g = []
+    _cSameElemType_('anda', 'anda')
+    _g.append(_cArray_('anda', copy.deepcopy(_grades)))
+    print(_cNone_(_g, 'g'), end='')
 
 if __name__ == '__main__':
     _kween()

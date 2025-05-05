@@ -154,7 +154,7 @@
  <input-type> -> λ 
  <givenchy-values> -> <expression-operands> 
  <output-stmts> -> serve ( <output-values> ) ; 
- <append-stmts> -> adele ( id , <assignment-values> ) ; 
+ <append-stmts> -> adele ( id <array-indexing> , <assignment-values> ) ; 
  <delete-stmts> -> adelete ( id <array-indexing> ) ; 
  <output-values> -> <expression> 
  <conditional-stmts> -> pak ( <condition> ) { <conditional-body> } <ganern-pak-statement> <ganern-case> 
@@ -208,5 +208,6 @@
  <unary-stmts> -> <unary-operator> id ; 
  <unary-stmts> -> id <unary-operator> ; 
  <push-values> -> <expression> 
+ <push-values> -> { <array-elements> } 
  <push-values> -> λ 
 

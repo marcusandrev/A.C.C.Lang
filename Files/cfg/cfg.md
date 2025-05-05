@@ -158,7 +158,7 @@
 | 148 | \<input-type\> | → | λ |
 | 149 | \<givenchy-values\> | → | \<expression-operands\> |
 | 150 | \<output-stmts\> | → | serve ( \<output-values\> ) ; |
-|  | \<append-stmts\> | → | adele ( id , \<assignment-values\> ) ; |
+|  | \<append-stmts\> | → | adele ( id \<array-indexing\> , \<assignment-values\> ) ; |
 |  | \<delete-stmts\> | → | adelete ( id \<array-indexing\> ) ; |
 | 151 | \<output-values\> | → | \<expression\> |
 | 152 | \<conditional-stmts\> | → | pak ( \<condition\> ) { \<conditional-body\> } \<ganern-pak-statement\> \<ganern-case\> |
@@ -212,5 +212,6 @@
 | 200 | \<unary-stmts\> | → | \<unary-operator\> id ; |
 | 201 | \<unary-stmts\> | → | id \<unary-operator\> ; |
 | 202 | \<push-values\> | → | \<expression\> |
+|  | \<push-values\> | → | { \<array-elements\> } |
 | 203 | \<push-values\> | → | λ |
 
