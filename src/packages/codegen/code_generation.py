@@ -9,7 +9,9 @@ class CodeGenerator:
         self.code_lines = []
         self.switch_counter = 0  # Used to generate unique names for switch temp variables
         self.for_counter = 0     # Used to generate unique names for for loop helper variables
-        self.symbol_stack = [{}]  # Stack to maintain scopes for variable types
+        self.symbol_stack = [{}]
+        # map function name -> (return_type, is_array)
+        self.function_signatures = {}
         self.import_emitted = False
 
     def indent(self):
@@ -169,8 +171,10 @@ class CodeGenerator:
                 param_name, param_type, is_array = param_info
             self.current_scope()[param_name] = (param_type, is_array)
 
+        # record return signature
+        self.function_signatures[node.name] = (node.return_type, getattr(node, 'is_array', False))
         if not node.body:
-            self.code_lines.append(self.indent() + "pass")
+             self.code_lines.append(self.indent() + "pass")
         else:
             self.emit_statements(node.body)
         self.pop_scope()
@@ -224,6 +228,23 @@ class CodeGenerator:
             self.current_scope()[node.name] = node.data_type
             return
 
+        # Handle initializer from array-returning function call
+        from .code_generation import FunctionCallNode
+        if isinstance(node.initializer, FunctionCallNode):
+            name = node.initializer.name
+            sig = self.function_signatures.get(name)
+            if sig and sig[1]:  # returns array
+                # import copy if needed
+                if not self.import_emitted:
+                    self.code_lines.insert(0, "import copy")
+                    self.import_emitted = True
+                call = f"_{name}({', '.join(self.visit(a) for a in node.initializer.arguments)})"
+                self.code_lines.append(
+                    self.indent() +
+                    f"_{node.name} = _cArray_('{node.data_type}', copy.deepcopy({call}))"
+                )
+                self.current_scope()[node.name] = (node.data_type, True)
+                return
         # No initializer: None or empty list
         if init is None:
             code = f"_{node.name} = []" if node.is_array else f"_{node.name} = None"

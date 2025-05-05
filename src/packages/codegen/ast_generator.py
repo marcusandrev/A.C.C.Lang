@@ -13,16 +13,17 @@ class ProgramNode(ASTNode):
         return f"ProgramNode({self.statements})"
 
 class FunctionDeclNode(ASTNode):
-    def __init__(self, return_type, name, parameters, body, is_prototype=False):
-        self.return_type = return_type
+    def __init__(self, return_type, name, parameters, body, is_array=False, is_prototype=False):
         self.name = name
+        self.return_type = return_type
         self.parameters = parameters  # list of (param_name, param_type)
+        self.is_array = is_array      # true if the function returns an array
         self.body = body              # list of statements (None for prototype)
         self.is_prototype = is_prototype
 
     def __repr__(self):
-        return (f"FunctionDeclNode({self.name}, {self.return_type}, "
-                f"params={self.parameters}, body={self.body} prototype={self.is_prototype})")
+        return (f"FunctionDeclNode({self.name}, {self.return_type}{'[]' if self.is_array else ''}, "
+                f"params={self.parameters}, body={self.body}, proto={self.is_prototype})")
 
 class VarDeclNode(ASTNode):
     def __init__(self, data_type, name, initializer=None, is_constant=False, is_array=False, dimensions=None):
@@ -342,7 +343,14 @@ class ASTGenerator:
                 self.advance()
             else:
                 raise SemanticError("Expected function name after 'shimenet'", self.tokens[self.index][1][0])
-            return self.parse_function_declaration('shimenet', func_name)
+            # handle array-returning shimenet: e.g. "anda g[]();"
+            array_ret = False
+            if self.current_token() and self.current_token()[1] == '[' and self.next_token() and self.next_token()[1] == ']':
+                # skip []
+                self.advance()
+                self.advance()
+                array_ret = True
+            return self.parse_function_declaration('shimenet', func_name, is_array=array_ret)
         else:
             if token[1] not in ['anda', 'andamhie', 'chika', 'eklabool']:
                 raise SemanticError("Expected a type token", self.tokens[self.index][1][0])
@@ -352,6 +360,16 @@ class ASTGenerator:
                 raise SemanticError("Expected identifier after type", self.tokens[self.index][1][0])
             var_name = self.current_token()[0]
             self.advance()  # Skip identifier
+            # detect function returning array: anda g[]();
+            if (self.current_token() and self.current_token()[1] == '['
+                and self.next_token() and self.next_token()[1] == ']'
+                # look at the *token* at +2, not at its location info
+                and self.index+2 < len(self.tokens)
+                and self.tokens[self.index+2][0][1] == '('):
+                # skip []
+                self.advance()
+                self.advance()
+                return self.parse_function_declaration(data_type, var_name, is_array=True)
             if self.current_token() and self.current_token()[1] == '(':
                 return self.parse_function_declaration(data_type, var_name)
             else:
@@ -405,7 +423,7 @@ class ASTGenerator:
         self.expect('}', "Expected '}' at end of array initializer")
         return elements
 
-    def parse_function_declaration(self, return_type, func_name):
+    def parse_function_declaration(self, return_type, func_name, is_array=False):
         self.expect('(', "Expected '(' after function name")
         parameters = []
         while self.current_token() and self.current_token()[1] != ')':
@@ -434,10 +452,10 @@ class ASTGenerator:
         self.expect(')', "Missing closing parenthesis in function declaration")
         if self.current_token() and self.current_token()[1] == ';':
             self.advance()
-            return FunctionDeclNode(return_type, func_name, parameters, None, is_prototype=True)
+            return FunctionDeclNode(return_type, func_name, parameters, None, is_array, is_prototype=True)
         elif self.current_token() and self.current_token()[1] == '{':
             body = self.parse_block().statements
-            return FunctionDeclNode(return_type, func_name, parameters, body, is_prototype=False)
+            return FunctionDeclNode(return_type, func_name, parameters, body, is_array, is_prototype=False)
         else:
             raise SemanticError("Expected ';' or '{' after function parameter list", self.tokens[self.index][1][0])
 

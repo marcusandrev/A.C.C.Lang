@@ -1,3 +1,4 @@
+import copy
 def _cNoArray_(value, op):
     if isinstance(value, list):
         raise TypeError(f"Runtime error: array value used with operator {op}")
@@ -78,7 +79,8 @@ def _g():
     return [1, 2, 3]
 
 def _kween():
-    pass
+    _grades = _cArray_('anda', copy.deepcopy(_g()))
+    print(_cNone_(_grades, 'grades'), end='')
 
 if __name__ == '__main__':
     _kween()
