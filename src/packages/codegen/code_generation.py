@@ -254,13 +254,6 @@ class CodeGenerator:
         else:
             self.current_scope()[node.name] = node.data_type
 
-
-    # ──────────────────────────────────────────────────────────
-    #  assignment :  LHS (‘=’ | ‘+=’ …) RHS
-    #  – LHS may be IdentifierNode or ArrayAccessNode
-    #  – RHS may be scalar, {…} literal, another array variable,
-    #    or the result of a function call that returns either.
-    # ──────────────────────────────────────────────────────────
     def visit_AssignmentNode(self, node):
         # ───────── ARRAY ELEMENT on the LHS ─────────
         if isinstance(node.identifier, ArrayAccessNode):
@@ -281,7 +274,6 @@ class CodeGenerator:
             self.code_lines.append(self.indent() + f"{lhs_code} = {rhs_code}")
             return
 
-        # ───────── SIMPLE VARIABLE on the LHS ─────────
         if not isinstance(node.identifier, IdentifierNode):
             raise Exception("Unsupported assignment target: " + repr(node.identifier))
 
@@ -290,7 +282,6 @@ class CodeGenerator:
         lhs_type     = lhs_info[0] if isinstance(lhs_info, tuple) else lhs_info
         lhs_is_array = isinstance(lhs_info, tuple) and lhs_info[1]
 
-        # ---------- RHS code ----------
         rhs_is_array = isinstance(node.expression, list)
         rhs_code     = (self.visit_list(node.expression)
                         if rhs_is_array else self.visit(node.expression))
@@ -300,7 +291,6 @@ class CodeGenerator:
             rhs_info     = self.lookup_variable(node.expression.name)
             rhs_is_array = isinstance(rhs_info, tuple) and rhs_info[1]
 
-        # ---------- compound operators (+=, …) ----------
         if node.operator != "=":
             if lhs_is_array or rhs_is_array:
                 self.code_lines.append(
@@ -318,7 +308,6 @@ class CodeGenerator:
                 self.code_lines.append(self.indent() + f"_{lhs_name} {node.operator} {rhs_code}")
             return
 
-        # ---------- plain “=” assignment ----------
         if lhs_is_array:
             # always clamp the incoming value to an array of the correct element-type
             if lhs_type:
@@ -331,17 +320,14 @@ class CodeGenerator:
             self.code_lines.append(self.indent() + f"_{lhs_name} = {rhs_code}")
 
     def visit_FunctionCallNode(self, node):
-        # builtin len(…)  – already handled
         if node.name == 'len':
             arg_code = self.visit(node.arguments[0])
             return f"_cType_('anda', len({arg_code}))"
 
-        # builtin adele(array, value) – FINAL VERSION
         if node.name == 'adele':
             tgt_expr = node.arguments[0]          # target list (grades)
             src_expr = node.arguments[1]          # value to append
 
-            # helper: does an expression denote an array variable?
             def array_info(expr):
                 if isinstance(expr, IdentifierNode):
                     info = self.lookup_variable(expr.name)
@@ -354,17 +340,14 @@ class CodeGenerator:
             tgt_etype  = array_info(tgt_expr)     # e.g. 'anda'
             src_etype  = array_info(src_expr)     # e.g. 'chika' or None
 
-            # ---------- scalar case ------------------------------------------------
             if src_etype is None:                 # right-hand value is scalar *or* {…} literal
                 if tgt_etype:                     # we know what to clamp to
-                    # if it’s a literal {…} we still have to array-clamp
                     if isinstance(src_expr, list):
                         src_code = f"_cArray_('{tgt_etype}', {self.visit_list(src_expr)})"
                     else:
                         src_code = f"_cType_('{tgt_etype}', {src_code})"
                 return f"_{tgt_expr.name}.append({src_code})" if isinstance(tgt_expr, IdentifierNode) else f"{tgt_code}.append({src_code})"
 
-            # ---------- array-to-array case ----------------------------------------
             # 1) static element-type check
             self.code_lines.append(self.indent() + f"_cSameElemType_('{tgt_etype}', '{src_etype}')")
 
