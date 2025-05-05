@@ -88,9 +88,35 @@ class SemanticAnalyzer:
             if self.token_index < len(self._token_stream) else -1
         )
 
-        if self.current_token() and self.current_token()[1] != ';':
-            expr_type = self.evaluate_expression()
+        # special case: array literal return
+        if self.current_token() and self.current_token()[1] == '{':
+            # parse the array initializer
+            self.allow_unindexed_array_usage = True
+            array_elements = self.process_array_initializer_dynamic(var_type=declared_return_type)
+            # derive returned type, e.g. "array_anda"
+            flat = self.flatten_array(array_elements)
+            base = flat[0] if flat else declared_return_type
+            expr_type = f"array_{base}"
+            self.allow_unindexed_array_usage = orig_allow
 
+            # now expect the semicolon
+            if not self.current_token() or self.current_token()[1] != ';':
+                self.log += str(SemanticError(
+                    "Missing semicolon after return array literal",
+                    push_token_pos
+                )) + '\n'
+            self.advance()
+
+            if declared_return_type == 'shimenet':
+                self.log += str(SemanticError(
+                    "Function with return type 'shimenet' must not return a value",
+                    push_token_pos
+                )) + '\n'
+
+            func_entry["has_return"] = True
+        # fall back to scalar expression return
+        elif self.current_token() and self.current_token()[1] != ';':
+            expr_type = self.evaluate_expression()
             self.allow_unindexed_array_usage = orig_allow
 
             if not self.current_token() or self.current_token()[1] != ';':
@@ -101,7 +127,10 @@ class SemanticAnalyzer:
             self.advance()
 
             if declared_return_type == 'shimenet':
-                self.log += str(SemanticError("Function with return type 'shimenet' must not return a value", push_token_pos)) + '\n'
+                self.log += str(SemanticError(
+                    "Function with return type 'shimenet' must not return a value",
+                    push_token_pos
+                )) + '\n'
 
             func_entry["has_return"] = True
 

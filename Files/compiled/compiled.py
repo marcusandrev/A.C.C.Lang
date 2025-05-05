@@ -1,4 +1,3 @@
-import copy
 def _cNoArray_(value, op):
     if isinstance(value, list):
         raise TypeError(f"Runtime error: array value used with operator {op}")
@@ -75,10 +74,11 @@ def _cEnsureArray_(value, name):
         raise TypeError(f"Runtime error: cannot append to non-array '{name}'")
     return value
 
+def _g():
+    return [1, 2, 3]
+
 def _kween():
-    _grades = _cArray_('anda', [[0, 1], 2, 3, 4, 5])
-    _g = _cArray_('anda', copy.deepcopy(_cNone_(_grades, 'grades')[0]))
-    print(_cNone_(_g, 'g'), end='')
+    pass
 
 if __name__ == '__main__':
     _kween()
