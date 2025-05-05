@@ -15,7 +15,7 @@
  <data-type>  -> eklabool 
  <func-array-init-tail> -> <func-case> 
  <func-array-init-tail> -> <array-dec> <array-init> 
- <func-case> -> ( <parameters> ) 
+ <func-case> -> <array-dec> ( <parameters> ) 
  <parameters> -> <func-parameters> <multi-parameters> 
  <parameters> -> λ  
  <func-parameters> -> <data-type> id <array-dec> 

@@ -19,7 +19,7 @@
 | 15 | \<data-type\>  | → | eklabool |
 | 16 | \<func-array-init-tail\> | → | \<func-case\> |
 | 17 | \<func-array-init-tail\> | → | \<array-dec\> \<array-init\> |
-| 18 | \<func-case\> | → | ( \<parameters\> ) |
+| 18 | \<func-case\> | → | \<array-dec\> ( \<parameters\> ) |
 | 19 | \<parameters\> | → | \<func-parameters\> \<multi-parameters\> |
 | 20 | \<parameters\> | → | λ  |
 | 21 | \<func-parameters\> | → | \<data-type\> id \<array-dec\> |

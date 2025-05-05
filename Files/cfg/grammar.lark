@@ -77,7 +77,7 @@ naur_case: NAUR  |
 return_type: data_type  | SHIMENET 
 data_type: ANDA  | ANDAMHIE  | CHIKA  | EKLABOOL 
 func_array_init_tail: func_case  | array_dec array_init 
-func_case: LPAR parameters RPAR 
+func_case: array_dec LPAR parameters RPAR 
 parameters: func_parameters multi_parameters  |  
 func_parameters: data_type ID array_dec 
 multi_parameters: COMMA func_parameters multi_parameters  |  
