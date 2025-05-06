@@ -176,6 +176,20 @@ var editor = CodeMirror.fromTextArea(document.getElementById('source-code'), {
   matchBrackets: true,
   gutters: ['CodeMirror-linenumbers'],
   extraKeys: {
+    'Ctrl-Space': 'autocomplete',
+    'Ctrl-Q': function (cm) {
+      cm.foldCode(cm.getCursor());
+    },
+    Tab: function (cm) {
+      if (cm.somethingSelected()) {
+        cm.indentSelection('add');
+      } else {
+        cm.replaceSelection('    ', 'end');
+      }
+    },
+    'Shift-Tab': function (cm) {
+      cm.indentSelection('subtract');
+    },
     'Ctrl-Z': function (cm) {
       cm.undo();
     },
