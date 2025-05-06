@@ -60,9 +60,9 @@ class CodeGenerator:
             except Exception:
                 raise TypeError("Type error: expected numeric value for type 'anda'")
         if v > 9999999999:
-            v = 9999999999
+            raise OverflowError("Overflow error: value exceeds maximum for type 'anda'")
         if v < -9999999999:
-            v = -9999999999
+            raise OverflowError("Overflow error: value exceeds minimum for type 'anda'")
         return v
     elif expected == 'andamhie':
         try:
@@ -75,9 +75,9 @@ class CodeGenerator:
         import math
         f = math.trunc(f * 1000000) / 1000000
         if f > 9999999999.999999:
-            f = 9999999999.999999
+            raise OverflowError("Overflow error: value exceeds maximum for type 'andamhie'")
         if f < -9999999999:
-            f = -9999999999.999999
+            raise OverflowError("Overflow error: value exceeds minimum for type 'andamhie'")
         return f
     elif expected == 'eklabool':
         try:

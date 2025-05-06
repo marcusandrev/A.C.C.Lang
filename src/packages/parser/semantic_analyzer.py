@@ -102,6 +102,15 @@ class SemanticAnalyzer:
             flat = self.flatten_array(array_elements)
             base = flat[0] if flat else declared_return_type
             expr_type = f"array_{base}"
+
+            # # new mismatch check for arrays
+            # if not self._is_return_type_compatible(declared_return_type, expr_type):
+            #     self.log += str(SemanticError(
+            #         f"Return type mismatch: function expects '{declared_return_type}', "
+            #         f"but 'push' provides '{expr_type}'",
+            #         push_token_pos
+            #     )) + '\n'
+                
             self.allow_unindexed_array_usage = orig_allow
 
             # enforce array vs. scalar return
@@ -140,6 +149,13 @@ class SemanticAnalyzer:
         elif self.current_token() and self.current_token()[1] != ';':
             expr_type = self.evaluate_expression()
             self.allow_unindexed_array_usage = orig_allow
+
+            if not self._is_return_type_compatible(declared_return_type, expr_type) and declared_return_type != 'shimenet':
+                self.log += str(SemanticError(
+                    f"Return type mismatch: function expects '{declared_return_type}', "
+                    f"but 'push' provides '{expr_type}'",
+                    push_token_pos
+                )) + '\n'
 
             # enforce array vs. scalar return
             if declared_return_type.startswith("array_"):
@@ -1790,3 +1806,17 @@ class SemanticAnalyzer:
 
     def _is_array_type(self, t):
         return isinstance(t, str) and t.startswith("array_")
+    
+    def _is_return_type_compatible(self, declared, actual):
+        # Helper – evaluates whether `actual` can be returned from a function whose
+        # declared return type is `declared`.  Mirrors the assignment‑compatibility
+        # rules already used elsewhere.
+        if declared.startswith("array_") or actual.startswith("array_"):
+            return declared == actual          # after earlier scalar/array guard
+        if declared in ['anda', 'andamhie']:   # numeric
+            return actual in ['anda', 'andamhie', 'eklabool', 'givenchy']
+        if declared == 'eklabool':             # boolean result
+            return actual in ['eklabool', 'anda', 'andamhie', 'chika', 'givenchy']
+        if declared == 'chika':                # string
+            return actual == 'chika'
+        return declared == actual

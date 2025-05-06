@@ -18,9 +18,9 @@ def _cType_(expected, value):
             except Exception:
                 raise TypeError("Type error: expected numeric value for type 'anda'")
         if v > 9999999999:
-            v = 9999999999
+            raise OverflowError("Overflow error: value exceeds maximum for type 'anda'")
         if v < -9999999999:
-            v = -9999999999
+            raise OverflowError("Overflow error: value exceeds minimum for type 'anda'")
         return v
     elif expected == 'andamhie':
         try:
@@ -33,9 +33,9 @@ def _cType_(expected, value):
         import math
         f = math.trunc(f * 1000000) / 1000000
         if f > 9999999999.999999:
-            f = 9999999999.999999
+            raise OverflowError("Overflow error: value exceeds maximum for type 'andamhie'")
         if f < -9999999999:
-            f = -9999999999.999999
+            raise OverflowError("Overflow error: value exceeds minimum for type 'andamhie'")
         return f
     elif expected == 'eklabool':
         try:
@@ -74,8 +74,11 @@ def _cEnsureArray_(value, name):
         raise TypeError(f"Runtime error: cannot append to non-array '{name}'")
     return value
 
+def _void():
+    return [1, 2, "hello"]
+
 def _kween():
-    print("Hello, Hemn!", end='')
+    print("Hello", end='')
 
 if __name__ == '__main__':
     _kween()
