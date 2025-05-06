@@ -202,19 +202,25 @@ var editor = CodeMirror.fromTextArea(document.getElementById('source-code'), {
     'Cmd-Y': function (cm) {
       cm.redo();
     },
+    'Ctrl-/': function (cm) {
+      toggleComment(cm);
+    },
+    'Cmd-/': function (cm) {
+      toggleComment(cm);
+    },
   },
 });
 
 editor.on('keydown', function (cm, event) {
   if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
-    event.preventDefault(); 
-    cm.undo(); 
+    event.preventDefault();
+    cm.undo();
   }
   if (
     (event.ctrlKey || event.metaKey) &&
     (event.key === 'y' || (event.shiftKey && event.key === 'z'))
   ) {
-    event.preventDefault(); 
+    event.preventDefault();
     cm.redo();
   }
 });
@@ -450,4 +456,40 @@ shimenet kween () {
 });
 
 editor.setValue(newCode);
-editor.clearHistory(); 
+editor.clearHistory();
+
+function toggleComment(cm) {
+  if (cm.somethingSelected()) {
+    const selections = cm.listSelections();
+    cm.operation(() => {
+      selections.forEach(({ anchor, head }) => {
+        const from = cm.indexFromPos(anchor);
+        const to = cm.indexFromPos(head);
+        const start = Math.min(from, to);
+        const end = Math.max(from, to);
+
+        const selectedText = cm.getRange(
+          cm.posFromIndex(start),
+          cm.posFromIndex(end)
+        );
+        const isCommented =
+          selectedText.startsWith('/^') && selectedText.endsWith('^/');
+
+        if (isCommented) {
+          const uncommentedText = selectedText.slice(2, -2).trim();
+          cm.replaceRange(
+            uncommentedText,
+            cm.posFromIndex(start),
+            cm.posFromIndex(end)
+          );
+        } else {
+          cm.replaceRange(
+            `/^ ${selectedText} ^/`,
+            cm.posFromIndex(start),
+            cm.posFromIndex(end)
+          );
+        }
+      });
+    });
+  }
+}
