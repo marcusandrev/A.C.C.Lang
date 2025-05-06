@@ -110,7 +110,20 @@ class SemanticAnalyzer:
             #         f"but 'push' provides '{expr_type}'",
             #         push_token_pos
             #     )) + '\n'
-                
+            
+            if declared_return_type.startswith("array_"):
+                expected_base = declared_return_type[len("array_"):]
+                for elem_type in flat:
+                    if not self.is_type_compatible_array_append(expected_base,
+                                                                elem_type):
+                        self.log += str(SemanticError(
+                            f"Return array element type mismatch: function expects "
+                            f"elements of type '{expected_base}', but got '{elem_type}'",
+                            push_token_pos
+                        )) + '\n'
+            else:
+                pass
+
             self.allow_unindexed_array_usage = orig_allow
 
             # enforce array vs. scalar return
