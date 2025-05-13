@@ -174,8 +174,7 @@ var editor = CodeMirror.fromTextArea(document.getElementById('source-code'), {
   smartIndent: true,
   autoCloseBrackets: true,
   matchBrackets: true,
-  gutters: ['CodeMirror-linenumbers'], //, 'CodeMirror-lint-markers'
-  // lint: acclangLinter,
+  gutters: ['CodeMirror-linenumbers'],
   extraKeys: {
     'Ctrl-Space': 'autocomplete',
     'Ctrl-Q': function (cm) {
@@ -191,7 +190,39 @@ var editor = CodeMirror.fromTextArea(document.getElementById('source-code'), {
     'Shift-Tab': function (cm) {
       cm.indentSelection('subtract');
     },
+    'Ctrl-Z': function (cm) {
+      cm.undo();
+    },
+    'Cmd-Z': function (cm) {
+      cm.undo();
+    },
+    'Ctrl-Y': function (cm) {
+      cm.redo();
+    },
+    'Cmd-Y': function (cm) {
+      cm.redo();
+    },
+    'Ctrl-/': function (cm) {
+      toggleComment(cm);
+    },
+    'Cmd-/': function (cm) {
+      toggleComment(cm);
+    },
   },
+});
+
+editor.on('keydown', function (cm, event) {
+  if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
+    event.preventDefault();
+    cm.undo();
+  }
+  if (
+    (event.ctrlKey || event.metaKey) &&
+    (event.key === 'y' || (event.shiftKey && event.key === 'z'))
+  ) {
+    event.preventDefault();
+    cm.redo();
+  }
 });
 
 CodeMirror.registerHelper('hint', 'acclang', function (editor) {
@@ -240,10 +271,9 @@ CodeMirror.registerHelper('hint', 'acclang', function (editor) {
 
 editor.on('beforeChange', function (cm, change) {
   if (change.origin !== 'setValue') {
-    let text = change.text.map((line) =>
+    change.text = change.text.map((line) =>
       line.replace(/[""]/g, '"').replace(/['']/g, "'")
     );
-    change.update(change.from, change.to, text);
   }
 });
 
@@ -265,6 +295,7 @@ function initializeTerminal() {
       cursorBlink: true,
       fontFamily: 'monospace',
       fontSize: 14,
+      cols: 100,
     });
 
     term.open(document.getElementById('terminal'));
@@ -343,7 +374,7 @@ function loadFile(event) {
   if (file) {
     const reader = new FileReader();
     reader.onload = function (e) {
-      editor.setValue(e.target.result);
+      editor.setValue(e.target.result, { historyPreserve: true });
       document.getElementById('file-name').textContent = file.name;
     };
     reader.readAsText(file);
@@ -395,6 +426,20 @@ terminalStyle.textContent = `
 `;
 document.head.appendChild(terminalStyle);
 
+// Define newCode to avoid the "newCode is not defined" error
+const newCode = `/^ Welcome to A.C.C. Lang.^/
+/^ Write your code below ^/
+
+shimenet kween () {
+    /^An A.C.C. Lang. program starts here^/
+    serve("Hello, World!");
+}`;
+
+// Set the default value for the editor
+if (editor.getValue().trim() === '') {
+  editor.setValue(newCode);
+}
+
 // Add default code to the editor when the page loads
 document.addEventListener('DOMContentLoaded', () => {
   const defaultCode = `/^ Welcome to A.C.C. Lang.^/
@@ -409,3 +454,42 @@ shimenet kween () {
     editor.setValue(defaultCode);
   }
 });
+
+editor.setValue(newCode);
+editor.clearHistory();
+
+function toggleComment(cm) {
+  if (cm.somethingSelected()) {
+    const selections = cm.listSelections();
+    cm.operation(() => {
+      selections.forEach(({ anchor, head }) => {
+        const from = cm.indexFromPos(anchor);
+        const to = cm.indexFromPos(head);
+        const start = Math.min(from, to);
+        const end = Math.max(from, to);
+
+        const selectedText = cm.getRange(
+          cm.posFromIndex(start),
+          cm.posFromIndex(end)
+        );
+        const isCommented =
+          selectedText.startsWith('/^') && selectedText.endsWith('^/');
+
+        if (isCommented) {
+          const uncommentedText = selectedText.slice(2, -2).trim();
+          cm.replaceRange(
+            uncommentedText,
+            cm.posFromIndex(start),
+            cm.posFromIndex(end)
+          );
+        } else {
+          cm.replaceRange(
+            `/^ ${selectedText} ^/`,
+            cm.posFromIndex(start),
+            cm.posFromIndex(end)
+          );
+        }
+      });
+    });
+  }
+}

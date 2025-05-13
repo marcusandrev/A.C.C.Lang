@@ -1,5 +1,7 @@
+anda void[]() {
+    push {1, 2, "hello"};
+}
+
 shimenet kween () {
-    andamhie x = 1.000005623;
-    andamhie y = givenchy("Enter a decimal value: ");
-    serve(x + y);
+    serve("Hello");
 }

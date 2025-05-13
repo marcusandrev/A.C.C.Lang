@@ -13,16 +13,17 @@ class ProgramNode(ASTNode):
         return f"ProgramNode({self.statements})"
 
 class FunctionDeclNode(ASTNode):
-    def __init__(self, return_type, name, parameters, body, is_prototype=False):
-        self.return_type = return_type
+    def __init__(self, return_type, name, parameters, body, is_array=False, is_prototype=False):
         self.name = name
+        self.return_type = return_type
         self.parameters = parameters  # list of (param_name, param_type)
+        self.is_array = is_array      # true if the function returns an array
         self.body = body              # list of statements (None for prototype)
         self.is_prototype = is_prototype
 
     def __repr__(self):
-        return (f"FunctionDeclNode({self.name}, {self.return_type}, "
-                f"params={self.parameters}, body={self.body} prototype={self.is_prototype})")
+        return (f"FunctionDeclNode({self.name}, {self.return_type}{'[]' if self.is_array else ''}, "
+                f"params={self.parameters}, body={self.body}, proto={self.is_prototype})")
 
 class VarDeclNode(ASTNode):
     def __init__(self, data_type, name, initializer=None, is_constant=False, is_array=False, dimensions=None):
@@ -268,6 +269,10 @@ class ASTGenerator:
             return self.parse_if_statement()
         elif token[1] == 'serve':
             return self.parse_print_statement()
+        elif token[1] == 'adele':          #  ←  NEW  (put just above the final “else”)
+            return self.parse_adele_statement()
+        elif token[1] == 'adelete':        # ← NEW
+            return self.parse_adelete_statement()
         elif token[1] == 'push':
             return self.parse_return_statement()
         elif token[1] == 'keri':
@@ -292,10 +297,9 @@ class ASTGenerator:
         elif token[1] == 'id':
             if self.next_token() and self.next_token()[1] == '(':
                 return self.parse_function_call_statement()
-            elif self.next_token() and self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']:
+            elif self.next_token() and (self.next_token()[1] == '[' or self.next_token()[1] in ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']):
                 return self.parse_assignment_statement()
             elif self.next_token() and self.next_token()[1] in ['++', '--']:
-                # Handle postfix ++i; or i--;
                 return self.parse_unary_statement(postfix=True)
             else:
                 self.advance()
@@ -339,7 +343,14 @@ class ASTGenerator:
                 self.advance()
             else:
                 raise SemanticError("Expected function name after 'shimenet'", self.tokens[self.index][1][0])
-            return self.parse_function_declaration('shimenet', func_name)
+            # handle array-returning shimenet: e.g. "anda g[]();"
+            array_ret = False
+            if self.current_token() and self.current_token()[1] == '[' and self.next_token() and self.next_token()[1] == ']':
+                # skip []
+                self.advance()
+                self.advance()
+                array_ret = True
+            return self.parse_function_declaration('shimenet', func_name, is_array=array_ret)
         else:
             if token[1] not in ['anda', 'andamhie', 'chika', 'eklabool']:
                 raise SemanticError("Expected a type token", self.tokens[self.index][1][0])
@@ -349,6 +360,16 @@ class ASTGenerator:
                 raise SemanticError("Expected identifier after type", self.tokens[self.index][1][0])
             var_name = self.current_token()[0]
             self.advance()  # Skip identifier
+            # detect function returning array: anda g[]();
+            if (self.current_token() and self.current_token()[1] == '['
+                and self.next_token() and self.next_token()[1] == ']'
+                # look at the *token* at +2, not at its location info
+                and self.index+2 < len(self.tokens)
+                and self.tokens[self.index+2][0][1] == '('):
+                # skip []
+                self.advance()
+                self.advance()
+                return self.parse_function_declaration(data_type, var_name, is_array=True)
             if self.current_token() and self.current_token()[1] == '(':
                 return self.parse_function_declaration(data_type, var_name)
             else:
@@ -368,27 +389,33 @@ class ASTGenerator:
         is_array = False
         dimensions = []
         initializer = None
-        while self.current_token() and self.current_token()[1] == '[':
+        # MODIFIED: No dimension parsing anymore, just allow [] without initializer
+        if self.current_token() and self.current_token()[1] == '[':
             is_array = True
-            self.advance()  # Skip '['
-            dim_expr = self.parse_expression()
-            dimensions.append(dim_expr)
-            self.expect(']', "Expected ']' after array dimension")
+            self.advance()
+            self.expect(']', "Expected ']' after '[]' in array declaration")
         if self.current_token() and self.current_token()[1] == '=':
             self.advance()  # Skip '='
             if is_array:
-                initializer = self.parse_array_initializer(dimensions, data_type)
+                # array literal  →  { … }
+                if self.current_token() and self.current_token()[1] == '{':
+                    initializer = self.parse_array_initializer(data_type)
+                # array-to-array →  any other expression
+                else:
+                    initializer = self.parse_expression()
             else:
-                initializer = self.parse_expression()
+                initializer = self.parse_expression()            
         return VarDeclNode(data_type, var_name, initializer, is_constant, is_array, dimensions if is_array else None)
 
-    def parse_array_initializer(self, dimensions, data_type):
+    def parse_array_initializer(self, data_type):
         self.expect('{', "Expected '{' to start array initializer")
         elements = []
         while self.current_token() and self.current_token()[1] != '}':
             if self.current_token()[1] == '{':
-                element = self.parse_array_initializer(dimensions, data_type)
+                # Recursive parsing for nested array
+                element = self.parse_array_initializer(data_type)
             else:
+                # Must be an expression node (scalar value)
                 element = self.parse_expression()
             elements.append(element)
             if self.current_token() and self.current_token()[1] == ',':
@@ -396,7 +423,7 @@ class ASTGenerator:
         self.expect('}', "Expected '}' at end of array initializer")
         return elements
 
-    def parse_function_declaration(self, return_type, func_name):
+    def parse_function_declaration(self, return_type, func_name, is_array=False):
         self.expect('(', "Expected '(' after function name")
         parameters = []
         while self.current_token() and self.current_token()[1] != ')':
@@ -406,8 +433,16 @@ class ASTGenerator:
                 if not self.current_token() or self.current_token()[1] != 'id':
                     raise SemanticError("Expected parameter name in function declaration", self.tokens[self.index][1][0])
                 param_name = self.current_token()[0]
-                parameters.append((param_name, param_type))
                 self.advance()
+
+                is_array = False
+                if self.current_token() and self.current_token()[1] == '[':
+                    self.advance()
+                    self.expect(']', "Expected ']' after '[' in array parameter")
+                    is_array = True
+
+                parameters.append((param_name, param_type, is_array))
+
                 if self.current_token() and self.current_token()[1] == ',':
                     self.advance()
                 elif self.current_token() and self.current_token()[1] != ')':
@@ -417,21 +452,37 @@ class ASTGenerator:
         self.expect(')', "Missing closing parenthesis in function declaration")
         if self.current_token() and self.current_token()[1] == ';':
             self.advance()
-            return FunctionDeclNode(return_type, func_name, parameters, None, is_prototype=True)
+            return FunctionDeclNode(return_type, func_name, parameters, None, is_array, is_prototype=True)
         elif self.current_token() and self.current_token()[1] == '{':
             body = self.parse_block().statements
-            return FunctionDeclNode(return_type, func_name, parameters, body, is_prototype=False)
+            return FunctionDeclNode(return_type, func_name, parameters, body, is_array, is_prototype=False)
         else:
             raise SemanticError("Expected ';' or '{' after function parameter list", self.tokens[self.index][1][0])
 
     def parse_assignment_statement(self):
-        ident = self.current_token()[0]
-        self.advance()  # Skip identifier
+        # --- parse the LHS as either a bare identifier or an array access ---
+        lhs = self.parse_primary()
+        if not isinstance(lhs, (IdentifierNode, ArrayAccessNode)):
+            raise SemanticError(
+                "Invalid assignment target",
+                self.tokens[self.index][1][0]
+            )
+
+        # next must be one of the assignment operators
+        ops = ['=', '+=', '-=', '*=', '/=', '%=', '**=', '//=']
+        if not self.current_token() or self.current_token()[1] not in ops:
+            raise SemanticError(
+                "Expected assignment operator",
+                self.tokens[self.index][1][0]
+            )
         op = self.current_token()[1]
-        self.advance()  # Skip operator
+        self.advance()
+
+        # parse the RHS expression
         expr = self.parse_expression()
         self.expect(';', "Expected ';' at end of assignment statement")
-        return AssignmentNode(ident, op, expr)
+
+        return AssignmentNode(lhs, op, expr)
 
     def parse_function_call_statement(self):
         if not self.current_token() or self.current_token()[1] != 'id':
@@ -452,6 +503,26 @@ class ASTGenerator:
                 self.advance()
         self.expect(')', f"Missing ')' in function call to '{func_name}'")
         return FunctionCallNode(func_name, args)
+
+    # ───── NEW helper inside ASTGenerator ───────────────────────
+    def parse_adele_statement(self):
+        self.expect('adele',  "Expected 'adele'")
+        self.expect('(',      "Expected '(' after 'adele'")
+        target_arr = self.parse_expression()
+        self.expect(',',      "Expected ',' after first adele argument")
+        value_expr = self.parse_expression()
+        self.expect(')',      "Expected ')' after adele arguments")
+        self.expect(';',      "Expected ';' after adele call")
+        return FunctionCallNode('adele', [target_arr, value_expr])
+
+# ─── add the helper (anywhere near the other helpers) ─────
+    def parse_adelete_statement(self):
+        self.expect('adelete', "Expected 'adelete'")
+        self.expect('(',       "Expected '(' after 'adelete'")
+        target_expr = self.parse_expression()
+        self.expect(')',       "Expected ')' after adelete argument")
+        self.expect(';',       "Expected ';' after adelete call")
+        return FunctionCallNode('adelete', [target_expr])
 
     def parse_print_statement(self):
         self.advance()  # Skip 'serve'
@@ -665,6 +736,8 @@ class ASTGenerator:
         token = self.current_token()
         if not token:
             raise SemanticError("Unexpected end of expression", self.tokens[self.index-1][1][0])
+        if token[1] == '{':
+            return self.parse_array_initializer(None)  # Allow parsing {...} in expressions directly
         if token[1] == 'givenchy':
             self.advance()  # Skip 'givenchy'
             self.expect('(', "Expected '(' after 'givenchy'")
@@ -679,6 +752,11 @@ class ASTGenerator:
             lit_type = token[1].split('_')[0]
             node = LiteralNode(token[0], lit_type)
             self.advance()
+            while self.current_token() and self.current_token()[1] == '[':
+                self.advance()  # Skip '['
+                index_expr = self.parse_expression()
+                self.expect(']', "Missing ']' in string or array access")
+                node = ArrayAccessNode(node, [index_expr])
             return node
         elif token[1] in ['korik', 'eme']:
             self.advance()

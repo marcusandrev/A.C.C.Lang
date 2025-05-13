@@ -833,6 +833,7 @@ body.dark-mode
 
 .xterm-screen {
   height: 100% !important;
+  width: 100% !important;
 }
 
 .xterm-dom-renderer-owner-1 .xterm-rows {
@@ -843,9 +844,11 @@ body.dark-mode
 .xterm-rows > div {
   height: 13px !important;     /* Make the rows shorter */
   line-height: 12px !important; /* Align text to row height */
+  width: 100% !important;
 }
 
 .xterm-rows {
   min-height: calc(26 * 1em) !important; /* Assuming each row is approximately 1em in height */
+  width: 100% !important;
   overflow-y: hidden; /* Prevent overflow */
 }

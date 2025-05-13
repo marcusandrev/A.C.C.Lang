@@ -1,3 +1,8 @@
+def _cNoArray_(value, op):
+    if isinstance(value, list):
+        raise TypeError(f"Runtime error: array value used with operator {op}")
+    return value
+
 def _cNone_(value, name):
     if value is None:
         raise NameError(f"Runtime error: variable '{name}' used before initialization")
@@ -13,9 +18,9 @@ def _cType_(expected, value):
             except Exception:
                 raise TypeError("Type error: expected numeric value for type 'anda'")
         if v > 9999999999:
-            v = 9999999999
+            raise OverflowError("Overflow error: value exceeds maximum for type 'anda'")
         if v < -9999999999:
-            v = -9999999999
+            raise OverflowError("Overflow error: value exceeds minimum for type 'anda'")
         return v
     elif expected == 'andamhie':
         try:
@@ -28,9 +33,9 @@ def _cType_(expected, value):
         import math
         f = math.trunc(f * 1000000) / 1000000
         if f > 9999999999.999999:
-            f = 9999999999.999999
+            raise OverflowError("Overflow error: value exceeds maximum for type 'andamhie'")
         if f < -9999999999:
-            f = -9999999999.999999
+            raise OverflowError("Overflow error: value exceeds minimum for type 'andamhie'")
         return f
     elif expected == 'eklabool':
         try:
@@ -57,16 +62,23 @@ def _cArray_(expected, arr):
     else:
         return _cType_(expected, arr)
 
-def kween():
-    start_val_0 = 1
-    end_val_0 = 1000
-    step_val_0 = 1
-    if step_val_0 > 0:
-        end_bound_0 = end_val_0 + 1
-    else:
-        end_bound_0 = end_val_0 - 1
-    for x in range(start_val_0, end_bound_0, step_val_0):
-        print((str(_cNone_(x, 'x')) + "\n"), end='')
+def _cSameElemType_(expected, actual):
+    if expected != actual:
+        raise TypeError(
+            f"Type mismatch in adele(): target list holds {expected} "
+            f"but value is list[{actual}]"
+        )
+
+def _cEnsureArray_(value, name):
+    if not isinstance(value, list):
+        raise TypeError(f"Runtime error: cannot append to non-array '{name}'")
+    return value
+
+def _void():
+    return [1, 2, "hello"]
+
+def _kween():
+    print("Hello", end='')
 
 if __name__ == '__main__':
-    kween()
+    _kween()
