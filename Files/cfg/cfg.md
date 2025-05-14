@@ -27,12 +27,10 @@
 | 23 | \<multi-parameters\> | → | λ |
 | 24 | \<array-dec\> | → | \[ \] |
 | 25 | \<array-dec\> | → | λ |
-|  | \<array-indexing\> | → | \[ \<array-values\> \] \<2d-index\>  |
+|  | \<array-indexing\> | → | \[ \<array-values\> \] \<multi-index\>  |
 |  | \<array-indexing\> | → | λ |
-| 26 | \<2d-index\> | → | \[ \<array-values\> \] \<3d-index\> |
-| 27 | \<2d-index\> | → | λ |
-| 28 | \<3d-index\>  | → | \[ \<array-values\> \] |
-| 29 | \<3d-index\>  | → | λ |
+| 26 | \<multi-index\> | → | \[ \<array-values\> \] \<multi-index\> |
+| 27 | \<multi-index\> | → | λ |
 | 30 | \<array-values\> | → | \<expression\> |
 | 31 | \<literals\> | → | anda\_literal |
 | 32 | \<literals\> | → | andamhie\_literal |

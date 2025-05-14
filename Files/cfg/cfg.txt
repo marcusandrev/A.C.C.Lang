@@ -23,12 +23,10 @@
  <multi-parameters> -> λ 
  <array-dec> -> [ ] 
  <array-dec> -> λ 
- <array-indexing> -> [ <array-values> ] <2d-index>  
+ <array-indexing> -> [ <array-values> ] <multi-index>  
  <array-indexing> -> λ 
- <2d-index> -> [ <array-values> ] <3d-index> 
- <2d-index> -> λ 
- <3d-index>  -> [ <array-values> ] 
- <3d-index>  -> λ 
+ <multi-index> -> [ <array-values> ] <multi-index> 
+ <multi-index> -> λ 
  <array-values> -> <expression> 
  <literals> -> anda_literal 
  <literals> -> andamhie_literal 
@@ -209,4 +207,5 @@
  <unary-stmts> -> id <unary-operator> ; 
  <push-values> -> <expression> 
  <push-values> -> { <array-elements> } 
- <push-values> -> λ
+ <push-values> -> λ 
+

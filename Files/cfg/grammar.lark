@@ -82,9 +82,8 @@ parameters: func_parameters multi_parameters  |
 func_parameters: data_type ID array_dec 
 multi_parameters: COMMA func_parameters multi_parameters  |  
 array_dec: LSQB RSQB  |  
-array_indexing: LSQB array_values RSQB twod_index  |  
-twod_index: LSQB array_values RSQB threed_index  |  
-threed_index: LSQB array_values RSQB  |  
+array_indexing: LSQB array_values RSQB multi_index  |  
+multi_index: LSQB array_values RSQB multi_index  |  
 array_values: expression 
 literals: ANDA_LITERAL  | ANDAMHIE_LITERAL  | CHIKA_LITERAL array_indexing  | eklabool 
 eklabool: KORIK  | EME 
