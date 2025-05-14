@@ -7,12 +7,6 @@ class Parser:
         self.log = ''
         self._source_code = source_code
         self.ast = ''
-        # for token in self._token_stream:
-        #     if token[1] == 'whitespace': self._source_code += ' '
-        #     elif token[1] == 'newline': self._source_code += '\n'
-        #     elif token[1][:2] == 'id': self._source_code += 'id'
-        #     else: self._source_code += token[1]
-        # print(f'\n{self._source_code}')
 
     def clean_expected(self, expected: list):
         temp = []
@@ -90,17 +84,12 @@ class Parser:
 
         try:
             parse_tree = parser.parse(self._source_code)
-            # print(parse_tree.pretty())
             self.ast = parse_tree
         except Exception as e:
-            # print(f"Parsing error: {e}")
             source = self._source_code.splitlines('\n')
             source[-1] += ' '
             index = (e.line if e.line > 0 else len(source), e.column if e.column > 0 else len(source[-1]))
             unexpected = UnexpectedError(source[index[0]-1], index)
-            # for char in source[index[0]-1][index[1]-1:]:
-            #     if char in [' ', '\n']: break
-            #     unexpected += char
 
             try:
                 expected = e.allowed
@@ -108,6 +97,4 @@ class Parser:
                 expected = e.expected
 
             expected = self.clean_expected(expected)
-            # print(e)
             self.log = f'Unexpected token at line {index[0]} column {index[1]}: {unexpected}\nExpected any: {expected}'
-            # print(self.log)
