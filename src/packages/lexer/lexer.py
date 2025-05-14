@@ -6,20 +6,6 @@ from .token import tokenize
 # Lexer.token_stream stores lexemes and tokens
 # Lexer.log stores the error log
 
-def print_lex(source: str):
-    if not source[0:]: # Quit the program if source code is empty
-        print("quitting")
-        exit(1)
-
-    lex = Lexer(source)
-    lex.start()
-
-    print(lex.log)
-
-    print(f"{'-'*10}LEXEME{'-'*10 + ' '*5 + '-'*10}TOKEN{'-'*10}")
-    for lexeme, token in lex.token_stream:
-        print(f'{lexeme:^26}{' '*5}{token:^25}')
-
 class Lexer:
     def __init__(self, source: str):
         source = source.splitlines()
@@ -111,8 +97,7 @@ class Lexer:
                 if curr_char == '\0' and not STATES[state].isEnd:
                     if state >= 300 and state <= 304:
                         return UnclosedString(self._source[self._index[0] - 1], self._index)
-                    # if state >= 265 and state <= 269:
-                    #     return UnclosedComment(self._source[self._index[0] - 1], self._index)
+
                     if state >= 306 and state <= 309: # Unclosed comment will be returned
                         return ''
                     
@@ -148,20 +133,6 @@ class Lexer:
             return UnknownCharError(self._source[self._index[0]], self._index)
         if curr_state >= 154 and curr_state <= 225: return DelimError(self._source[self._index[0]], self._index, STATES[state].chars)
         return None
-    
-   
-    # def lexemize_int_float(self, curr_state: int = 0):
-    #     branches = STATES[curr_state].branches
-    #     for state in branches:
-    #         curr_char = self.curr_char()
-    #         if self.curr_char() not in STATES[state].chars: continue
-    #         print(f"{curr_state} -> {state}: {curr_char if len(STATES[state].branches) > 0 else "end state"}")
-    #         if len(STATES[state].branches) == 0: return ''
-    #         self.advance()
-    #         num = self.lexemize(state)
-    #         if num is not None: return curr_char + num
-    #         else:self.reverse()
-    #     return None
     
 
 if __name__ == "__main__":

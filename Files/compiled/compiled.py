@@ -74,11 +74,9 @@ def _cEnsureArray_(value, name):
         raise TypeError(f"Runtime error: cannot append to non-array '{name}'")
     return value
 
-def _void():
-    return [1, 2, "hello"]
-
 def _kween():
-    print("Hello", end='')
+    _x = _cType_('andamhie', 99.005)
+    print(_cNone_(_x, 'x'), end='')
 
 if __name__ == '__main__':
     _kween()
