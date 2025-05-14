@@ -2,7 +2,6 @@
 
 def tokenize(lexemes: list[str], metadata: list):
     token_stream = []
-    id_map = {}
     for lexeme in lexemes:
         if lexeme == ' ':
             token_stream.append((lexeme, 'whitespace'))

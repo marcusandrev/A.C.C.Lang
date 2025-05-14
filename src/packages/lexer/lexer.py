@@ -11,7 +11,6 @@ class Lexer:
         source = source.splitlines()
         self._source = [line + '\n' if x != len(source)-1 else line for x, line in enumerate(source)] # Converts source into a list of lines
         self._index = 0, 0
-        self._id_map: dict = {}
         self._lexemes: list[str] = []
         self.token_stream: list[dict] = []
         self.log = ""
@@ -21,14 +20,6 @@ class Lexer:
     def curr_char(self):
         if self._index[1] >= len(self._source[-1]) and self._index[0] >= len(self._source) - 1: return "\0"
         return self._source[self._index[0]][self._index[1]]
-    def next_char(self):
-        # if self._index[0] + 1 >= len(self._source): return "\0"
-        # return self._source[self._index + 1]
-
-        if self._index[1] + 1 >= len(self._source[self._index[0]]):
-            if self._index[0] + 1 >= len(self._source): return "\0"
-            else: return self._source[self._index[0] + 1][0]
-        else: return self._source[self._index[0]][self._index[1] + 1]
 
     def is_EOF(self):
         return self.curr_char() == "\0"
@@ -52,7 +43,6 @@ class Lexer:
         while not self.is_EOF():
             metadata.append(self._index)
             curr_char = self.curr_char()
-            # next_char = self.next_char()
             if curr_char == ' ':
                 self._lexemes.append(' ')
                 self.advance()
@@ -75,7 +65,7 @@ class Lexer:
                 print(lexeme)
                 self.log += str(lexeme) + '\n'
                 continue
-            elif type(lexeme) in [UnclosedString, UnclosedComment]:
+            elif type(lexeme) in [UnclosedString]:
                 print(lexeme)
                 self.log += str(lexeme) + '\n'
                 self.advance(len(''.join(self._source)))
@@ -121,9 +111,6 @@ class Lexer:
             if type(lexeme) is UnclosedString:
                 self.reverse()
                 return UnclosedString(self._source[self._index[0]], self._index)
-            if type(lexeme) is UnclosedComment:
-                self.reverse()
-                return UnclosedComment(self._source[self._index[0]], self._index)
             if state <= 153:
                 self.reverse()
                 
