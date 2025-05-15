@@ -463,8 +463,8 @@ class SemanticAnalyzer:
                 self.allow_unindexed_array_usage = saved_flag
                 initializer_value = rhs_type
 
-                if is_array and not self._is_array_type(rhs_type):
-                    self.log += str(SemanticError(f"Array variable '{var_name}' must be initialised with an array value", self._token_stream[self.token_index][1][0])) + '\n'
+                # if is_array and not self._is_array_type(rhs_type):
+                #     self.log += str(SemanticError(f"Array variable '{var_name}' must be initialised with an array value", self._token_stream[self.token_index][1][0])) + '\n'
                 if (not is_array) and self._is_array_type(rhs_type):
                     self.log += str(SemanticError(f"Scalar variable '{var_name}' cannot be initialised with an array value", self._token_stream[self.token_index][1][0])) + '\n'
 
