@@ -123,7 +123,11 @@ class CodeGenerator:
         self.emit_helper_functions()
         self.visit(node)
         self.code_lines.append("if __name__ == '__main__':")
-        self.code_lines.append("    _kween()")
+        self.code_lines.append("    try:")
+        self.code_lines.append("        _kween()")
+        self.code_lines.append("    except Exception as e:")
+        self.code_lines.append("        print()")
+        self.code_lines.append("        print(e)")
         return "\n".join(self.code_lines) + "\n"
 
     def visit(self, node):
