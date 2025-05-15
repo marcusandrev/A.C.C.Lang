@@ -1630,7 +1630,7 @@ class SemanticAnalyzer:
             self.advance()  # skip ')'
             return "givenchy"
 
-        if token[1] == 'id' and token[0] == 'len' and self.next_token() and self.next_token()[1] == '(':
+        if token[0] == 'len' and self.next_token() and self.next_token()[1] == '(':
             pos = self._token_stream[self.token_index][1][0]
             self.advance()  # skip 'len'
             self.advance()  # skip '('
