@@ -159,6 +159,13 @@ class CodeGenerator:
         for stmt in statements:
             self.emit_statement(stmt)
 
+    def get_base_identifier_name(self, expr):
+        while isinstance(expr, ArrayAccessNode):
+            expr = expr.array
+        if isinstance(expr, IdentifierNode):
+            return expr.name
+        return "<unknown>"
+
     def visit_ProgramNode(self, node):
         self.emit_statements(node.statements)
 
@@ -311,12 +318,12 @@ class CodeGenerator:
             # literal {…} on RHS
             if isinstance(node.expression, list):
                 rhs_code  = self.visit_list(node.expression)
-                base_name = node.identifier.array.name
+                base_name = self.get_base_identifier_name(node.identifier)
                 elem_type = self.lookup_variable(base_name)[0]
                 rhs_code  = f"_cArray_('{elem_type}', {rhs_code})"
             else:
                 rhs_code  = self.visit(node.expression)
-                base_name = node.identifier.array.name
+                base_name = self.get_base_identifier_name(node.identifier)
                 elem_type = self.lookup_variable(base_name)[0]
                 rhs_code  = f"_cType_('{elem_type}', {rhs_code})"
 
