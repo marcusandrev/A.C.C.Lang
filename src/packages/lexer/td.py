@@ -27,7 +27,7 @@ STATES = {
     91: State('k', [92, 96, 101]), 92: State('e', 93), 93: State('r', 94), 94: State('i', 95), 95: State(DELIMS['control_flow_delim'], end = True),
                                    96: State('o', 97), 97: State('r', 98), 98: State('i', 99), 99: State('k', 100), 100: State(DELIMS['bool_delim'], end = True),
                                   101: State('w', 102), 102: State('e', 103), 103: State('e', 104), 104: State('n', 105), 105: State(DELIMS['control_flow_delim'], end = True),
-   106: State('l', [107, 111]), 107: State('a', 108), 108: State('n', 109), 109: State('g', 110), 110: State(DELIMS['kerilang_ganern_delim'], end = True),
+   106: State('l', [107]), 107: State('a', 108), 108: State('n', 109), 109: State('g', 110), 110: State(DELIMS['kerilang_ganern_delim'], end = True),
                          111: State('e', 112), 112: State('n', 113), 113: State(DELIMS['control_flow_delim'], end = True),
 
 
