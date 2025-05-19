@@ -696,25 +696,35 @@ class SemanticAnalyzer:
             result.append(nested)
         return result
 
-    def is_type_compatible_array_append(self, array_type, value_type):
-        """Checks if value_type is allowed to be inserted into array of array_type."""
+    def is_type_compatible_array_append(self, array_type: str, value_type: str) -> bool:
+        """
+        Returns True when a value of *value_type* can be appended to an
+        array whose element type is *array_type*.
+
+        •  Scalars of the same “family” are always allowed (the original logic).  
+        •  NEW  –  An *array_* whose **base type** matches *array_type*
+           is now accepted as well, enabling calls such as
+           `adele(msgs, msgs2)` or `adele(nums, {"1", "2"})` for all
+           supported element kinds.
+        """
+
+        # peel off one level of `array_…`  – appending an array’s *contents*
+        # is allowed as long as its base element type matches.
+        if isinstance(value_type, str) and value_type.startswith("array_"):
+            return value_type[len("array_"):] == array_type
+
+        # -------- numeric (anda/andamhie) ----------
         if array_type in ['anda', 'andamhie']:
-           # allow either a scalar of the same category, *or* an array whose base type
-           # matches array_type (i.e. nested array)
-           if value_type in ['anda', 'andamhie', 'eklabool']:
-               return True
-           if isinstance(value_type, str) and value_type.startswith("array_"):
-               return value_type[len("array_"):] == array_type
-           return False
+            return value_type in ['anda', 'andamhie', 'eklabool']
+
+        # -------- boolean --------------------------
         if array_type == 'eklabool':
-           if value_type in ['anda', 'andamhie', 'eklabool', 'chika']:
-               return True
-           if isinstance(value_type, str) and value_type.startswith("array_"):
-               return value_type[len("array_"):] == array_type
-           return False
+            return value_type in ['eklabool', 'anda', 'andamhie', 'chika']
+
+        # -------- strings --------------------------
         if array_type == 'chika':
-           # strings cannot be nested, so only literal chika
-           return value_type == 'chika'
+            return value_type == 'chika'
+
         return False
 
     def process_adele_statement(self):
