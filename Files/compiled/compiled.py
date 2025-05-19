@@ -75,10 +75,7 @@ def _cEnsureArray_(value, name):
     return value
 
 def _kween():
-    _arr1 = _cArray_('chika', ["hello", "world"])
-    _arr2 = _cArray_('chika', ["hi", "hey"])
-    _cEnsureArray_(_cNone_(_arr1, 'arr1'), 'arr1').append(_cType_('chika', _cNone_(_arr2, 'arr2')[0]))
-    print(_cNone_(_arr1, 'arr1'), end='')
+    _x = _cArray_('anda', [1, 2, 3])
 
 if __name__ == '__main__':
     try:
