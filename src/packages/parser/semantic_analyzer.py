@@ -474,39 +474,54 @@ class SemanticAnalyzer:
         self.register_variable(data_type, var_name, is_constant, initializer_value, is_array)
 
     def process_array_initializer_dynamic(self, var_type=None, dim_index=0):
+        """
+        Parses an array literal (possibly nested) such as:
+            {1, 2, x}        or     {{1,2}, {3,4}}
+        • While inside the initializer we *temporarily* allow bare-array
+        variables to appear un-indexed so that an existing array variable
+        can itself be a member of the new array.
+        • Returns a Python list mirroring the literal’s structure where
+        each leaf entry is the semantic type it resolved to
+        (e.g. 'anda', 'array_anda', …).
+        """
+        # --------------------------------------------------------------
+        # ①  relax “must index arrays” rule for the duration of { … }
+        # --------------------------------------------------------------
+        saved_flag = self.allow_unindexed_array_usage
+        self.allow_unindexed_array_usage = True
+
         if not self.current_token() or self.current_token()[1] != '{':
-            self.log += str(SemanticError("Expected '{' to start array initializer", self._token_stream[self.token_index][1][0])) + '\n'
+            self.log += str(SemanticError(
+                "Expected '{' to start array initializer",
+                self._token_stream[self.token_index][1][0])) + '\n'
+            # restore flag and bail out
+            self.allow_unindexed_array_usage = saved_flag
             return []
 
-        self.advance()  # skip '{'
+        self.advance()                          # skip '{'
         elements = []
         count_elements = 0
 
         while self.current_token() and self.current_token()[1] != '}':
             if self.current_token()[1] == '{':
-                sub_array = self.process_array_initializer_dynamic(var_type, dim_index + 1)
+                # nested sub-array
+                sub_array = self.process_array_initializer_dynamic(
+                    var_type, dim_index + 1)
                 elements.append(sub_array)
             else:
+                # scalar literal *or* array/scalar variable
                 element_type = self.evaluate_expression()
-                if var_type:
-                    if var_type in ['anda', 'andamhie']:
-                        if element_type not in ['anda', 'andamhie', 'eklabool']:
-                            self.log += str(SemanticError(
-                                f"Array of type '{var_type}' cannot have element of type '{element_type}'",
-                                self._token_stream[self.token_index][1][0]
-                            )) + '\n'
-                    elif var_type == 'eklabool':
-                        if element_type not in ['eklabool', 'anda', 'andamhie']:
-                            self.log += str(SemanticError(
-                                f"Array of type 'eklabool' cannot have element of type '{element_type}'",
-                                self._token_stream[self.token_index][1][0]
-                            )) + '\n'
-                    elif var_type == 'chika':
-                        if element_type != 'chika':
-                            self.log += str(SemanticError(
-                                f"Array of type 'chika' cannot have element of type '{element_type}'",
-                                self._token_stream[self.token_index][1][0]
-                            )) + '\n'
+
+                # ------------------------------------------------------
+                # ②  unified compatibility check (scalar vs. array_* ok)
+                # ------------------------------------------------------
+                if var_type and not self.is_type_compatible_array_append(
+                        var_type, element_type):
+                    self.log += str(SemanticError(
+                        f"Array of type '{var_type}' cannot have element "
+                        f"of type '{element_type}'",
+                        self._token_stream[self.token_index][1][0])) + '\n'
+
                 elements.append(element_type)
 
             count_elements += 1
@@ -515,11 +530,18 @@ class SemanticAnalyzer:
                 self.advance()
 
         if not self.current_token() or self.current_token()[1] != '}':
-            self.log += str(SemanticError("Expected '}' at end of array initializer", self._token_stream[self.token_index][1][0])) + '\n'
+            self.log += str(SemanticError(
+                "Expected '}' at end of array initializer",
+                self._token_stream[self.token_index][1][0])) + '\n'
         else:
-            self.advance()
+            self.advance()                      # skip '}'
 
+        # --------------------------------------------------------------
+        # ③  restore previous “no bare arrays in expressions” setting
+        # --------------------------------------------------------------
+        self.allow_unindexed_array_usage = saved_flag
         return elements
+
 
     def register_variable(self, var_type, var_name, is_constant, initializer_value, is_array=False):
         entry = {
