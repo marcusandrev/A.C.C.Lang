@@ -41,7 +41,7 @@ def handle_compile_and_run(data):
         error_log = "Lexical Error/s\n\n" + str(lex.log)
 
     if not error_log:
-        parser = Parser(source_code, tokens)
+        parser = Parser(source_code)
         parser.start()
         if parser.log:
             error_log = "Syntax Error/s\n\n" + parser.log

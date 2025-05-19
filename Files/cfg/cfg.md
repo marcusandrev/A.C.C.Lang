@@ -70,7 +70,7 @@
 | 72 | \<arguments\> | → | λ |
 | 73 | \<multi-arguments-value\> | → | , \<arguments-value\> \<multi-arguments-value\> |
 | 74 | \<multi-arguments-value\> | → | λ |
-| 75 | \<arguments-value\> | → | \<expression\> |
+| 75 | \<arguments-value\> | → | \<assignment-values\> |
 | 76 | \<array-assign\> | → | id \<array-indexing\> \= \<array-values\> ; |
 | 77 | \<array-assign\> | → | λ |
 | 78 | \<kween-body\> | → | \<func-body\> |
@@ -158,7 +158,7 @@
 | 150 | \<output-stmts\> | → | serve ( \<output-values\> ) ; |
 |  | \<append-stmts\> | → | adele ( id \<array-indexing\> , \<assignment-values\> ) ; |
 |  | \<delete-stmts\> | → | adelete ( id \<array-indexing\> ) ; |
-| 151 | \<output-values\> | → | \<expression\> |
+| 151 | \<output-values\> | → | \<assignment-values\> |
 | 152 | \<conditional-stmts\> | → | pak ( \<condition\> ) { \<conditional-body\> } \<ganern-pak-statement\> \<ganern-case\> |
 | 153 | \<condition\> | → | \<expression\> |
 | 154 | \<conditional-body\> | → | \<statements\>  |

@@ -66,7 +66,7 @@
  <arguments> -> λ 
  <multi-arguments-value> -> , <arguments-value> <multi-arguments-value> 
  <multi-arguments-value> -> λ 
- <arguments-value> -> <expression> 
+ <arguments-value> -> <assignment-values> 
  <array-assign> -> id <array-indexing> = <array-values> ; 
  <array-assign> -> λ 
  <kween-body> -> <func-body> 
@@ -154,7 +154,7 @@
  <output-stmts> -> serve ( <output-values> ) ; 
  <append-stmts> -> adele ( id <array-indexing> , <assignment-values> ) ; 
  <delete-stmts> -> adelete ( id <array-indexing> ) ; 
- <output-values> -> <expression> 
+ <output-values> -> <assignment-values> 
  <conditional-stmts> -> pak ( <condition> ) { <conditional-body> } <ganern-pak-statement> <ganern-case> 
  <condition> -> <expression> 
  <conditional-body> -> <statements>  

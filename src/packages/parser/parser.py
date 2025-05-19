@@ -2,8 +2,7 @@ from lark import Lark
 from .error_handler import UnexpectedError
 
 class Parser:
-    def __init__(self, source_code, token_stream):
-        self._token_stream = token_stream
+    def __init__(self, source_code):
         self.log = ''
         self._source_code = source_code
         self.ast = ''

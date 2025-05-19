@@ -103,7 +103,7 @@ local_dec: local_dec_init array_assign local_dec  |
 local_dec_init: naur_case data_type var_init SEMICOLON  | data_type ID array_dec array_init SEMICOLON 
 arguments: arguments_value multi_arguments_value  |  
 multi_arguments_value: COMMA arguments_value multi_arguments_value  |  
-arguments_value: expression 
+arguments_value: assignment_values 
 array_assign: ID array_indexing EQUAL array_values SEMICOLON  |  
 kween_body: func_body 
 expression: simple_expression  | multi_expression 
@@ -130,7 +130,7 @@ givenchy_values: expression_operands
 output_stmts: SERVE LPAR output_values RPAR SEMICOLON 
 append_stmts: ADELE LPAR ID array_indexing COMMA assignment_values RPAR SEMICOLON 
 delete_stmts: ADELETE LPAR ID array_indexing RPAR SEMICOLON 
-output_values: expression 
+output_values: assignment_values 
 conditional_stmts: PAK LPAR condition RPAR LBRACE conditional_body RBRACE ganern_pak_statement ganern_case 
 condition: expression 
 conditional_body: statements  |  

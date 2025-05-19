@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     if len(lexer.log) <= 0:
         print(lexer.token_stream, end='\n\n')
-        parser = Parser(source_code, lexer.token_stream)
+        parser = Parser(source_code)
         # parser = parse(lexer.token_stream)
         parser.start()
         print(parser.log)

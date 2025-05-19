@@ -74,9 +74,23 @@ def _cEnsureArray_(value, name):
         raise TypeError(f"Runtime error: cannot append to non-array '{name}'")
     return value
 
+def _myFunc(_msgs):
+    _start_val_0 = 0
+    _end_val_0 = _cType_('anda', (_cNoArray_(_cType_('anda', len(_cNone_(_msgs, 'msgs'))), '-') - _cNoArray_(1, '-')))
+    _step_val_0 = 1
+    if _step_val_0 > 0:
+        _end_bound_0 = _end_val_0 + 1
+    else:
+        _end_bound_0 = _end_val_0 - 1
+    for _i in range(_start_val_0, _end_bound_0, _step_val_0):
+        print((str(_cNoArray_(_cNone_(_msgs, 'msgs')[_cNone_(_i, 'i')], '+')) + _cNoArray_("\n", '+')), end='')
+
 def _kween():
-    _x = _cType_('andamhie', 99.005)
-    print(_cNone_(_x, 'x'), end='')
+    _myFunc(["Hello", "World!"])
 
 if __name__ == '__main__':
-    _kween()
+    try:
+        _kween()
+    except Exception as e:
+        print()
+        print(e)
