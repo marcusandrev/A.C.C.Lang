@@ -80,6 +80,8 @@ saveButton.addEventListener('click', () => {
 CodeMirror.defineMode('acclang', function (config, parserConfig) {
   var keywords = new Set([
     'eklabool',
+    'adele',
+    'adelete',
     'anda',
     'andamhie',
     'chika',
@@ -101,6 +103,7 @@ CodeMirror.defineMode('acclang', function (config, parserConfig) {
     'push',
     'korik',
     'eme',
+    'len',
     'naur',
     'from',
     'to',
@@ -233,6 +236,9 @@ CodeMirror.registerHelper('hint', 'acclang', function (editor) {
   var word = token.string;
   var keywords = [
     'eklabool',
+    'adele',
+    'adelete',
+    'len',
     'anda',
     'andamhie',
     'chika',

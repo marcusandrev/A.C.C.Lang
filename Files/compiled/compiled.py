@@ -74,11 +74,12 @@ def _cEnsureArray_(value, name):
         raise TypeError(f"Runtime error: cannot append to non-array '{name}'")
     return value
 
-def _void():
-    return [1, 2, "hello"]
-
 def _kween():
-    print("Hello", end='')
+    _x = _cArray_('anda', [1, 2, 3])
 
 if __name__ == '__main__':
-    _kween()
+    try:
+        _kween()
+    except Exception as e:
+        print()
+        print(e)

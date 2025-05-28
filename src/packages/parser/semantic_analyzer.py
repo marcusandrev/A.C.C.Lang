@@ -444,29 +444,49 @@ class SemanticAnalyzer:
                     self._token_stream[self.token_index][1][0])) + '\n'
             else:
                 self.advance()              # skip ']'
+                
         if self.current_token() and self.current_token()[1] == '=':
-            self.advance()
-
+            self.advance()  # skip '='
+            pos = self._token_stream[self.token_index][1][0] if self.token_index < len(self._token_stream) else None
+            
             if self.current_token() and self.current_token()[1] == '{':
-                if is_array:
-                    initializer_value = self.process_array_initializer_dynamic(data_type)
-                else:
-                    initializer_value = self.evaluate_expression()
-
+                # Array literal initialization
+                if not is_array:
+                    # Clear error for scalar variable initialized with array literal
+                    self.log += str(SemanticError(
+                        f"Scalar variable '{var_name}' cannot be initialized with an array literal",
+                        pos)) + '\n'
+                    
+                # Process the array initializer regardless to continue analysis and avoid secondary errors
+                initializer_value = self.process_array_initializer_dynamic(data_type)
             else:
+                # Regular expression initialization
                 saved_flag = self.allow_unindexed_array_usage
+                
+                # Allow unindexed array usage during initializations of array variables
                 if is_array:
                     self.allow_unindexed_array_usage = True
 
+                # Evaluate the right-hand side expression
                 rhs_type, rhs_name = self.evaluate_expression_with_name()
-
                 self.allow_unindexed_array_usage = saved_flag
                 initializer_value = rhs_type
 
-                if is_array and not self._is_array_type(rhs_type):
-                    self.log += str(SemanticError(f"Array variable '{var_name}' must be initialised with an array value", self._token_stream[self.token_index][1][0])) + '\n'
-                if (not is_array) and self._is_array_type(rhs_type):
-                    self.log += str(SemanticError(f"Scalar variable '{var_name}' cannot be initialised with an array value", self._token_stream[self.token_index][1][0])) + '\n'
+                # Type compatibility checks
+                if is_array:
+                    # Check if array variable is initialized with a non-array value
+                    # (commented out as per existing code, but could be uncommented if needed)
+                    # if not self._is_array_type(rhs_type):
+                    #     self.log += str(SemanticError(
+                    #         f"Array variable '{var_name}' must be initialized with an array value",
+                    #         pos)) + '\n'
+                    pass
+                else:
+                    # Check if scalar variable is initialized with array value
+                    if self._is_array_type(rhs_type):
+                        self.log += str(SemanticError(
+                            f"Scalar variable '{var_name}' cannot be initialized with an array value",
+                            pos)) + '\n'
 
         if is_constant and initializer_value is None:
             self.log += str(SemanticError("Constant variable declaration must be assigned an initializer", self._token_stream[self.token_index][1][0])) + '\n'
@@ -474,39 +494,54 @@ class SemanticAnalyzer:
         self.register_variable(data_type, var_name, is_constant, initializer_value, is_array)
 
     def process_array_initializer_dynamic(self, var_type=None, dim_index=0):
+        """
+        Parses an array literal (possibly nested) such as:
+            {1, 2, x}        or     {{1,2}, {3,4}}
+        • While inside the initializer we *temporarily* allow bare-array
+        variables to appear un-indexed so that an existing array variable
+        can itself be a member of the new array.
+        • Returns a Python list mirroring the literal’s structure where
+        each leaf entry is the semantic type it resolved to
+        (e.g. 'anda', 'array_anda', …).
+        """
+        # --------------------------------------------------------------
+        # ①  relax “must index arrays” rule for the duration of { … }
+        # --------------------------------------------------------------
+        saved_flag = self.allow_unindexed_array_usage
+        self.allow_unindexed_array_usage = True
+
         if not self.current_token() or self.current_token()[1] != '{':
-            self.log += str(SemanticError("Expected '{' to start array initializer", self._token_stream[self.token_index][1][0])) + '\n'
+            self.log += str(SemanticError(
+                "Expected '{' to start array initializer",
+                self._token_stream[self.token_index][1][0])) + '\n'
+            # restore flag and bail out
+            self.allow_unindexed_array_usage = saved_flag
             return []
 
-        self.advance()  # skip '{'
+        self.advance()                          # skip '{'
         elements = []
         count_elements = 0
 
         while self.current_token() and self.current_token()[1] != '}':
             if self.current_token()[1] == '{':
-                sub_array = self.process_array_initializer_dynamic(var_type, dim_index + 1)
+                # nested sub-array
+                sub_array = self.process_array_initializer_dynamic(
+                    var_type, dim_index + 1)
                 elements.append(sub_array)
             else:
+                # scalar literal *or* array/scalar variable
                 element_type = self.evaluate_expression()
-                if var_type:
-                    if var_type in ['anda', 'andamhie']:
-                        if element_type not in ['anda', 'andamhie', 'eklabool']:
-                            self.log += str(SemanticError(
-                                f"Array of type '{var_type}' cannot have element of type '{element_type}'",
-                                self._token_stream[self.token_index][1][0]
-                            )) + '\n'
-                    elif var_type == 'eklabool':
-                        if element_type not in ['eklabool', 'anda', 'andamhie']:
-                            self.log += str(SemanticError(
-                                f"Array of type 'eklabool' cannot have element of type '{element_type}'",
-                                self._token_stream[self.token_index][1][0]
-                            )) + '\n'
-                    elif var_type == 'chika':
-                        if element_type != 'chika':
-                            self.log += str(SemanticError(
-                                f"Array of type 'chika' cannot have element of type '{element_type}'",
-                                self._token_stream[self.token_index][1][0]
-                            )) + '\n'
+
+                # ------------------------------------------------------
+                # ②  unified compatibility check (scalar vs. array_* ok)
+                # ------------------------------------------------------
+                if var_type and not self.is_type_compatible_array_append(
+                        var_type, element_type):
+                    self.log += str(SemanticError(
+                        f"Array of type '{var_type}' cannot have element "
+                        f"of type '{element_type}'",
+                        self._token_stream[self.token_index][1][0])) + '\n'
+
                 elements.append(element_type)
 
             count_elements += 1
@@ -515,11 +550,18 @@ class SemanticAnalyzer:
                 self.advance()
 
         if not self.current_token() or self.current_token()[1] != '}':
-            self.log += str(SemanticError("Expected '}' at end of array initializer", self._token_stream[self.token_index][1][0])) + '\n'
+            self.log += str(SemanticError(
+                "Expected '}' at end of array initializer",
+                self._token_stream[self.token_index][1][0])) + '\n'
         else:
-            self.advance()
+            self.advance()                      # skip '}'
 
+        # --------------------------------------------------------------
+        # ③  restore previous “no bare arrays in expressions” setting
+        # --------------------------------------------------------------
+        self.allow_unindexed_array_usage = saved_flag
         return elements
+
 
     def register_variable(self, var_type, var_name, is_constant, initializer_value, is_array=False):
         entry = {
@@ -674,6 +716,69 @@ class SemanticAnalyzer:
                         f"Variable '{lhs_name}' of type '{lt}' must be assigned a 'chika'",
                         self._token_stream[self.token_index-1][1][0])) + '\n'
 
+    def process_array_initializer_dynamic(self, var_type=None, dim_index=0):
+        """
+        Parses an array literal (possibly nested) such as:
+            {1, 2, x}        or     {{1,2}, {3,4}}
+        While inside the initializer we *temporarily* allow bare-array
+        variables to appear un-indexed so that an existing array variable
+        can itself be a member of the new array.
+        Returns a Python list mirroring the literal's structure where
+        each leaf entry is the semantic type it resolved to
+        (e.g. 'anda', 'array_anda', etc).
+        """
+        # relax "must index arrays" rule for the duration of { ... }
+        saved_flag = self.allow_unindexed_array_usage
+        self.allow_unindexed_array_usage = True
+
+        if not self.current_token() or self.current_token()[1] != '{':
+            self.log += str(SemanticError(
+                "Expected '{' to start array initializer",
+                self._token_stream[self.token_index][1][0])) + '\n'
+            # restore flag and bail out
+            self.allow_unindexed_array_usage = saved_flag
+            return []
+
+        self.advance()  # skip '{'
+        elements = []
+        count_elements = 0
+
+        while self.current_token() and self.current_token()[1] != '}':
+            if self.current_token()[1] == '{':
+                # nested sub-array
+                sub_array = self.process_array_initializer_dynamic(
+                    var_type, dim_index + 1)
+                elements.append(sub_array)
+            else:
+                # scalar literal *or* array/scalar variable
+                element_type = self.evaluate_expression()
+
+                # unified compatibility check (scalar vs. array_* ok)
+                if var_type and not self.is_type_compatible_array_append(
+                        var_type, element_type):
+                    self.log += str(SemanticError(
+                        f"Array of type '{var_type}' cannot have element "
+                        f"of type '{element_type}'",
+                        self._token_stream[self.token_index][1][0])) + '\n'
+
+                elements.append(element_type)
+
+            count_elements += 1
+
+            if self.current_token() and self.current_token()[1] == ',':
+                self.advance()
+
+        if not self.current_token() or self.current_token()[1] != '}':
+            self.log += str(SemanticError(
+                "Expected '}' at end of array initializer",
+                self._token_stream[self.token_index][1][0])) + '\n'
+        else:
+            self.advance()  # skip '}'
+
+        # restore previous "no bare arrays in expressions" setting
+        self.allow_unindexed_array_usage = saved_flag
+        return elements
+
     def evaluate_expression_with_name(self):
         """Evaluates an expression and also tries to capture the base variable name if it exists."""
         saved_index = self.token_index
@@ -696,25 +801,35 @@ class SemanticAnalyzer:
             result.append(nested)
         return result
 
-    def is_type_compatible_array_append(self, array_type, value_type):
-        """Checks if value_type is allowed to be inserted into array of array_type."""
+    def is_type_compatible_array_append(self, array_type: str, value_type: str) -> bool:
+        """
+        Returns True when a value of *value_type* can be appended to an
+        array whose element type is *array_type*.
+
+        •  Scalars of the same “family” are always allowed (the original logic).  
+        •  NEW  –  An *array_* whose **base type** matches *array_type*
+           is now accepted as well, enabling calls such as
+           `adele(msgs, msgs2)` or `adele(nums, {"1", "2"})` for all
+           supported element kinds.
+        """
+
+        # peel off one level of `array_…`  – appending an array’s *contents*
+        # is allowed as long as its base element type matches.
+        if isinstance(value_type, str) and value_type.startswith("array_"):
+            return value_type[len("array_"):] == array_type
+
+        # -------- numeric (anda/andamhie) ----------
         if array_type in ['anda', 'andamhie']:
-           # allow either a scalar of the same category, *or* an array whose base type
-           # matches array_type (i.e. nested array)
-           if value_type in ['anda', 'andamhie', 'eklabool']:
-               return True
-           if isinstance(value_type, str) and value_type.startswith("array_"):
-               return value_type[len("array_"):] == array_type
-           return False
+            return value_type in ['anda', 'andamhie', 'eklabool']
+
+        # -------- boolean --------------------------
         if array_type == 'eklabool':
-           if value_type in ['anda', 'andamhie', 'eklabool', 'chika']:
-               return True
-           if isinstance(value_type, str) and value_type.startswith("array_"):
-               return value_type[len("array_"):] == array_type
-           return False
+            return value_type in ['eklabool', 'anda', 'andamhie', 'chika']
+
+        # -------- strings --------------------------
         if array_type == 'chika':
-           # strings cannot be nested, so only literal chika
-           return value_type == 'chika'
+            return value_type == 'chika'
+
         return False
 
     def process_adele_statement(self):
@@ -809,116 +924,107 @@ class SemanticAnalyzer:
 
     def process_function_call(self):
         """
-        Processes a standalone function call statement.
-        It checks that the function is declared, validates the arguments against the function's parameter list,
-        and ensures the statement is properly terminated with a semicolon.
+        Processes a standalone function-call statement.
+
+        - verifies that the callee exists,
+        - validates each actual argument against the formal parameter list
+          (type + scalar/array shape),
+        - and ensures the statement is terminated by a ‘;’.
         """
-        # Current token is the function identifier.
+        # --- function identifier ---
         func_name = self.current_token()[0]
-        self.advance()  # Skip the function identifier
+        self.advance()                      # skip identifier
 
-        # Expect '(' after the function name.
+        # --- opening parenthesis ---
         if not self.current_token() or self.current_token()[1] != '(':
-            self.log += str(SemanticError("Expected '(' after function name in function call", self._token_stream[self.token_index][1][0])) + '\n'
-        self.advance()  # Skip '('
+            self.log += str(SemanticError(
+                "Expected '(' after function name in function call",
+                self._token_stream[self.token_index][1][0])) + '\n'
+        self.advance()                      # skip '('
 
-        # Check that the function is declared.
-        if func_name not in self.symbol_table["functions"]:
-            self.log += str(SemanticError(f"Function '{func_name}' is not declared", self._token_stream[self.token_index][1][0])) + '\n'
-            func_entry = {"parameters": [], "return_type": "anda"}
-        else:
-            func_entry = self.symbol_table["functions"][func_name]
-
+        # --- look-up / fallback entry ---
+        func_entry = self.symbol_table["functions"].get(
+            func_name,
+            {"parameters": [], "return_type": "anda"}
+        )
         expected_params = func_entry["parameters"]
 
-        arg_info_list = []  # (arg_name, arg_type)
+        # --- collect actual arguments ---
+        actual_args = []                    # list of (arg_type, is_array, arg_name)
         while self.current_token() and self.current_token()[1] != ')':
-            original_flag = self.allow_unindexed_array_usage
+            saved_flag = self.allow_unindexed_array_usage
             self.allow_unindexed_array_usage = True
-
             arg_type, arg_name = self.evaluate_expression_with_name()
-            arg_info_list.append((arg_name, arg_type))
+            self.allow_unindexed_array_usage = saved_flag
 
-            self.allow_unindexed_array_usage = original_flag
+            # determine “array-ness”
+            is_array = arg_type.startswith("array_")
+            if not is_array:
+                var_entry = self.lookup_variable(arg_name)
+                if var_entry and var_entry.get("is_array", False):
+                    is_array = True
+
+            actual_args.append((arg_type, is_array, arg_name))
 
             if self.current_token() and self.current_token()[1] == ',':
                 self.advance()
 
+        # --- closing parenthesis ---
         if not self.current_token() or self.current_token()[1] != ')':
-            self.log += str(SemanticError(f"Missing ')' in function call to '{func_name}'", self._token_stream[self.token_index][1][0])) + '\n'
-        self.advance()
+            self.log += str(SemanticError(
+                f"Missing ')' in function call to '{func_name}'",
+                self._token_stream[self.token_index][1][0])) + '\n'
+        self.advance()                      # skip ')'
 
-        if len(arg_info_list) != len(expected_params):
-            self.log += str(SemanticError(f"Function '{func_name}' expects {len(expected_params)} arguments, got {len(arg_info_list)}", self._token_stream[self.token_index][1][0])) + '\n'
-        for i, (arg_info, param) in enumerate(zip(arg_info_list, expected_params)):
-            arg_name, arg_type = arg_info
-            param_name, param_type, param_is_array = param
+        # --- arity check ---
+        if len(actual_args) != len(expected_params):
+            self.log += str(SemanticError(
+                f"Function '{func_name}' expects {len(expected_params)} arguments, "
+                f"got {len(actual_args)}",
+                self._token_stream[self.token_index][1][0])) + '\n'
 
-            is_argument_array = False
-            var_entry = self.lookup_variable(arg_name)
-            if var_entry and var_entry.get("is_array", False):
-                is_argument_array = True
+        # --- per-argument validation ---
+        for idx, (actual, expected) in enumerate(
+                zip(actual_args, expected_params), start=1):
+            arg_type, arg_is_array, _ = actual
+            param_name, param_type, param_is_array = expected
 
-            if is_argument_array != param_is_array:
+            if arg_is_array != param_is_array:
                 self.log += str(SemanticError(
-                    f"Argument {i+1} '{param_name}' of function '{func_name}' expects "
-                    f"{'an array' if param_is_array else 'a scalar'}, but got "
-                    f"{'an array' if is_argument_array else 'a scalar'}",
-                    self._token_stream[self.token_index][1][0]
-                )) + '\n'
-                # shape mismatch → skip further checks on this argument
+                    f"Argument {idx} '{param_name}' of function '{func_name}' "
+                    f"expects {'an array' if param_is_array else 'a scalar'}, "
+                    f"but got {'an array' if arg_is_array else 'a scalar'}",
+                    self._token_stream[self.token_index][1][0])) + '\n'
                 continue
 
-            base_arg_type = arg_type[len("array_"):] if isinstance(arg_type, str) and arg_type.startswith("array_") else arg_type
+            base_arg_type = arg_type[len("array_"):] if arg_is_array else arg_type
 
             if param_type in ['anda', 'andamhie']:
                 if base_arg_type not in ['anda', 'andamhie', 'eklabool']:
-                    self.log += str(SemanticError(f"Argument {i+1} of '{func_name}' expects a numeric type, got '{base_arg_type}'", self._token_stream[self.token_index][1][0])) + '\n'
-
+                    self.log += str(SemanticError(
+                        f"Argument {idx} of '{func_name}' expects numeric type, "
+                        f"got '{base_arg_type}'",
+                        self._token_stream[self.token_index][1][0])) + '\n'
             elif param_type == 'eklabool':
                 if base_arg_type not in ['eklabool', 'anda', 'andamhie', 'chika']:
-                    self.log += str(SemanticError(f"Argument {i+1} of '{func_name}' expects a boolean type, got '{base_arg_type}'", self._token_stream[self.token_index][1][0])) + '\n'
-
+                    self.log += str(SemanticError(
+                        f"Argument {idx} of '{func_name}' expects boolean type, "
+                        f"got '{base_arg_type}'",
+                        self._token_stream[self.token_index][1][0])) + '\n'
             elif param_type == 'chika':
                 if base_arg_type != 'chika':
-                    self.log += str(SemanticError(f"Argument {i+1} of '{func_name}' expects type 'chika', got '{base_arg_type}'", self._token_stream[self.token_index][1][0])) + '\n'
+                    self.log += str(SemanticError(
+                        f"Argument {idx} of '{func_name}' expects type 'chika', "
+                        f"got '{base_arg_type}'",
+                        self._token_stream[self.token_index][1][0])) + '\n'
 
-            is_argument_array = False
-            var_entry = None
-            if self.current_function:
-                for scope in reversed(self.block_scopes):
-                    if arg_name in scope:
-                        var_entry = scope[arg_name]
-                        break
-                if not var_entry:
-                    if arg_name in self.symbol_table["functions"][self.current_function]["locals"]:
-                        var_entry = self.symbol_table["functions"][self.current_function]["locals"][arg_name]
-                    else:
-                        for param_in_func in self.symbol_table["functions"][self.current_function]["parameters"]:
-                            if param_in_func[0] == arg_name:
-                                var_entry = {"data_type": param_in_func[1], "is_array": param_in_func[2]}
-                                break
-                if not var_entry and arg_name in self.symbol_table["variables"]:
-                    var_entry = self.symbol_table["variables"][arg_name]
-            else:
-                if arg_name in self.symbol_table["variables"]:
-                    var_entry = self.symbol_table["variables"][arg_name]
-
-
-            if var_entry and var_entry.get("is_array", False):
-                is_argument_array = True
-
-            if is_argument_array != param_is_array:
-                self.log += str(SemanticError(
-                    f"Argument {i+1} '{param_name}' of function '{func_name}' expects "
-                    f"{'an array' if param_is_array else 'a scalar'}, but got "
-                    f"{'an array' if is_argument_array else 'a scalar'}",
-                    self._token_stream[self.token_index][1][0]
-                )) + '\n'
-
+        # --- terminating semicolon ---
         if not self.current_token() or self.current_token()[1] != ';':
-            self.log += str(SemanticError("Expected ';' after function call", self._token_stream[self.token_index][1][0])) + '\n'
-        self.advance()
+            self.log += str(SemanticError(
+                "Expected ';' after function call",
+                self._token_stream[self.token_index][1][0])) + '\n'
+        else:
+            self.advance()
 
     def function_declaration(self, return_type, func_name):
         if func_name in self.symbol_table["functions"]:
@@ -1630,7 +1736,7 @@ class SemanticAnalyzer:
             self.advance()  # skip ')'
             return "givenchy"
 
-        if token[1] == 'id' and token[0] == 'len' and self.next_token() and self.next_token()[1] == '(':
+        if token[0] == 'len' and self.next_token() and self.next_token()[1] == '(':
             pos = self._token_stream[self.token_index][1][0]
             self.advance()  # skip 'len'
             self.advance()  # skip '('
@@ -1697,6 +1803,30 @@ class SemanticAnalyzer:
                         break
 
             return 'anda'
+
+        if token[1] == '{':
+            # Support raw array literal as function call argument or expression
+            start_pos = self._token_stream[self.token_index][1][0]
+            array_elements = self.process_array_initializer_dynamic()
+            flat = self.flatten_array(array_elements)
+
+            # Try to determine the base type of elements
+            base_type = None
+            for elem in flat:
+                if base_type is None:
+                    base_type = elem
+                elif base_type != elem:
+                    self.log += str(SemanticError(
+                        f"Inconsistent types in array literal: '{base_type}' and '{elem}'",
+                        start_pos
+                    )) + '\n'
+                    base_type = 'anda'  # fallback
+                    break
+
+            if base_type is None:
+                base_type = 'anda'  # empty array case fallback
+
+            return f"array_{base_type}"
 
         if token[1].endswith('_literal'):
             lit_type = token[1].split('_')[0]

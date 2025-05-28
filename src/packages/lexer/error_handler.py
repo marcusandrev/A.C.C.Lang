@@ -23,7 +23,7 @@ class DelimError():
         self._delims = shorten_delims(list(delims))
 
     def __str__(self):
-        error_message = f"undelimited: expected any {self._delims}\n" \
+        error_message = f"Invalid Delimiter:\n" \
                         f" {self._position[0]+1:<5}|{self._line}\n" \
                         f"      |{' '*self._position[1]}^\n"
         

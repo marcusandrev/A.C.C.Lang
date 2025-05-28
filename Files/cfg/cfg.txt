@@ -23,12 +23,10 @@
  <multi-parameters> -> λ 
  <array-dec> -> [ ] 
  <array-dec> -> λ 
- <array-indexing> -> [ <array-values> ] <2d-index>  
+ <array-indexing> -> [ <array-values> ] <multi-index>  
  <array-indexing> -> λ 
- <2d-index> -> [ <array-values> ] <3d-index> 
- <2d-index> -> λ 
- <3d-index>  -> [ <array-values> ] 
- <3d-index>  -> λ 
+ <multi-index> -> [ <array-values> ] <multi-index> 
+ <multi-index> -> λ 
  <array-values> -> <expression> 
  <literals> -> anda_literal 
  <literals> -> andamhie_literal 
@@ -68,7 +66,7 @@
  <arguments> -> λ 
  <multi-arguments-value> -> , <arguments-value> <multi-arguments-value> 
  <multi-arguments-value> -> λ 
- <arguments-value> -> <expression> 
+ <arguments-value> -> <assignment-values> 
  <array-assign> -> id <array-indexing> = <array-values> ; 
  <array-assign> -> λ 
  <kween-body> -> <func-body> 
@@ -156,7 +154,7 @@
  <output-stmts> -> serve ( <output-values> ) ; 
  <append-stmts> -> adele ( id <array-indexing> , <assignment-values> ) ; 
  <delete-stmts> -> adelete ( id <array-indexing> ) ; 
- <output-values> -> <expression> 
+ <output-values> -> <assignment-values> 
  <conditional-stmts> -> pak ( <condition> ) { <conditional-body> } <ganern-pak-statement> <ganern-case> 
  <condition> -> <expression> 
  <conditional-body> -> <statements>  
@@ -209,4 +207,5 @@
  <unary-stmts> -> id <unary-operator> ; 
  <push-values> -> <expression> 
  <push-values> -> { <array-elements> } 
- <push-values> -> λ
+ <push-values> -> λ 
+

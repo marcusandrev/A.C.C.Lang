@@ -123,7 +123,11 @@ class CodeGenerator:
         self.emit_helper_functions()
         self.visit(node)
         self.code_lines.append("if __name__ == '__main__':")
-        self.code_lines.append("    _kween()")
+        self.code_lines.append("    try:")
+        self.code_lines.append("        _kween()")
+        self.code_lines.append("    except Exception as e:")
+        self.code_lines.append("        print()")
+        self.code_lines.append("        print(e)")
         return "\n".join(self.code_lines) + "\n"
 
     def visit(self, node):
@@ -154,6 +158,13 @@ class CodeGenerator:
     def emit_statements(self, statements):
         for stmt in statements:
             self.emit_statement(stmt)
+
+    def get_base_identifier_name(self, expr):
+        while isinstance(expr, ArrayAccessNode):
+            expr = expr.array
+        if isinstance(expr, IdentifierNode):
+            return expr.name
+        return "<unknown>"
 
     def visit_ProgramNode(self, node):
         self.emit_statements(node.statements)
@@ -307,12 +318,12 @@ class CodeGenerator:
             # literal {…} on RHS
             if isinstance(node.expression, list):
                 rhs_code  = self.visit_list(node.expression)
-                base_name = node.identifier.array.name
+                base_name = self.get_base_identifier_name(node.identifier)
                 elem_type = self.lookup_variable(base_name)[0]
                 rhs_code  = f"_cArray_('{elem_type}', {rhs_code})"
             else:
                 rhs_code  = self.visit(node.expression)
-                base_name = node.identifier.array.name
+                base_name = self.get_base_identifier_name(node.identifier)
                 elem_type = self.lookup_variable(base_name)[0]
                 rhs_code  = f"_cType_('{elem_type}', {rhs_code})"
 
@@ -364,100 +375,86 @@ class CodeGenerator:
                 rhs_code = f"_cType_('{lhs_type}', {rhs_code})"
             self.code_lines.append(self.indent() + f"_{lhs_name} = {rhs_code}")
 
+    # ──────────────────────────────────────────────────────────────────────────
+    #  CodeGenerator : visit_FunctionCallNode
+    # ──────────────────────────────────────────────────────────────────────────
     def visit_FunctionCallNode(self, node):
+        # ─── built-in len() ────────────────────────────────────────────────
         if node.name == 'len':
             arg_code = self.visit(node.arguments[0])
             return f"_cType_('anda', len({arg_code}))"
 
+        # ─── built-in adele(target_list , value_to_append) ────────────────
         if node.name == 'adele':
-            tgt_expr = node.arguments[0]          # target list (grades)
-            src_expr = node.arguments[1]          # value to append
+            tgt_expr = node.arguments[0]        # e.g. msgs
+            src_expr = node.arguments[1]        # e.g. msgs2  OR  msgs2[0]  OR  {…}
 
+            # helper: recover element-type (anda/chika/…) of an array expr
             def array_info(expr):
-                # If it's a bare array variable, return its element type
                 if isinstance(expr, IdentifierNode):
                     info = self.lookup_variable(expr.name)
-                    if isinstance(info, tuple) and info[1]:
+                    if isinstance(info, tuple) and info[1]:      # is_array flag
                         return info[0]
-                # If it's an indexed access, recurse into the base
                 if isinstance(expr, ArrayAccessNode):
                     return array_info(expr.array)
                 return None
 
-            tgt_code   = self.visit(tgt_expr)
-            src_code   = self.visit(src_expr)
-            tgt_etype  = array_info(tgt_expr)     # e.g. 'anda'
-            src_etype  = array_info(src_expr)     # e.g. 'chika' or None
+            tgt_code  = self.visit(tgt_expr)
+            src_code  = self.visit(src_expr)
+            tgt_etype = array_info(tgt_expr)
 
-            if src_etype is None:                 # right-hand value is scalar *or* {…} literal
-                if tgt_etype:                     # we know what to clamp to
-                    if isinstance(src_expr, list):
-                        src_code = f"_cArray_('{tgt_etype}', {self.visit_list(src_expr)})"
-                    else:
-                        src_code = f"_cType_('{tgt_etype}', {src_code})"
-                # guard against appending to a non‐array element
-                # Compute display name for error message
-                if isinstance(tgt_expr, IdentifierNode):
-                    display_name = tgt_expr.name
-                elif isinstance(tgt_expr, ArrayAccessNode):
-                    # Convert g[0][1] → "g[0][1]"
-                    base = tgt_expr.array.name if isinstance(tgt_expr.array, IdentifierNode) else "<unknown>"
-                    indices = "".join(f"[{self.visit(i)}]" for i in tgt_expr.index_exprs)
-                    display_name = base + indices
+            # ── is the 2nd arg a *whole array variable*? ─────────────────
+            src_is_whole_array = (
+                isinstance(src_expr, IdentifierNode) and
+                isinstance(self.lookup_variable(src_expr.name), tuple) and
+                self.lookup_variable(src_expr.name)[1]            # is_array
+            )
+
+            # runtime name used in _cEnsureArray_() message
+            display_name = self.get_base_identifier_name(tgt_expr)
+            array_check  = f"_cEnsureArray_({tgt_code}, '{display_name}')"
+
+            # ── case 1: whole array → deep copy, clamp element-type ───────
+            if src_is_whole_array:
+                # make sure `copy` is imported once
+                if not self.import_emitted:
+                    self.code_lines.insert(0, "import copy")
+                    self.import_emitted = True
+
+                if tgt_etype:
+                    src_code = f"_cArray_('{tgt_etype}', copy.deepcopy({src_code}))"
                 else:
-                    display_name = "<unknown>"
+                    src_code = f"copy.deepcopy({src_code})"
 
-                # Wrap with array check and generate append code
-                array_check = f"_cEnsureArray_({tgt_code}, '{display_name}')"
                 return f"{array_check}.append({src_code})"
 
-            # 1) static element-type check
-            self.code_lines.append(self.indent() + f"_cSameElemType_('{tgt_etype}', '{src_etype}')")
+            # ── case 2: scalar value or { … } literal ─────────────────────
+            if tgt_etype:
+                if isinstance(src_expr, list):                     # literal list
+                    src_code = f"_cArray_('{tgt_etype}', {self.visit_list(src_expr)})"
+                else:                                             # scalar / element access
+                    src_code = f"_cType_('{tgt_etype}', {src_code})"
 
-            # 2) make a deep copy of the list we’re appending
-            if not self.import_emitted:
-                self.code_lines.insert(0, "import copy")
-                self.import_emitted = True
-            src_code = f"_cArray_('{tgt_etype}', copy.deepcopy(_{src_expr.name}))"
-
-            # guard against appending to a non‐array element
-            # Compute display name for error message
-            if isinstance(tgt_expr, IdentifierNode):
-                display_name = tgt_expr.name
-            elif isinstance(tgt_expr, ArrayAccessNode):
-                # Convert g[0][1] → "g[0][1]"
-                base = tgt_expr.array.name if isinstance(tgt_expr.array, IdentifierNode) else "<unknown>"
-                indices = "".join(f"[{self.visit(i)}]" for i in tgt_expr.index_exprs)
-                display_name = base + indices
-            else:
-                display_name = "<unknown>"
-
-            # Wrap with array check and generate append code
-            array_check = f"_cEnsureArray_({tgt_code}, '{display_name}')"
             return f"{array_check}.append({src_code})"
 
-        # builtin adelete(array) or adelete(array[index])
+        # ─── built-in adelete() ───────────────────────────────────────────
         if node.name == 'adelete':
             if len(node.arguments) != 1:
-                return f"raise TypeError('adelete() takes exactly 1 argument')"
+                return "raise TypeError('adelete() takes exactly 1 argument')"
 
             target = node.arguments[0]
-
-            # whole-variable form: adelete(grades);
-            if isinstance(target, IdentifierNode):
+            if isinstance(target, IdentifierNode):                 # whole list
                 return f"del _{target.name}"
-
-            # element-form: adelete(grades[1][1]);
-            if isinstance(target, ArrayAccessNode):
+            if isinstance(target, ArrayAccessNode):                # element
                 return f"del {self.visit(target)}"
 
-            # anything else is illegal
-            return ("raise TypeError('adelete() argument must be an array variable "
-                    "or array element reference')")
+            return ("raise TypeError('adelete() argument must be an array "
+                    "variable or array element reference')")
 
-        # normal (user-defined) function call
+        # ─── user-defined functions ───────────────────────────────────────
         args = ", ".join(self.visit(a) for a in node.arguments)
         return f"_{node.name}({args})"
+
 
     def visit_ReturnNode(self, node):
         if node.expression is not None:

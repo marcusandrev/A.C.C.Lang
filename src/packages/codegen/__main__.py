@@ -7,7 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..','..
 # from error_handler import *
 from src.packages.lexer.lexer import Lexer
 from src.packages.parser.parser import Parser
-from src.packages.parser.parse import Parser as parse
+from src.packages.parser.parser import Parser
 from src.packages.parser.semantic_analyzer import SemanticAnalyzer
 from src.packages.codegen.ast_generator import ASTGenerator
 from src.packages.codegen.code_generation import CodeGenerator
@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     if len(lexer.log) <= 0:
         print(lexer.token_stream, end='\n\n')
-        parser = Parser(source_code, lexer.token_stream)
+        parser = Parser(source_code)
         # parser = parse(lexer.token_stream)
         parser.start()
         print(parser.log)

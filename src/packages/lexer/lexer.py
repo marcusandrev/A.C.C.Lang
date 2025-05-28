@@ -6,26 +6,11 @@ from .token import tokenize
 # Lexer.token_stream stores lexemes and tokens
 # Lexer.log stores the error log
 
-def print_lex(source: str):
-    if not source[0:]: # Quit the program if source code is empty
-        print("quitting")
-        exit(1)
-
-    lex = Lexer(source)
-    lex.start()
-
-    print(lex.log)
-
-    print(f"{'-'*10}LEXEME{'-'*10 + ' '*5 + '-'*10}TOKEN{'-'*10}")
-    for lexeme, token in lex.token_stream:
-        print(f'{lexeme:^26}{' '*5}{token:^25}')
-
 class Lexer:
     def __init__(self, source: str):
         source = source.splitlines()
         self._source = [line + '\n' if x != len(source)-1 else line for x, line in enumerate(source)] # Converts source into a list of lines
         self._index = 0, 0
-        self._id_map: dict = {}
         self._lexemes: list[str] = []
         self.token_stream: list[dict] = []
         self.log = ""
@@ -35,14 +20,6 @@ class Lexer:
     def curr_char(self):
         if self._index[1] >= len(self._source[-1]) and self._index[0] >= len(self._source) - 1: return "\0"
         return self._source[self._index[0]][self._index[1]]
-    def next_char(self):
-        # if self._index[0] + 1 >= len(self._source): return "\0"
-        # return self._source[self._index + 1]
-
-        if self._index[1] + 1 >= len(self._source[self._index[0]]):
-            if self._index[0] + 1 >= len(self._source): return "\0"
-            else: return self._source[self._index[0] + 1][0]
-        else: return self._source[self._index[0]][self._index[1] + 1]
 
     def is_EOF(self):
         return self.curr_char() == "\0"
@@ -66,7 +43,6 @@ class Lexer:
         while not self.is_EOF():
             metadata.append(self._index)
             curr_char = self.curr_char()
-            # next_char = self.next_char()
             if curr_char == ' ':
                 self._lexemes.append(' ')
                 self.advance()
@@ -89,7 +65,7 @@ class Lexer:
                 print(lexeme)
                 self.log += str(lexeme) + '\n'
                 continue
-            elif type(lexeme) in [UnclosedString, UnclosedComment]:
+            elif type(lexeme) in [UnclosedString]:
                 print(lexeme)
                 self.log += str(lexeme) + '\n'
                 self.advance(len(''.join(self._source)))
@@ -109,14 +85,13 @@ class Lexer:
 
                 # For unclosed string, unclosed comment, and unfinished andamhie literal
                 if curr_char == '\0' and not STATES[state].isEnd:
-                    if state >= 272 and state <= 276:
+                    if state >= 300 and state <= 304:
                         return UnclosedString(self._source[self._index[0] - 1], self._index)
-                    # if state >= 265 and state <= 269:
-                    #     return UnclosedComment(self._source[self._index[0] - 1], self._index)
-                    if state >= 278 and state <= 281: # Unclosed comment will be returned
+
+                    if state >= 306 and state <= 309: # Unclosed comment will be returned
                         return ''
                     
-                if state == 269 and len(branches) == 1 and not STATES[state].isEnd:
+                if state == 287 and len(branches) == 1 and not STATES[state].isEnd:
                     return UnfinishedAndamhie(self._source[self._index[0]], self._index, STATES[state].chars)
 
                 continue
@@ -136,9 +111,6 @@ class Lexer:
             if type(lexeme) is UnclosedString:
                 self.reverse()
                 return UnclosedString(self._source[self._index[0]], self._index)
-            if type(lexeme) is UnclosedComment:
-                self.reverse()
-                return UnclosedComment(self._source[self._index[0]], self._index)
             if state <= 153:
                 self.reverse()
                 
@@ -148,20 +120,6 @@ class Lexer:
             return UnknownCharError(self._source[self._index[0]], self._index)
         if curr_state >= 154 and curr_state <= 225: return DelimError(self._source[self._index[0]], self._index, STATES[state].chars)
         return None
-    
-   
-    # def lexemize_int_float(self, curr_state: int = 0):
-    #     branches = STATES[curr_state].branches
-    #     for state in branches:
-    #         curr_char = self.curr_char()
-    #         if self.curr_char() not in STATES[state].chars: continue
-    #         print(f"{curr_state} -> {state}: {curr_char if len(STATES[state].branches) > 0 else "end state"}")
-    #         if len(STATES[state].branches) == 0: return ''
-    #         self.advance()
-    #         num = self.lexemize(state)
-    #         if num is not None: return curr_char + num
-    #         else:self.reverse()
-    #     return None
     
 
 if __name__ == "__main__":

@@ -30,12 +30,18 @@ def handle_compile_and_run(data):
     lex = Lexer(source_code)
     lex.start()
     tokens = [tup[0] for tup in lex.token_stream]
+    real_toks = []
+    for tok in tokens:
+        if tok[0] == "len":
+            real_toks.append(('len', 'len'))
+            continue
+        real_toks.append(tok)
     error_log = ""
     if lex.log:
         error_log = "Lexical Error/s\n\n" + str(lex.log)
 
     if not error_log:
-        parser = Parser(source_code, tokens)
+        parser = Parser(source_code)
         parser.start()
         if parser.log:
             error_log = "Syntax Error/s\n\n" + parser.log
@@ -48,7 +54,7 @@ def handle_compile_and_run(data):
 
     # 2) Send back tokens & errors
     emit('compile_result', {
-        'tokens': tokens,
+        'tokens': real_toks,
         'log': error_log
     })
 

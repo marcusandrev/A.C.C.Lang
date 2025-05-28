@@ -2,8 +2,8 @@ ATOMS = {
     # single characters only
     # 'ascii': {chr(i) for i in range(128) if chr(i) != '\0'},
     'ascii': {chr(i) for i in range(128)},
-    'ascii_276': {chr(i) for i in range(128) if chr(i) not in ['"', '\\', '\0']},
-    'ascii_285': {chr(i) for i in range(128) if chr(i) not in ['^', '\0']},
+    'ascii_300': {chr(i) for i in range(128) if chr(i) not in ['"', '\\', '\0']},
+    'ascii_309': {chr(i) for i in range(128) if chr(i) not in ['^', '\0']},
     'ascii_286': {chr(i) for i in range(128) if chr(i) not in ['/', '\0']},
     'alphabet': {
         'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',

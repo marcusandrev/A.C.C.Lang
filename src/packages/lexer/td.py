@@ -7,7 +7,7 @@ class State:
         self.isEnd = end
 
 STATES = {
-    0: State('initial', [1, 27, 35, 41, 48, 60, 70, 91, 106, 114, 119, 127, 145, 148, 154, 160, 166, 174, 182, 186, 190, 194, 198, 202, 205, 208, 210, 212, 214, 216, 218, 220, 222, 224, 226, 266, 271]),
+    0: State('initial', [1, 27, 35, 41, 48, 60, 70, 91, 106, 114, 119, 127, 145, 148, 154, 160, 166, 174, 182, 186, 190, 194, 198, 202, 205, 208, 210, 212, 214, 216, 218, 220, 222, 224, 226, 266, 299]),
     1: State('a', [2, 10, 19]), 2: State('m', 3), 3: State('a', 4), 4: State('c', 5), 5: State('c', 6), 6: State('a', 7), 7: State('n', 8), 8: State('a', 9), 9: State(DELIMS['amaccana_gogogo_delim'], end = True),
                             10: State('n', 11), 11: State('d', 12), 12: State('a', [13, 14]), 13: State(ATOMS['similar_delim'], end = True),
                                                                                               14: State('m', 15), 15: State('h', 16), 16: State('i', 17), 17: State('e', 18), 18: State(ATOMS['similar_delim'], end = True),
@@ -27,7 +27,7 @@ STATES = {
     91: State('k', [92, 96, 101]), 92: State('e', 93), 93: State('r', 94), 94: State('i', 95), 95: State(DELIMS['control_flow_delim'], end = True),
                                    96: State('o', 97), 97: State('r', 98), 98: State('i', 99), 99: State('k', 100), 100: State(DELIMS['bool_delim'], end = True),
                                   101: State('w', 102), 102: State('e', 103), 103: State('e', 104), 104: State('n', 105), 105: State(DELIMS['control_flow_delim'], end = True),
-   106: State('l', 107), 107: State('a', 108), 108: State('n', 109), 109: State('g', 110), 110: State(DELIMS['kerilang_ganern_delim'], end = True),
+   106: State('l', [107]), 107: State('a', 108), 108: State('n', 109), 109: State('g', 110), 110: State(DELIMS['kerilang_ganern_delim'], end = True),
                          111: State('e', 112), 112: State('n', 113), 113: State(DELIMS['control_flow_delim'], end = True),
 
 
@@ -51,7 +51,7 @@ STATES = {
                                         168: State('=', 169), 169: State(DELIMS['most_symbol_delim'], end = True),
                                         170: State('*', [171, 172]), 171: State(DELIMS['most_symbol_delim'], end = True),
                                                                         172: State('=', 173), 173: State(DELIMS['most_symbol_delim'], end = True),
-    174: State('/', [176, 178, 277, 175]), 175: State(DELIMS['most_symbol_delim'], end = True),
+    174: State('/', [176, 178, 305, 175]), 175: State(DELIMS['most_symbol_delim'], end = True),
                                             176: State('=', 177), 177: State(DELIMS['most_symbol_delim'], end = True),
                                             178: State('/', [179, 180]), 179: State(DELIMS['most_symbol_delim'], end = True),
                                                                             180: State('=', 181), 181: State(DELIMS['most_symbol_delim'], end = True),
@@ -97,11 +97,27 @@ STATES = {
                                                                             262: State([*ATOMS['alphanumeric'], '_'], [264, 263]), 263: State(DELIMS['id_delim'], end = True),
                                                                                 264: State([*ATOMS['alphanumeric'], '_'], [265]), 265: State(DELIMS['id_delim'], end = True),
 
-    266: State(ATOMS['digit'], [266, 268, 267]), 267: State(DELIMS['int_float_delim'], end = True),
-        268: State('.', 269),
-            269: State(ATOMS['digit'], [269, 270]), 270: State(DELIMS['int_float_delim'], end = True),
-    271: State('"', [272, 273, 275]), 272: State(ATOMS['ascii_276'], [272, 273, 275]), 273: State('"', 274), 274: State(DELIMS['string_delim'], end = True),
-                                    275: State('\\', 276), 276: State(ATOMS['ascii'], [272, 273, 274, 275]),
-    277: State('^', [278, 281]), 278: State('^', [278, 279, 281]), 279: State('/', 280), 280: State(ATOMS['ascii'], end = True),
-    281: State(ATOMS['ascii_285'], [278, 281])
+    266: State(ATOMS['digit'], [268, 286, 267]), 267: State(DELIMS['int_float_delim'], end = True),
+        268: State(ATOMS['digit'], [270, 286, 269]), 269: State(DELIMS['int_float_delim'], end = True),
+            270: State(ATOMS['digit'], [272, 286, 271]), 271: State(DELIMS['int_float_delim'], end = True),
+                272: State(ATOMS['digit'], [274, 286, 273]), 273: State(DELIMS['int_float_delim'], end = True),
+                    274: State(ATOMS['digit'], [276, 286, 275]), 275: State(DELIMS['int_float_delim'], end = True),
+                        276: State(ATOMS['digit'], [278, 286, 277]), 277: State(DELIMS['int_float_delim'], end = True),
+                            278: State(ATOMS['digit'], [280, 286, 279]), 279: State(DELIMS['int_float_delim'], end = True),
+                                280: State(ATOMS['digit'], [282, 286, 281]), 281: State(DELIMS['int_float_delim'], end = True),
+                                    282: State(ATOMS['digit'], [284, 286, 283]), 283: State(DELIMS['int_float_delim'], end = True),
+                                        284: State(ATOMS['digit'], [286, 285]), 285: State(DELIMS['int_float_delim'], end = True),
+        286: State('.', 287),
+            287: State(ATOMS['digit'], [289, 288]), 288: State(DELIMS['int_float_delim'], end = True),
+                289: State(ATOMS['digit'], [291, 290]), 290: State(DELIMS['int_float_delim'], end = True),
+                    291: State(ATOMS['digit'], [293, 292]), 292: State(DELIMS['int_float_delim'], end = True),
+                        293: State(ATOMS['digit'], [295, 294]), 294: State(DELIMS['int_float_delim'], end = True),
+                            295: State(ATOMS['digit'], [297, 296]), 296: State(DELIMS['int_float_delim'], end = True),
+                               297: State(ATOMS['digit'], [298]), 298: State(DELIMS['int_float_delim'], end = True),
+            
+    299: State('"', [300, 301, 303]), 300: State(ATOMS['ascii_300'], [300, 301, 303]), 301: State('"', 302), 302: State(DELIMS['string_delim'], end = True),
+                                    303: State('\\', 304), 304: State(ATOMS['ascii'], [300, 301, 302, 303]),
+
+    305: State('^', [306, 309]), 306: State('^', [306, 307, 309]), 307: State('/', 308), 308: State(ATOMS['ascii'], end = True),
+    309: State(ATOMS['ascii_309'], [306, 309])
 }

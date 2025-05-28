@@ -1,7 +1,3 @@
-anda void[]() {
-    push {1, 2, "hello"};
-}
-
 shimenet kween () {
-    serve("Hello");
+    serve({"hello", "world"});
 }
